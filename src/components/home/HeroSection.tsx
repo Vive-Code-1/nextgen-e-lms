@@ -7,15 +7,15 @@ const HeroSection = () => {
   const { t } = useLanguage();
 
   return (
-    <section className="relative overflow-hidden bg-background">
+    <section className="relative overflow-hidden bg-indigo-dark">
       <div className="container mx-auto px-4 py-16 md:py-24">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           {/* Text */}
           <div className="space-y-6">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight text-primary animate-fade-in-up">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight text-white animate-fade-in-up">
               {t("hero.headline")}
             </h1>
-            <p className="text-lg text-muted-foreground max-w-lg animate-fade-in-up-delay-1">
+            <p className="text-lg text-white/70 max-w-lg animate-fade-in-up-delay-1">
               {t("hero.subheadline")}
             </p>
             <div className="animate-fade-in-up-delay-2">
