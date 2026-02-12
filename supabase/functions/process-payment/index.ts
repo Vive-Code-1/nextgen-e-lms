@@ -12,13 +12,36 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { course_slug, payment_method, amount, user_id, course_title } = await req.json();
+    const { course_slug, payment_method, amount, user_id, course_title, sender_phone, trx_id } = await req.json();
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Create order record
+    // Manual BD payments and COD - create order directly as pending
+    if (["bkash_manual", "nagad_manual", "rocket_manual", "cod"].includes(payment_method)) {
+      const { data: order, error: orderErr } = await supabase
+        .from("orders")
+        .insert({
+          user_id,
+          amount,
+          currency: "BDT",
+          payment_method,
+          payment_status: "pending",
+          sender_phone: sender_phone || null,
+          trx_id: trx_id || null,
+        })
+        .select()
+        .single();
+
+      if (orderErr) throw orderErr;
+
+      return new Response(JSON.stringify({ success: true, order_id: order.id }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Create order record for gateway payments
     const { data: order, error: orderErr } = await supabase
       .from("orders")
       .insert({
@@ -94,7 +117,6 @@ Deno.serve(async (req) => {
       const clientSecret = Deno.env.get("PAYPAL_CLIENT_SECRET");
       if (!clientId || !clientSecret) throw new Error("PayPal credentials not configured");
 
-      // Get access token
       const authRes = await fetch("https://api-m.sandbox.paypal.com/v1/oauth2/token", {
         method: "POST",
         headers: {
@@ -105,7 +127,6 @@ Deno.serve(async (req) => {
       });
       const { access_token } = await authRes.json();
 
-      // Create order
       const orderRes = await fetch("https://api-m.sandbox.paypal.com/v2/checkout/orders", {
         method: "POST",
         headers: {
