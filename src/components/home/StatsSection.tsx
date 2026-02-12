@@ -6,10 +6,10 @@ const StatItem = ({ icon: Icon, value, suffix, label }: { icon: any; value: numb
   const { count, ref } = useCountUp(value);
   return (
     <div ref={ref} className="flex flex-col items-center gap-2 text-center">
-      <div className="rounded-full bg-accent/10 p-3 mb-1">
-        <Icon className="h-7 w-7 text-accent" />
+      <div className="rounded-full bg-emerald-accent/10 p-3 mb-1">
+        <Icon className="h-7 w-7 text-emerald-accent" />
       </div>
-      <span className="text-3xl md:text-4xl font-extrabold text-accent">{count}{suffix}</span>
+      <span className="text-3xl md:text-4xl font-extrabold text-primary">{count}{suffix}</span>
       <span className="text-sm font-medium text-muted-foreground">{label}</span>
     </div>
   );

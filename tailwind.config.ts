@@ -60,6 +60,10 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        "indigo-dark": "hsl(244, 47%, 20%)",
+        "emerald-accent": "hsl(160, 84%, 39%)",
+        "violet-brand": "hsl(263, 84%, 58%)",
+        "amber-cta": "hsl(45, 97%, 56%)",
       },
       borderRadius: {
         lg: "var(--radius)",
