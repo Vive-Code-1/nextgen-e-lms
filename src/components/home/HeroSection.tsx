@@ -2,14 +2,26 @@ import { ArrowRight, Search, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import heroBanner from "@/assets/hero-banner.webp";
 import heroVideo from "@/assets/hero-video.webm";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import StatsSection from "./StatsSection";
 
 const HeroSection = () => {
   const { t } = useLanguage();
   const [categoryOpen, setCategoryOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setCategoryOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
-    <section className="relative overflow-hidden pb-36">
+    <section className="relative overflow-hidden pb-12">
       {/* Background Video */}
       <video
         src={heroVideo}
@@ -22,7 +34,7 @@ const HeroSection = () => {
       {/* Dark Overlay */}
       <div className="absolute inset-0 bg-black/50" />
 
-      <div className="relative z-10 max-w-[80vw] mx-auto px-4 pt-28 pb-16 md:pt-32 md:pb-24">
+      <div className="relative z-10 max-w-[80vw] mx-auto px-4 pt-28 pb-8 md:pt-32 md:pb-12">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           {/* Text */}
           <div className="space-y-6">
@@ -37,7 +49,7 @@ const HeroSection = () => {
 
             {/* Search Bar */}
             <div className="animate-fade-in-up-delay-2">
-              <div className="flex items-center bg-white rounded-full shadow-lg overflow-hidden max-w-xl">
+              <div className="flex items-center bg-white rounded-full shadow-lg max-w-xl relative">
                 <div className="flex items-center flex-1 px-4 py-3">
                   <Search className="h-5 w-5 text-muted-foreground shrink-0" />
                   <input
@@ -47,7 +59,7 @@ const HeroSection = () => {
                   />
                 </div>
                 <div className="hidden sm:flex items-center border-l border-border px-3">
-                  <div className="relative">
+                  <div className="relative" ref={dropdownRef}>
                     <button
                       onClick={() => setCategoryOpen(!categoryOpen)}
                       className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors py-2 px-1"
@@ -74,15 +86,20 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Image */}
-          <div className="animate-fade-in-up-delay-2 hidden md:block">
+          {/* Image - smaller */}
+          <div className="animate-fade-in-up-delay-2 hidden md:flex justify-center">
             <img
               src={heroBanner}
               alt="Students learning together"
-              className="w-full object-contain"
+              className="w-3/4 max-w-sm object-contain"
               loading="lazy"
             />
           </div>
+        </div>
+
+        {/* Stats Cards inside hero */}
+        <div className="mt-12">
+          <StatsSection embedded />
         </div>
       </div>
     </section>

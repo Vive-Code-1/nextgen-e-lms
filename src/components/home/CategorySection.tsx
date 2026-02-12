@@ -1,6 +1,4 @@
 import { useLanguage } from "@/contexts/LanguageContext";
-import useEmblaCarousel from "embla-carousel-react";
-import { useEffect, useCallback } from "react";
 import { Palette, Video, Megaphone, Search, Code, ShoppingCart } from "lucide-react";
 
 const categories = [
@@ -14,20 +12,6 @@ const categories = [
 
 const CategorySection = () => {
   const { t } = useLanguage();
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "start" });
-
-  const autoplay = useCallback(() => {
-    if (!emblaApi) return;
-    const interval = setInterval(() => {
-      emblaApi.scrollNext();
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [emblaApi]);
-
-  useEffect(() => {
-    const cleanup = autoplay();
-    return cleanup;
-  }, [autoplay]);
 
   return (
     <section className="py-16">
@@ -41,24 +25,20 @@ const CategorySection = () => {
           </p>
         </div>
 
-        <div className="overflow-hidden" ref={emblaRef}>
-          <div className="flex gap-4">
-            {categories.map(({ icon: Icon, label, color, bg }) => (
-              <div
-                key={label}
-                className="flex-[0_0_45%] sm:flex-[0_0_30%] lg:flex-[0_0_16%] min-w-0"
-              >
-                <div className="flex flex-col items-center gap-3 bg-card border border-border rounded-2xl p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer">
-                  <div className={`rounded-full ${bg} p-4`}>
-                    <Icon className={`h-7 w-7 ${color}`} />
-                  </div>
-                  <span className="text-sm font-semibold text-foreground text-center">
-                    {t(label)}
-                  </span>
-                </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          {categories.map(({ icon: Icon, label, color, bg }) => (
+            <div
+              key={label}
+              className="flex flex-col items-center gap-3 bg-card border border-border rounded-2xl p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+            >
+              <div className={`rounded-full ${bg} p-4`}>
+                <Icon className={`h-7 w-7 ${color}`} />
               </div>
-            ))}
-          </div>
+              <span className="text-sm font-semibold text-foreground text-center">
+                {t(label)}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
     </section>
