@@ -7,6 +7,7 @@ import { useScrollReveal } from "@/hooks/useScrollReveal";
 import ScrollFloat from "@/components/ui/ScrollFloat";
 import ScrollRevealText from "@/components/ui/ScrollReveal";
 import { Link } from "react-router-dom";
+import ChromaGridWrapper from "@/components/ui/ChromaGridWrapper";
 
 const courses = [
   {
@@ -131,15 +132,18 @@ const PopularCourses = () => {
             {t("courses.subtitle")}
           </ScrollRevealText>
         </div>
-        <div
-          className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 transition-all duration-700 ${
+        <ChromaGridWrapper
+          className={`transition-all duration-700 ${
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
+          radius={350}
         >
-          {courses.map((course) => (
-            <CourseCard key={course.titleKey} course={course} />
-          ))}
-        </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {courses.map((course) => (
+              <CourseCard key={course.titleKey} course={course} />
+            ))}
+          </div>
+        </ChromaGridWrapper>
         <div className="text-center mt-10">
           <Link to="/courses">
             <Button variant="outline" size="lg" className="px-8 font-semibold">
