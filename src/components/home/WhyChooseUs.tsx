@@ -1,6 +1,8 @@
 import { Award, Headphones, Users } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
+import ScrollFloat from "@/components/ui/ScrollFloat";
+import ScrollRevealText from "@/components/ui/ScrollReveal";
 
 const features = [
   { icon: Award, titleKey: "why.cert.title", descKey: "why.cert.desc" },
@@ -17,11 +19,17 @@ const WhyChooseUs = () => {
       <div className="container mx-auto px-4" ref={ref}>
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-primary mb-3">
-            {t("why.title")}
+            <ScrollFloat textClassName="text-3xl md:text-4xl font-bold text-primary">
+              {t("why.title")}
+            </ScrollFloat>
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+          <ScrollRevealText
+            baseRotation={0}
+            containerClassName="text-muted-foreground max-w-2xl mx-auto"
+            textClassName="text-muted-foreground"
+          >
             {t("why.subtitle")}
-          </p>
+          </ScrollRevealText>
         </div>
         <div
           className={`grid grid-cols-1 md:grid-cols-3 gap-8 transition-all duration-700 ${

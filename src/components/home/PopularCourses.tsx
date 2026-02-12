@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
+import ScrollFloat from "@/components/ui/ScrollFloat";
+import ScrollRevealText from "@/components/ui/ScrollReveal";
 
 const courses = [
   {
@@ -98,11 +100,17 @@ const PopularCourses = () => {
       <div className="max-w-[80vw] mx-auto px-4" ref={ref}>
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
-            {t("courses.title")}
+            <ScrollFloat textClassName="text-3xl md:text-4xl font-bold text-foreground">
+              {t("courses.title")}
+            </ScrollFloat>
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+          <ScrollRevealText
+            baseRotation={0}
+            containerClassName="text-muted-foreground max-w-2xl mx-auto"
+            textClassName="text-muted-foreground"
+          >
             {t("courses.subtitle")}
-          </p>
+          </ScrollRevealText>
         </div>
         <div
           className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-700 ${
