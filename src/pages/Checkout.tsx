@@ -7,9 +7,9 @@ import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronRight, CreditCard, ShieldCheck } from "lucide-react";
+import { ChevronRight, CreditCard, ShieldCheck, Copy, Phone, MapPin, Truck } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
-// Simple course price lookup matching CourseDetails data
 const coursePrices: Record<string, { title: string; price: number; image: string }> = {
   "complete-graphics-design-masterclass": { title: "Complete Graphics Design Masterclass", price: 49.99, image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=400&h=250&fit=crop" },
   "professional-video-editing-with-premiere-pro": { title: "Professional Video Editing with Premiere Pro", price: 44.99, image: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400&h=250&fit=crop" },
@@ -21,11 +21,18 @@ const coursePrices: Record<string, { title: string; price: number; image: string
   "full-stack-javascript-development": { title: "Full Stack JavaScript Development", price: 64.99, image: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=250&fit=crop" },
 };
 
+const bdManualMethods = [
+  { id: "bkash_manual", label: "বিকাশ", number: "01332052874", color: "#E2136E" },
+  { id: "nagad_manual", label: "নগদ", number: "01332052874", color: "#F6A21E" },
+  { id: "rocket_manual", label: "রকেট", number: "01332052874", color: "#8C3494" },
+];
+
 const Checkout = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { t, language } = useLanguage();
   const { user } = useAuth();
+  const { toast } = useToast();
   const currency = language === "en" ? "$" : "৳";
 
   const course = slug ? coursePrices[slug] : null;
@@ -33,9 +40,22 @@ const Checkout = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("uddoktapay");
+  const [senderPhone, setSenderPhone] = useState("");
+  const [trxId, setTrxId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const isBdManual = ["bkash_manual", "nagad_manual", "rocket_manual"].includes(paymentMethod);
+  const isCod = paymentMethod === "cod";
+  const selectedBdMethod = bdManualMethods.find((m) => m.id === paymentMethod);
+
+  const copyNumber = (number: string) => {
+    navigator.clipboard.writeText(number);
+    toast({ title: "কপি হয়েছে!", description: `${number} কপি করা হয়েছে` });
+  };
 
   const handlePayment = async () => {
     setError("");
@@ -43,11 +63,20 @@ const Checkout = () => {
 
     try {
       let currentUser = user;
+      let createdEmail = "";
+      let createdPassword = "";
+
+      // Validate BD manual fields
+      if (isBdManual && (!senderPhone || !trxId)) {
+        setError("পেমেন্ট নম্বর ও TrxID দিন");
+        setLoading(false);
+        return;
+      }
 
       // If not logged in, create account first
       if (!currentUser) {
-        if (!email || !password || !fullName) {
-          setError("Please fill in all account fields");
+        if (!email || !password || !fullName || !phone || !address) {
+          setError("সকল ফিল্ড পূরণ করুন");
           setLoading(false);
           return;
         }
@@ -58,6 +87,13 @@ const Checkout = () => {
         });
         if (signUpErr) throw signUpErr;
         currentUser = data.user;
+        createdEmail = email;
+        createdPassword = password;
+
+        // Update profile with phone and address
+        if (currentUser) {
+          await supabase.from("profiles").update({ phone, address }).eq("id", currentUser.id);
+        }
       }
 
       if (!currentUser || !course || !slug) throw new Error("Missing data");
@@ -70,6 +106,8 @@ const Checkout = () => {
           amount: course.price,
           user_id: currentUser.id,
           course_title: course.title,
+          sender_phone: isBdManual ? senderPhone : undefined,
+          trx_id: isBdManual ? trxId : undefined,
         },
       });
 
@@ -77,8 +115,12 @@ const Checkout = () => {
 
       if (data?.redirect_url) {
         window.location.href = data.redirect_url;
+      } else if (data?.success || isCod) {
+        // Manual/COD payment - redirect to thank you
+        navigate("/thank-you", {
+          state: createdEmail ? { email: createdEmail, password: createdPassword } : undefined,
+        });
       } else {
-        // For demo: create order and enrollment directly
         navigate("/dashboard");
       }
     } catch (err: any) {
@@ -121,7 +163,6 @@ const Checkout = () => {
         <section className="py-12">
           <div className="max-w-[80vw] mx-auto px-4">
             <div className="grid lg:grid-cols-3 gap-8">
-              {/* Left: Account + Payment */}
               <div className="lg:col-span-2 space-y-6">
                 {/* Account Section */}
                 {!user && (
@@ -129,9 +170,23 @@ const Checkout = () => {
                     <h2 className="text-xl font-bold text-foreground mb-4">Create Your Account</h2>
                     <p className="text-sm text-muted-foreground mb-4">Create an account to access your course after purchase.</p>
                     <div className="space-y-3">
-                      <Input placeholder="Full Name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
-                      <Input type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} />
-                      <Input type="password" placeholder="Password (min 6 characters)" value={password} onChange={(e) => setPassword(e.target.value)} minLength={6} />
+                      <Input placeholder="Full Name *" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+                      <Input type="email" placeholder="Email Address *" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                      <Input type="password" placeholder="Password (min 6 characters) *" value={password} onChange={(e) => setPassword(e.target.value)} minLength={6} required />
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input placeholder="Phone Number *" value={phone} onChange={(e) => setPhone(e.target.value)} className="pl-10" required />
+                      </div>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <textarea
+                          placeholder="Address *"
+                          value={address}
+                          onChange={(e) => setAddress(e.target.value)}
+                          className="flex w-full rounded-md border border-input bg-background px-3 py-2 pl-10 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:text-sm min-h-[80px]"
+                          required
+                        />
+                      </div>
                     </div>
                   </div>
                 )}
@@ -159,21 +214,75 @@ const Checkout = () => {
                         key={method.id}
                         className={`flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-colors ${paymentMethod === method.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}
                       >
-                        <input
-                          type="radio"
-                          name="payment"
-                          value={method.id}
-                          checked={paymentMethod === method.id}
-                          onChange={(e) => setPaymentMethod(e.target.value)}
-                          className="accent-primary"
-                        />
+                        <input type="radio" name="payment" value={method.id} checked={paymentMethod === method.id} onChange={(e) => setPaymentMethod(e.target.value)} className="accent-primary" />
                         <div>
                           <span className="font-semibold text-foreground">{method.label}</span>
                           <p className="text-xs text-muted-foreground">{method.desc}</p>
                         </div>
                       </label>
                     ))}
+
+                    {/* COD */}
+                    <label
+                      className={`flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-colors ${paymentMethod === "cod" ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}
+                    >
+                      <input type="radio" name="payment" value="cod" checked={paymentMethod === "cod"} onChange={(e) => setPaymentMethod(e.target.value)} className="accent-primary" />
+                      <div className="flex items-center gap-2">
+                        <Truck className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <span className="font-semibold text-foreground">Cash on Delivery</span>
+                          <p className="text-xs text-muted-foreground">ক্যাশ অন ডেলিভারি</p>
+                        </div>
+                      </div>
+                    </label>
                   </div>
+                </div>
+
+                {/* BD Manual Payment */}
+                <div className="bg-card border border-border rounded-2xl p-6">
+                  <h2 className="text-xl font-bold text-foreground mb-4">🇧🇩 BD Manual Payment</h2>
+                  <div className="grid grid-cols-3 gap-3 mb-4">
+                    {bdManualMethods.map((method) => (
+                      <button
+                        key={method.id}
+                        onClick={() => setPaymentMethod(method.id)}
+                        className={`p-4 border-2 rounded-xl text-center font-bold transition-all ${paymentMethod === method.id ? "border-primary shadow-lg scale-[1.02]" : "border-border hover:border-primary/50"}`}
+                        style={paymentMethod === method.id ? { borderColor: method.color, backgroundColor: `${method.color}10` } : {}}
+                      >
+                        <span className="text-lg" style={{ color: method.color }}>{method.label}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {isBdManual && selectedBdMethod && (
+                    <div className="space-y-4 border-t border-border pt-4">
+                      <div className="bg-muted rounded-xl p-4">
+                        <p className="text-sm text-muted-foreground mb-1">{selectedBdMethod.label} নম্বর:</p>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl font-bold text-foreground">{selectedBdMethod.number}</span>
+                          <button
+                            onClick={() => copyNumber(selectedBdMethod.number)}
+                            className="p-2 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors"
+                          >
+                            <Copy className="h-4 w-4 text-primary" />
+                          </button>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2">উপরের নম্বরে {currency}{course.price} টাকা Send Money করুন</p>
+                      </div>
+                      <Input
+                        placeholder="যে নম্বর থেকে পাঠিয়েছেন *"
+                        value={senderPhone}
+                        onChange={(e) => setSenderPhone(e.target.value)}
+                        required
+                      />
+                      <Input
+                        placeholder="Transaction ID (TrxID) *"
+                        value={trxId}
+                        onChange={(e) => setTrxId(e.target.value)}
+                        required
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {error && (
@@ -187,7 +296,7 @@ const Checkout = () => {
                   disabled={loading}
                   className="w-full bg-accent text-accent-foreground hover:bg-accent/90 text-lg font-bold py-6"
                 >
-                  {loading ? "Processing..." : `Pay ${currency}${course.price}`}
+                  {loading ? "Processing..." : isCod ? "অর্ডার করুন" : `Pay ${currency}${course.price}`}
                 </Button>
 
                 <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">

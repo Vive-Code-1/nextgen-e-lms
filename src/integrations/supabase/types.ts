@@ -97,7 +97,9 @@ export type Database = {
           id: string
           payment_method: string | null
           payment_status: string | null
+          sender_phone: string | null
           transaction_id: string | null
+          trx_id: string | null
           user_id: string
         }
         Insert: {
@@ -108,7 +110,9 @@ export type Database = {
           id?: string
           payment_method?: string | null
           payment_status?: string | null
+          sender_phone?: string | null
           transaction_id?: string | null
+          trx_id?: string | null
           user_id: string
         }
         Update: {
@@ -119,7 +123,9 @@ export type Database = {
           id?: string
           payment_method?: string | null
           payment_status?: string | null
+          sender_phone?: string | null
           transaction_id?: string | null
+          trx_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -134,25 +140,31 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: string | null
           avatar_url: string | null
           created_at: string | null
           email: string | null
           full_name: string | null
           id: string
+          phone: string | null
         }
         Insert: {
+          address?: string | null
           avatar_url?: string | null
           created_at?: string | null
           email?: string | null
           full_name?: string | null
           id: string
+          phone?: string | null
         }
         Update: {
+          address?: string | null
           avatar_url?: string | null
           created_at?: string | null
           email?: string | null
           full_name?: string | null
           id?: string
+          phone?: string | null
         }
         Relationships: []
       }
