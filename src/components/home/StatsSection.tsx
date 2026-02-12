@@ -13,13 +13,13 @@ const StatCard = ({ icon: Icon, value, label, color, bg, suffix }: { icon: any; 
   const { t } = useLanguage();
   const { count, ref } = useCountUp(value);
   return (
-    <div ref={ref} className="flex items-center gap-4 bg-white/10 backdrop-blur-xl shadow-lg border border-white/20 rounded-2xl p-5">
-      <div className={`rounded-full ${bg} p-3 shrink-0`}>
-        <Icon className={`h-6 w-6 ${color}`} />
+    <div ref={ref} className="flex items-center gap-2 bg-white/10 backdrop-blur-xl shadow-lg border border-white/20 rounded-xl p-2.5">
+      <div className={`rounded-full ${bg} p-1.5 shrink-0`}>
+        <Icon className={`h-4 w-4 ${color}`} />
       </div>
       <div>
-        <span className="text-2xl md:text-3xl font-extrabold text-white">{count}{suffix}</span>
-        <p className="text-sm text-white/70">{t(label)}</p>
+        <span className="text-base md:text-lg font-extrabold text-white">{count}{suffix}</span>
+        <p className="text-[10px] text-white/70 leading-tight">{t(label)}</p>
       </div>
     </div>
   );

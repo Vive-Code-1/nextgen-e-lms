@@ -23,9 +23,15 @@ export const translations: Record<string, Record<string, string>> = {
     "stats.online_students": "Online Students",
 
     // Popular Courses
-    "courses.title": "Popular Courses",
-    "courses.subtitle": "Explore our most popular courses and start your learning journey today",
+    "courses.title": "Trending Courses",
+    "courses.subtitle": "Explore our trending courses and start your learning journey today",
     "courses.enroll": "Enroll Now",
+    "courses.graphics_design_course": "Complete Graphics Design Masterclass",
+    "courses.video_editing_course": "Professional Video Editing with Premiere Pro",
+    "courses.digital_marketing_course": "Digital Marketing & Social Media Strategy",
+    "courses.seo_course": "SEO Mastery: Rank #1 on Google",
+    "courses.web_dev_course": "Full-Stack Web Development Bootcamp",
+    "courses.dropshipping_course": "Dropshipping Business from Scratch",
     "courses.web_dev": "Complete Web Development Bootcamp",
     "courses.data_science": "Data Science & Machine Learning",
     "courses.ui_design": "UI/UX Design Masterclass",
@@ -78,6 +84,30 @@ export const translations: Record<string, Record<string, string>> = {
     "page.contact": "Contact Us",
     "page.contact.desc": "Get in touch with our team",
     "page.coming_soon": "Coming Soon",
+
+    // Master Skills
+    "master.title": "Master the Skills to Drive Your Career",
+    "master.desc": "Get certified, learn with the best, and advance your career with our industry-leading courses and expert mentors.",
+    "master.skill1": "Flexible learning at your own pace",
+    "master.skill2": "Lifetime access to all course materials",
+    "master.skill3": "Expert instruction from certified professionals",
+    "master.skill4": "Industry-recognized certificates",
+    "master.cta": "Get Started",
+
+    // Featured Instructors
+    "instructors.title": "Featured Instructor",
+    "instructors.subtitle": "Meet our talented professionals who make learning engaging and effective",
+    "instructors.courses_label": "Courses",
+    "instructors.students_label": "Students",
+
+    // Trusted By
+    "trusted.label": "Trusted By",
+    "trusted.title": "500+ Leading Universities And Companies",
+
+    // Share Knowledge
+    "share.title": "Want to Share Your Knowledge? Join as Instructor",
+    "share.desc": "Become an instructor and share your expertise with thousands of eager learners worldwide. Start teaching today!",
+    "share.cta": "Become an Instructor",
 
     // About Page
     "about.page_title": "About Us",
@@ -166,9 +196,15 @@ export const translations: Record<string, Record<string, string>> = {
     "stats.online_students": "অনলাইন শিক্ষার্থী",
 
     // Popular Courses
-    "courses.title": "জনপ্রিয় কোর্স",
-    "courses.subtitle": "আমাদের সবচেয়ে জনপ্রিয় কোর্সগুলো অন্বেষণ করুন",
+    "courses.title": "ট্রেন্ডিং কোর্স",
+    "courses.subtitle": "আমাদের ট্রেন্ডিং কোর্সগুলো অন্বেষণ করুন",
     "courses.enroll": "ভর্তি হন",
+    "courses.graphics_design_course": "সম্পূর্ণ গ্রাফিক্স ডিজাইন মাস্টারক্লাস",
+    "courses.video_editing_course": "প্রিমিয়ার প্রো দিয়ে প্রফেশনাল ভিডিও এডিটিং",
+    "courses.digital_marketing_course": "ডিজিটাল মার্কেটিং ও সোশ্যাল মিডিয়া স্ট্র্যাটেজি",
+    "courses.seo_course": "এসইও মাস্টারি: গুগলে #১ র‍্যাংক করুন",
+    "courses.web_dev_course": "ফুল-স্ট্যাক ওয়েব ডেভেলপমেন্ট বুটক্যাম্প",
+    "courses.dropshipping_course": "শূন্য থেকে ড্রপশিপিং ব্যবসা",
     "courses.web_dev": "সম্পূর্ণ ওয়েব ডেভেলপমেন্ট বুটক্যাম্প",
     "courses.data_science": "ডেটা সায়েন্স ও মেশিন লার্নিং",
     "courses.ui_design": "UI/UX ডিজাইন মাস্টারক্লাস",
@@ -221,6 +257,30 @@ export const translations: Record<string, Record<string, string>> = {
     "page.contact": "যোগাযোগ",
     "page.contact.desc": "আমাদের টিমের সাথে যোগাযোগ করুন",
     "page.coming_soon": "শীঘ্রই আসছে",
+
+    // Master Skills
+    "master.title": "আপনার ক্যারিয়ার এগিয়ে নিতে দক্ষতা অর্জন করুন",
+    "master.desc": "সার্টিফাইড হন, সেরাদের কাছ থেকে শিখুন এবং আমাদের ইন্ডাস্ট্রি-লিডিং কোর্সগুলোর মাধ্যমে আপনার ক্যারিয়ার এগিয়ে নিন।",
+    "master.skill1": "নিজের গতিতে নমনীয় শিক্ষা",
+    "master.skill2": "সকল কোর্স ম্যাটেরিয়ালে আজীবন অ্যাক্সেস",
+    "master.skill3": "সার্টিফাইড পেশাদারদের কাছ থেকে বিশেষজ্ঞ নির্দেশনা",
+    "master.skill4": "ইন্ডাস্ট্রি-স্বীকৃত সার্টিফিকেট",
+    "master.cta": "শুরু করুন",
+
+    // Featured Instructors
+    "instructors.title": "বৈশিষ্ট্যযুক্ত প্রশিক্ষক",
+    "instructors.subtitle": "যারা শেখাকে আকর্ষণীয় এবং কার্যকর করে তোলেন সেই প্রতিভাবান পেশাদারদের সাথে পরিচিত হন",
+    "instructors.courses_label": "কোর্স",
+    "instructors.students_label": "শিক্ষার্থী",
+
+    // Trusted By
+    "trusted.label": "বিশ্বস্ত",
+    "trusted.title": "৫০০+ শীর্ষ বিশ্ববিদ্যালয় এবং কোম্পানি",
+
+    // Share Knowledge
+    "share.title": "আপনার জ্ঞান শেয়ার করতে চান? প্রশিক্ষক হিসেবে যোগ দিন",
+    "share.desc": "প্রশিক্ষক হন এবং বিশ্বজুড়ে হাজার হাজার আগ্রহী শিক্ষার্থীদের সাথে আপনার দক্ষতা শেয়ার করুন।",
+    "share.cta": "প্রশিক্ষক হন",
 
     // About Page
     "about.page_title": "আমাদের সম্পর্কে",
