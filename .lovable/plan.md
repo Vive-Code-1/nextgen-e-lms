@@ -1,125 +1,89 @@
 
 
-# Hero Stats Compact, Bigger Image, Trending Courses, Featured Instructors, Trusted By Section
+# Add ScrollFloat and ScrollReveal Text Animations (from React Bits)
 
 ## Summary
-Six changes: (1) Make stats cards more compact to fit within the marked area below the search bar, (2) Enlarge the right-side hero banner image, (3) Update PopularCourses to show dummy courses from all 6 categories, (4) Add new sections from reference images (Master the Skills, etc.), (5) Add Featured Instructor carousel section, (6) Add "Trusted By 500+ Leading Universities And Companies" auto-scrolling marquee section using the uploaded SVG logos.
+Install GSAP and create two reusable animation components (`ScrollFloat` and `ScrollReveal`) from the React Bits library. Then apply them to specific section headings and subtitle/description texts across the homepage.
 
 ---
 
-## Changes
+## Step 1: Install GSAP dependency
 
-### 1. Compact Stats Cards
+Install `gsap` package -- required by both ScrollFloat and ScrollReveal components.
 
-**File:** `src/components/home/StatsSection.tsx`
+## Step 2: Create ScrollFloat component
 
-- Reduce icon size from `h-6 w-6` to `h-5 w-5`, icon container padding from `p-3` to `p-2`
-- Reduce card padding from `p-5` to `p-3`
-- Reduce number font size from `text-2xl md:text-3xl` to `text-xl md:text-2xl`
-- Reduce label text from `text-sm` to `text-xs`
-- Reduce gap from `gap-4` to `gap-3`
-- This ensures all 4 cards fit neatly within the search bar width area
+**New file:** `src/components/ui/ScrollFloat.tsx`
 
-### 2. Bigger Hero Banner Image
+A component that splits text into individual characters and animates them with a floating-in effect on scroll using GSAP ScrollTrigger. Based on the React Bits source code with TypeScript + Tailwind variant.
 
-**File:** `src/components/home/HeroSection.tsx`
+Props: `children` (string), `containerClassName`, `textClassName`, `animationDuration`, `ease`, `scrollStart`, `scrollEnd`, `stagger`
 
-- Change image from `w-3/4 max-w-sm` to `w-full max-w-lg` to make the banner image larger on the right side
+## Step 3: Create ScrollReveal component
 
-### 3. Trending Courses from All 6 Categories
+**New file:** `src/components/ui/ScrollReveal.tsx`
 
-**File:** `src/components/home/PopularCourses.tsx`
+A component that splits text into words and reveals them with opacity + blur animation on scroll using GSAP ScrollTrigger. Based on the React Bits source code with TypeScript + Tailwind variant.
 
-- Rename section title to "Trending Courses"
-- Replace the 4-course array with 6 courses -- one per category: Graphics Design, Video Editing, Digital Marketing, SEO, Website Development, Dropshipping
-- Each course gets a category badge matching the 6 categories defined in CategorySection
-- Use Unsplash images for thumbnails
-- Change grid to `lg:grid-cols-3` (2 rows x 3 columns) to fit 6 courses
-- Change section background from `gradient-section` to a light background (white/light gray) so cards are readable without white-on-dark issues
-- Add translation keys for new course titles and category labels
+Props: `children` (string), `containerClassName`, `textClassName`, `enableBlur`, `baseOpacity`, `baseRotation`, `blurStrength`, `rotationEnd`, `wordAnimationEnd`
 
-### 4. New Sections from Reference Images
+## Step 4: Apply ScrollFloat to section headings
 
-Based on the uploaded reference image (image-17.png), add these new sections to the home page:
+Wrap these section title texts with the `ScrollFloat` component (replacing the plain `<h2>` text content):
 
-**New File:** `src/components/home/MasterSkills.tsx`
-- "Master the Skills to Drive Your Career" section
-- Image on left, text on right with description and a CTA button
-- Light background section
+| Component | Text (translation key) |
+|-----------|----------------------|
+| `CategorySection.tsx` | "Browse Categories" (`categories.title`) |
+| `PopularCourses.tsx` | "Trending Courses" (`courses.title`) |
+| `FeaturedInstructors.tsx` | "Featured Instructor" (`instructors.title`) |
+| `WhyChooseUs.tsx` | "Why Choose Us" (`why.title`) |
+| `ShareKnowledge.tsx` | "Want to Share Your Knowledge? Join as Instructor" (`share.title`) |
 
-**New File:** `src/components/home/ShareKnowledge.tsx`  
-- "Want to Share Your Knowledge? Join as Instructor" section
-- CTA banner at the bottom before footer with a gradient background
-- Button to become an instructor
+Each heading `<h2>` will keep its existing className styling but render its text content through `<ScrollFloat>` instead of plain text.
 
-**File:** `src/pages/Index.tsx`
-- Add MasterSkills after PopularCourses
-- Add FeaturedInstructors after MasterSkills
-- Add TrustedBy after FeaturedInstructors
-- Add ShareKnowledge before Footer
+## Step 5: Apply ScrollReveal to subtitle/description texts
 
-### 5. Featured Instructor Carousel
+Wrap these description/subtitle texts with the `ScrollReveal` component:
 
-**New File:** `src/components/home/FeaturedInstructors.tsx`
+| Component | Text (translation key) |
+|-----------|----------------------|
+| `HeroSection.tsx` | Hero subheadline (`hero.subheadline`) |
+| `CategorySection.tsx` | Category subtitle (`categories.subtitle`) |
+| `PopularCourses.tsx` | Courses subtitle (`courses.subtitle`) |
+| `WhyChooseUs.tsx` | Why subtitle (`why.subtitle`) |
+| `FeaturedInstructors.tsx` | Instructors subtitle (`instructors.subtitle`) |
+| `MasterSkills.tsx` | Master description (`master.desc`) |
+| `ShareKnowledge.tsx` | Share description (`share.desc`) |
 
-- Section title: "Featured Instructor" with subtitle
-- Carousel using embla-carousel-react (already installed)
-- Each instructor card shows: gray background photo area, course count badge (e.g., "15 Courses"), verified badge (green checkmark), heart icon, name, role, student count
-- 4 visible cards at a time on desktop, with dot navigation below
-- Dummy data: 6-8 instructors with Unsplash portrait photos
-- Cards have white background, rounded corners, subtle shadow
-
-### 6. Trusted By - Auto Infinite Scroll Marquee
-
-**New File:** `src/components/home/TrustedBy.tsx`
-
-- Section title: "500+ Leading Universities And Companies"
-- Copy the 6 uploaded SVG files (22.svg through 27.svg) to `src/assets/logos/`
-- CSS-only infinite horizontal scroll marquee animation
-- Logos duplicated to create seamless loop
-- Uses `@keyframes marquee` with `translateX(0)` to `translateX(-50%)` animation
-- Light background section
+Each `<p>` element's text content will be rendered through `<ScrollReveal>` with appropriate styling overrides (font size, color) via the `textClassName` and `containerClassName` props.
 
 ---
 
-## Files to Create/Modify
+## Technical Details
 
-| File | Action |
+### Files to Create
+
+| File | Description |
+|------|-------------|
+| `src/components/ui/ScrollFloat.tsx` | GSAP-powered character-level float animation on scroll |
+| `src/components/ui/ScrollReveal.tsx` | GSAP-powered word-level reveal animation with blur on scroll |
+
+### Files to Modify
+
+| File | Change |
 |------|--------|
-| `src/components/home/StatsSection.tsx` | Compact sizing (icons, text, padding) |
-| `src/components/home/HeroSection.tsx` | Enlarge banner image |
-| `src/components/home/PopularCourses.tsx` | 6 courses from all categories, rename to Trending, light bg |
-| `src/components/home/MasterSkills.tsx` | NEW - Skills CTA section |
-| `src/components/home/FeaturedInstructors.tsx` | NEW - Instructor carousel with embla |
-| `src/components/home/TrustedBy.tsx` | NEW - Logo marquee with uploaded SVGs |
-| `src/components/home/ShareKnowledge.tsx` | NEW - Join as instructor CTA |
-| `src/pages/Index.tsx` | Add new sections in order |
-| `src/lib/translations.ts` | Add translation keys for new sections |
-| `src/assets/logos/` | Copy 6 SVG logo files |
+| `src/components/home/CategorySection.tsx` | ScrollFloat on title, ScrollReveal on subtitle |
+| `src/components/home/PopularCourses.tsx` | ScrollFloat on title, ScrollReveal on subtitle |
+| `src/components/home/FeaturedInstructors.tsx` | ScrollFloat on title, ScrollReveal on subtitle |
+| `src/components/home/WhyChooseUs.tsx` | ScrollFloat on title, ScrollReveal on subtitle |
+| `src/components/home/ShareKnowledge.tsx` | ScrollFloat on title, ScrollReveal on description |
+| `src/components/home/HeroSection.tsx` | ScrollReveal on subheadline |
+| `src/components/home/MasterSkills.tsx` | ScrollReveal on description |
 
-### Home Page Section Order
-1. Navbar
-2. HeroSection (full viewport with video, search bar, compact stats)
-3. CategorySection (6-card grid)
-4. PopularCourses (renamed "Trending Courses", 6 courses)
-5. MasterSkills ("Master the Skills...")
-6. FeaturedInstructors (carousel)
-7. TrustedBy (marquee logos)
-8. WhyChooseUs
-9. ShareKnowledge (Join as instructor CTA)
-10. Footer
-
-### Marquee Animation (CSS)
-```text
-@keyframes marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-```
-Logos are rendered twice side-by-side in a flex container; the container animates continuously leftward, creating an infinite scroll effect.
-
-### Featured Instructor Data
-- 6 instructors with Unsplash portrait images
-- Fields: name, role, courses count, students count, verified boolean
-- Carousel shows 4 at a time on desktop, 2 on tablet, 1 on mobile
+### Component Adaptations
+- The original ScrollFloat renders an `<h2>` wrapper -- we will make the wrapper element configurable or use it inside existing `<h2>` tags by rendering as `<span>` instead to avoid nested headings
+- The original ScrollReveal renders an `<h2>` wrapper -- similarly adapted to render as `<div>` or `<span>` to work inside `<p>` elements
+- Font sizes will be controlled via `textClassName` to match existing design (not using the default `clamp(1.6rem,4vw,3rem)`)
+- The ShareKnowledge section has white text on gradient background -- `textClassName` will include `text-white` for proper contrast
+- ScrollReveal's `baseRotation` will be set to `0` for subtitle texts to avoid unwanted rotation on small paragraphs
 
