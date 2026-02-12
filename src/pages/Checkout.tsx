@@ -91,25 +91,27 @@ const Checkout = () => {
           setLoading(false);
           return;
         }
-        const { data, error: signUpErr } = await supabase.auth.signUp({
+    const { data, error: signUpErr } = await supabase.auth.signUp({
           email,
           password,
           options: { data: { full_name: fullName }, emailRedirectTo: window.location.origin },
         });
+
         if (signUpErr) {
-          if (signUpErr.message.toLowerCase().includes("rate limit")) {
-            throw new Error("Too many attempts. Please try again in a few minutes.");
+          // If rate limit or user already exists, silently try signing in
+          if (signUpErr.message.toLowerCase().includes("rate limit") || signUpErr.message.toLowerCase().includes("already")) {
+            const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+            if (signInErr) {
+              throw new Error("অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন");
+            }
+            currentUser = signInData.user;
+          } else {
+            throw signUpErr;
           }
-          throw signUpErr;
-        }
-        
-        // Auto-login after signup to bypass email confirmation
-        const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
-        if (signInErr) {
-          // If sign-in fails, still use signup user
-          currentUser = data.user;
         } else {
-          currentUser = signInData.user;
+          // Auto-login after signup to bypass email confirmation
+          const { data: signInData } = await supabase.auth.signInWithPassword({ email, password });
+          currentUser = signInData?.user || data.user;
         }
         createdEmail = email;
         createdPassword = password;
@@ -130,6 +132,8 @@ const Checkout = () => {
           amount: course.price,
           user_id: currentUser.id,
           course_title: course.title,
+          full_name: fullName || user?.user_metadata?.full_name || "Customer",
+          email: email || user?.email || "",
           sender_phone: isBdManual ? senderPhone : undefined,
           trx_id: isBdManual ? trxId : undefined,
         },

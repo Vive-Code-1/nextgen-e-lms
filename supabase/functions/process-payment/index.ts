@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { course_slug, payment_method, amount, user_id, course_title, sender_phone, trx_id } = await req.json();
+    const { course_slug, payment_method, amount, user_id, course_title, full_name, email, sender_phone, trx_id } = await req.json();
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -60,24 +60,31 @@ Deno.serve(async (req) => {
       const apiKey = Deno.env.get("UDDOKTAPAY_API_KEY");
       if (!apiKey) throw new Error("UddoktaPay API key not configured");
 
-      const response = await fetch("https://sandbox.uddoktapay.com/api/checkout-v2", {
+      const baseUrl = "https://digitaltechdude.paymently.io/api";
+      const appOrigin = req.headers.get("origin") || "https://nextgen-e-lms.lovable.app";
+
+      const response = await fetch(`${baseUrl}/checkout-v2`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Accept": "application/json",
           "RT-UDDOKTAPAY-API-KEY": apiKey,
         },
         body: JSON.stringify({
-          full_name: "Customer",
-          email: "customer@example.com",
+          full_name: full_name || "Customer",
+          email: email || "customer@example.com",
           amount: amount.toString(),
           metadata: { order_id: order.id, course_slug },
-          redirect_url: `${supabaseUrl}/functions/v1/payment-callback?order_id=${order.id}&provider=uddoktapay`,
-          cancel_url: `${req.headers.get("origin") || "https://nextgen-e-lms.lovable.app"}/courses/${course_slug}`,
+          redirect_url: `${supabaseUrl}/functions/v1/payment-callback`,
+          return_type: "GET",
+          cancel_url: `${appOrigin}/courses/${course_slug}`,
           webhook_url: `${supabaseUrl}/functions/v1/payment-callback`,
         }),
       });
 
       const data = await response.json();
+      if (!data.status) throw new Error(data.message || "UddoktaPay error");
+
       return new Response(JSON.stringify({ redirect_url: data.payment_url }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
