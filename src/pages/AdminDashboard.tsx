@@ -7,9 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import {
   GraduationCap, LayoutDashboard, BookOpen, Users, ShoppingCart,
-  Settings, LogOut, DollarSign, TrendingUp, Save, CheckCircle
+  Settings, LogOut, DollarSign, TrendingUp, Save, CheckCircle,
+  Bell, ClipboardList, Star, FileText
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import AdminLessons from "@/components/admin/AdminLessons";
+import AdminAnnouncements from "@/components/admin/AdminAnnouncements";
+import AdminReviews from "@/components/admin/AdminReviews";
+import AdminAssignments from "@/components/admin/AdminAssignments";
 
 const AdminDashboard = () => {
   const { user, isAdmin, isLoading, signOut } = useAuth();
@@ -116,6 +121,10 @@ const AdminDashboard = () => {
 
   const sidebarLinks = [
     { icon: LayoutDashboard, label: "Dashboard", id: "dashboard" },
+    { icon: FileText, label: "Lessons", id: "lessons" },
+    { icon: Bell, label: "Announcements", id: "announcements" },
+    { icon: ClipboardList, label: "Assignments", id: "assignments" },
+    { icon: Star, label: "Reviews", id: "reviews" },
     { icon: BookOpen, label: "Courses", id: "courses" },
     { icon: Users, label: "Users", id: "users" },
     { icon: ShoppingCart, label: "Orders", id: "orders" },
@@ -296,6 +305,11 @@ const AdminDashboard = () => {
             </div>
           </div>
         )}
+
+        {activeTab === "lessons" && <AdminLessons />}
+        {activeTab === "announcements" && <AdminAnnouncements />}
+        {activeTab === "reviews" && <AdminReviews />}
+        {activeTab === "assignments" && <AdminAssignments />}
       </main>
     </div>
   );
