@@ -119,10 +119,16 @@ const Checkout = () => {
       }
 
       if (data?.redirect_url) {
-        window.open(data.redirect_url, '_blank');
-        navigate("/thank-you", {
-          state: data?.user_email ? { email: data.user_email, password: data.user_password } : undefined,
-        });
+        // Store credentials in localStorage so thank-you page can show them after redirect chain
+        if (data?.user_email) {
+          localStorage.setItem('checkout_credentials', JSON.stringify({
+            email: data.user_email,
+            password: data.user_password
+          }));
+        }
+        // Redirect the current page to payment gateway (works on published site, not in iframe preview)
+        window.location.href = data.redirect_url;
+        return;
       } else if (data?.success || isCod) {
         navigate("/thank-you", {
           state: data?.user_email ? { email: data.user_email, password: data.user_password } : undefined,
