@@ -27,7 +27,7 @@ const StatCard = ({ icon: Icon, value, label, color, bg }: { icon: any; value: n
 
 const StatsSection = () => {
   return (
-    <section className="relative z-10 -mt-16 pb-8">
+    <section className="relative z-10 -mt-28">
       <div className="max-w-[80vw] mx-auto px-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat) => (

@@ -35,6 +35,16 @@ export const translations: Record<string, Record<string, string>> = {
     "courses.cat.design": "Design",
     "courses.cat.mobile": "Mobile",
 
+    // Categories
+    "categories.title": "Browse Categories",
+    "categories.subtitle": "Explore our course categories and find the perfect learning path",
+    "categories.graphics_design": "Graphics Design",
+    "categories.video_editing": "Video Editing",
+    "categories.digital_marketing": "Digital Marketing",
+    "categories.seo": "SEO",
+    "categories.web_dev": "Website Development",
+    "categories.dropshipping": "Dropshipping",
+
     // Why Choose Us
     "why.title": "Why Choose Us",
     "why.subtitle": "We provide the best learning experience with certified courses and expert mentors",
@@ -104,6 +114,16 @@ export const translations: Record<string, Record<string, string>> = {
     "courses.cat.data": "ডেটা সায়েন্স",
     "courses.cat.design": "ডিজাইন",
     "courses.cat.mobile": "মোবাইল",
+
+    // Categories
+    "categories.title": "ক্যাটাগরি ব্রাউজ করুন",
+    "categories.subtitle": "আমাদের কোর্স ক্যাটাগরি অন্বেষণ করুন এবং সেরা শেখার পথ খুঁজুন",
+    "categories.graphics_design": "গ্রাফিক্স ডিজাইন",
+    "categories.video_editing": "ভিডিও এডিটিং",
+    "categories.digital_marketing": "ডিজিটাল মার্কেটিং",
+    "categories.seo": "এসইও",
+    "categories.web_dev": "ওয়েবসাইট ডেভেলপমেন্ট",
+    "categories.dropshipping": "ড্রপশিপিং",
 
     // Why Choose Us
     "why.title": "কেন আমাদের বেছে নেবেন",
