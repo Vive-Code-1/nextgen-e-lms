@@ -73,10 +73,6 @@ const Checkout = () => {
     setLoading(true);
 
     try {
-      let currentUser = user;
-      let createdEmail = "";
-      let createdPassword = "";
-
       // Validate BD manual fields
       if (isBdManual && (!senderPhone || !trxId)) {
         setError("পেমেন্ট নম্বর ও TrxID দিন");
@@ -84,82 +80,58 @@ const Checkout = () => {
         return;
       }
 
-      // If not logged in, create account first
-      if (!currentUser) {
-        if (!email || !password || !fullName || !phone || !address) {
-          setError("সকল ফিল্ড পূরণ করুন");
-          setLoading(false);
-          return;
-        }
-    const { data, error: signUpErr } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { data: { full_name: fullName }, emailRedirectTo: window.location.origin },
-        });
-
-        if (signUpErr) {
-          // If rate limit or user already exists, silently try signing in
-          if (signUpErr.message.toLowerCase().includes("rate limit") || signUpErr.message.toLowerCase().includes("already")) {
-            const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
-            if (signInErr) {
-              if (signInErr.message.toLowerCase().includes("invalid login")) {
-                throw new Error("এই ইমেইল দিয়ে আগে একাউন্ট আছে, সঠিক পাসওয়ার্ড দিন");
-              }
-              throw new Error("অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন");
-            }
-            currentUser = signInData.user;
-          } else {
-            throw signUpErr;
-          }
-        } else {
-          // Auto-login after signup to bypass email confirmation
-          const { data: signInData } = await supabase.auth.signInWithPassword({ email, password });
-          currentUser = signInData?.user || data.user;
-        }
-        createdEmail = email;
-        createdPassword = password;
-
-        // Update profile with phone and address
-        if (currentUser) {
-          await supabase.from("profiles").update({ phone, address }).eq("id", currentUser.id);
-        }
+      // Validate form for non-logged-in users
+      if (!user && (!email || !password || !fullName || !phone || !address)) {
+        setError("সকল ফিল্ড পূরণ করুন");
+        setLoading(false);
+        return;
       }
 
-      if (!currentUser || !course || !slug) throw new Error("Missing data");
+      if (!course || !slug) throw new Error("Course not found");
 
-      // Call payment edge function
+      // Call edge function - it handles EVERYTHING (user creation + order + payment)
       const { data, error: fnErr } = await supabase.functions.invoke("process-payment", {
         body: {
           course_slug: slug,
           payment_method: paymentMethod,
           amount: course.price,
-          user_id: currentUser.id,
+          user_id: user?.id || undefined,
           course_title: course.title,
           full_name: fullName || user?.user_metadata?.full_name || "Customer",
           email: email || user?.email || "",
+          password: !user ? password : undefined,
+          phone: phone || undefined,
+          address: address || undefined,
           sender_phone: isBdManual ? senderPhone : undefined,
           trx_id: isBdManual ? trxId : undefined,
         },
       });
 
       if (fnErr) throw fnErr;
+      if (data?.error) throw new Error(data.error);
+
+      // Auto-login if new user was created by the edge function
+      if (data?.user_email && data?.user_password && !user) {
+        await supabase.auth.signInWithPassword({
+          email: data.user_email,
+          password: data.user_password,
+        });
+      }
 
       if (data?.redirect_url) {
-        // Open payment gateway in new tab (avoid iframe blocking)
         window.open(data.redirect_url, '_blank');
         navigate("/thank-you", {
-          state: createdEmail ? { email: createdEmail, password: createdPassword } : undefined,
+          state: data?.user_email ? { email: data.user_email, password: data.user_password } : undefined,
         });
       } else if (data?.success || isCod) {
-        // Manual/COD payment - redirect to thank you
         navigate("/thank-you", {
-          state: createdEmail ? { email: createdEmail, password: createdPassword } : undefined,
+          state: data?.user_email ? { email: data.user_email, password: data.user_password } : undefined,
         });
       } else {
         navigate("/dashboard");
       }
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "কিছু একটা সমস্যা হয়েছে, আবার চেষ্টা করুন");
     } finally {
       setLoading(false);
     }
