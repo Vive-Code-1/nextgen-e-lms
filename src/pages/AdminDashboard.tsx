@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import {
   GraduationCap, LayoutDashboard, BookOpen, Users, ShoppingCart,
-  Settings, LogOut, DollarSign, TrendingUp, Save
+  Settings, LogOut, DollarSign, TrendingUp, Save, CheckCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -35,35 +35,37 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     if (user && isAdmin) {
-      // Fetch stats
-      supabase.from("courses").select("id", { count: "exact" }).then(({ count }) =>
-        setStats((s) => ({ ...s, courses: count || 0 }))
-      );
-      supabase.from("profiles").select("id", { count: "exact" }).then(({ count }) =>
-        setStats((s) => ({ ...s, students: count || 0 }))
-      );
-      supabase.from("orders").select("*").then(({ data }) => {
-        if (data) {
-          setStats((s) => ({
-            ...s,
-            orders: data.length,
-            revenue: data.filter((o: any) => o.payment_status === "completed").reduce((sum: number, o: any) => sum + Number(o.amount), 0),
-          }));
-          setRecentOrders(data.slice(0, 10));
-        }
-      });
-
-      // Fetch payment settings
-      supabase.from("site_settings").select("*").then(({ data }) => {
-        if (data) {
-          const methods = data.find((s: any) => s.key === "payment_methods");
-          const baseUrl = data.find((s: any) => s.key === "uddoktapay_base_url");
-          if (methods?.value) setPaymentMethods(methods.value as any);
-          if (baseUrl?.value) setUddoktapayBaseUrl(baseUrl.value as string);
-        }
-      });
+      fetchData();
     }
   }, [user, isAdmin]);
+
+  const fetchData = () => {
+    supabase.from("courses").select("id", { count: "exact" }).then(({ count }) =>
+      setStats((s) => ({ ...s, courses: count || 0 }))
+    );
+    supabase.from("profiles").select("id", { count: "exact" }).then(({ count }) =>
+      setStats((s) => ({ ...s, students: count || 0 }))
+    );
+    supabase.from("orders").select("*").then(({ data }) => {
+      if (data) {
+        setStats((s) => ({
+          ...s,
+          orders: data.length,
+          revenue: data.filter((o: any) => o.payment_status === "completed").reduce((sum: number, o: any) => sum + Number(o.amount), 0),
+        }));
+        setRecentOrders(data.slice(0, 20));
+      }
+    });
+
+    supabase.from("site_settings").select("*").then(({ data }) => {
+      if (data) {
+        const methods = data.find((s: any) => s.key === "payment_methods");
+        const baseUrl = data.find((s: any) => s.key === "uddoktapay_base_url");
+        if (methods?.value) setPaymentMethods(methods.value as any);
+        if (baseUrl?.value) setUddoktapayBaseUrl(baseUrl.value as string);
+      }
+    });
+  };
 
   const savePaymentSettings = async () => {
     setSavingSettings(true);
@@ -81,6 +83,31 @@ const AdminDashboard = () => {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setSavingSettings(false);
+    }
+  };
+
+  const approveOrder = async (order: any) => {
+    try {
+      // Update order status to completed
+      const { error: updateErr } = await supabase
+        .from("orders")
+        .update({ payment_status: "completed" } as any)
+        .eq("id", order.id);
+
+      if (updateErr) throw updateErr;
+
+      // Create enrollment if course_id exists
+      if (order.course_id) {
+        await supabase.from("enrollments").upsert(
+          { user_id: order.user_id, course_id: order.course_id } as any,
+          { onConflict: "user_id,course_id" }
+        );
+      }
+
+      toast({ title: "অর্ডার অ্যাপ্রুভ হয়েছে!", description: "স্টুডেন্ট কোর্সে এক্সেস পেয়ে গেছে।" });
+      fetchData(); // Refresh orders
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
     }
   };
 
@@ -109,6 +136,50 @@ const AdminDashboard = () => {
     { key: "cod", label: "Cash on Delivery", desc: "Pay on delivery" },
     { key: "bd_manual", label: "BD Manual Payment", desc: "Manual bKash/Nagad/Rocket" },
   ];
+
+  const renderOrdersTable = (orders: any[], showApprove = false) => (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-border">
+            <th className="text-left py-3 text-muted-foreground font-medium">Order ID</th>
+            <th className="text-left py-3 text-muted-foreground font-medium">Amount</th>
+            <th className="text-left py-3 text-muted-foreground font-medium">Method</th>
+            <th className="text-left py-3 text-muted-foreground font-medium">Status</th>
+            <th className="text-left py-3 text-muted-foreground font-medium">Date</th>
+            {showApprove && <th className="text-left py-3 text-muted-foreground font-medium">Action</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {orders.map((order: any) => (
+            <tr key={order.id} className="border-b border-border last:border-0">
+              <td className="py-3 text-foreground font-mono text-xs">{order.id.slice(0, 8)}...</td>
+              <td className="py-3 text-foreground">${Number(order.amount).toFixed(2)}</td>
+              <td className="py-3 text-foreground capitalize">{order.payment_method || "-"}</td>
+              <td className="py-3">
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${order.payment_status === "completed" ? "bg-emerald-500/10 text-emerald-500" : "bg-accent/10 text-accent"}`}>
+                  {order.payment_status}
+                </span>
+              </td>
+              <td className="py-3 text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</td>
+              {showApprove && (
+                <td className="py-3">
+                  {order.payment_status === "pending" ? (
+                    <Button size="sm" variant="outline" onClick={() => approveOrder(order)} className="flex items-center gap-1 text-emerald-600 border-emerald-600 hover:bg-emerald-500/10">
+                      <CheckCircle className="h-3.5 w-3.5" />
+                      Approve
+                    </Button>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
+                </td>
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 
   return (
     <div className="min-h-screen flex bg-background">
@@ -152,7 +223,6 @@ const AdminDashboard = () => {
 
         {activeTab === "dashboard" && (
           <>
-            {/* Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               {statCards.map((s) => (
                 <div key={s.label} className="bg-card border border-border rounded-2xl p-5">
@@ -165,43 +235,22 @@ const AdminDashboard = () => {
               ))}
             </div>
 
-            {/* Recent Orders */}
             <div className="bg-card border border-border rounded-2xl p-6">
               <h2 className="text-lg font-bold text-foreground mb-4">Recent Orders</h2>
               {recentOrders.length === 0 ? (
                 <p className="text-muted-foreground text-sm">No orders yet.</p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-border">
-                        <th className="text-left py-3 text-muted-foreground font-medium">Order ID</th>
-                        <th className="text-left py-3 text-muted-foreground font-medium">Amount</th>
-                        <th className="text-left py-3 text-muted-foreground font-medium">Method</th>
-                        <th className="text-left py-3 text-muted-foreground font-medium">Status</th>
-                        <th className="text-left py-3 text-muted-foreground font-medium">Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {recentOrders.map((order: any) => (
-                        <tr key={order.id} className="border-b border-border last:border-0">
-                          <td className="py-3 text-foreground font-mono text-xs">{order.id.slice(0, 8)}...</td>
-                          <td className="py-3 text-foreground">${Number(order.amount).toFixed(2)}</td>
-                          <td className="py-3 text-foreground capitalize">{order.payment_method || "-"}</td>
-                          <td className="py-3">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${order.payment_status === "completed" ? "bg-emerald-500/10 text-emerald-500" : "bg-accent/10 text-accent"}`}>
-                              {order.payment_status}
-                            </span>
-                          </td>
-                          <td className="py-3 text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+              ) : renderOrdersTable(recentOrders, true)}
             </div>
           </>
+        )}
+
+        {activeTab === "orders" && (
+          <div className="bg-card border border-border rounded-2xl p-6">
+            <h2 className="text-lg font-bold text-foreground mb-4">All Orders</h2>
+            {recentOrders.length === 0 ? (
+              <p className="text-muted-foreground text-sm">No orders yet.</p>
+            ) : renderOrdersTable(recentOrders, true)}
+          </div>
         )}
 
         {activeTab === "settings" && (
@@ -209,7 +258,6 @@ const AdminDashboard = () => {
             <div className="bg-card border border-border rounded-2xl p-6">
               <h2 className="text-lg font-bold text-foreground mb-6">Payment Settings</h2>
 
-              {/* Payment Methods Toggle */}
               <div className="space-y-4 mb-8">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Payment Methods</h3>
                 {paymentMethodsList.map((method) => (
@@ -228,7 +276,6 @@ const AdminDashboard = () => {
                 ))}
               </div>
 
-              {/* UddoktaPay Config */}
               <div className="space-y-4 mb-8">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">UddoktaPay Configuration</h3>
                 <div>
