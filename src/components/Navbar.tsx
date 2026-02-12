@@ -13,6 +13,8 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const hasDarkHero = location.pathname === "/";
+  const useSolidStyle = isScrolled || !hasDarkHero;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,7 +42,7 @@ const Navbar = () => {
     <header className="fixed top-0 left-0 right-0 z-50 px-4 pt-4">
       <div
         className={`max-w-[80vw] mx-auto flex h-14 items-center justify-between px-6 rounded-full transition-all duration-300 ${
-          isScrolled
+          useSolidStyle
             ? "bg-white shadow-md border border-border"
             : "bg-white/10 backdrop-blur-xl border border-white/20"
         }`}
@@ -49,7 +51,7 @@ const Navbar = () => {
         <Link
           to="/"
           className={`flex items-center gap-2 font-bold text-xl transition-colors ${
-            isScrolled ? "text-foreground" : "text-white"
+            useSolidStyle ? "text-foreground" : "text-white"
           }`}
         >
           <GraduationCap className="h-7 w-7 text-accent" />
@@ -65,7 +67,7 @@ const Navbar = () => {
               className={`text-sm font-medium transition-colors hover:text-accent ${
                 isActive(link.to)
                   ? "text-accent"
-                  : isScrolled
+                  : useSolidStyle
                   ? "text-foreground/70"
                   : "text-white/70"
               }`}
@@ -82,7 +84,7 @@ const Navbar = () => {
             size="sm"
             onClick={toggleLanguage}
             className={`gap-1.5 text-sm font-medium transition-colors ${
-              isScrolled
+              useSolidStyle
                 ? "text-foreground/70 hover:text-foreground hover:bg-muted"
                 : "text-white/70 hover:text-white hover:bg-white/10"
             }`}
@@ -91,7 +93,7 @@ const Navbar = () => {
             {language === "en" ? "EN" : "BN"}
           </Button>
 
-          <div className={`h-6 w-px ${isScrolled ? "bg-border" : "bg-white/20"}`} />
+          <div className={`h-6 w-px ${useSolidStyle ? "bg-border" : "bg-white/20"}`} />
 
           {user ? (
             <>
@@ -100,7 +102,7 @@ const Navbar = () => {
                   variant="ghost"
                   size="sm"
                   className={`text-sm font-medium transition-colors ${
-                    isScrolled
+                    useSolidStyle
                       ? "text-foreground/70 hover:text-foreground hover:bg-muted"
                       : "text-white/70 hover:text-white hover:bg-white/10"
                   }`}
@@ -119,7 +121,7 @@ const Navbar = () => {
                   variant="ghost"
                   size="sm"
                   className={`text-sm font-medium transition-colors ${
-                    isScrolled
+                    useSolidStyle
                       ? "text-foreground/70 hover:text-foreground hover:bg-muted"
                       : "text-white/70 hover:text-white hover:bg-white/10"
                   }`}
@@ -142,7 +144,7 @@ const Navbar = () => {
             <Button
               variant="ghost"
               size="icon"
-              className={isScrolled ? "text-foreground hover:bg-muted" : "text-white hover:bg-white/10"}
+              className={useSolidStyle ? "text-foreground hover:bg-muted" : "text-white hover:bg-white/10"}
             >
               <Menu className="h-5 w-5" />
             </Button>
