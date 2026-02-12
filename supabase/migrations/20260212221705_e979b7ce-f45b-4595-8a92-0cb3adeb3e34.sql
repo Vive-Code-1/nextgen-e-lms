@@ -1,0 +1,10 @@
+INSERT INTO public.courses (slug, title, price, original_price, image_url, category, duration, instructor_name) VALUES
+('complete-graphics-design-masterclass', 'Complete Graphics Design Masterclass', 49.99, 99.99, 'https://images.unsplash.com/photo-1626785774573-4b799315345d?w=400&h=250&fit=crop', 'Design', '40 hours', 'Expert Instructor'),
+('professional-video-editing-with-premiere-pro', 'Professional Video Editing with Premiere Pro', 44.99, 89.99, 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400&h=250&fit=crop', 'Video', '35 hours', 'Expert Instructor'),
+('digital-marketing-social-media-strategy', 'Digital Marketing & Social Media Strategy', 59.99, 119.99, 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=250&fit=crop', 'Marketing', '45 hours', 'Expert Instructor'),
+('seo-mastery-rank-1-on-google', 'SEO Mastery: Rank #1 on Google', 39.99, 79.99, 'https://images.unsplash.com/photo-1562577309-4932fdd64cd1?w=400&h=250&fit=crop', 'Marketing', '30 hours', 'Expert Instructor'),
+('full-stack-web-development-bootcamp', 'Full-Stack Web Development Bootcamp', 54.99, 109.99, 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=250&fit=crop', 'Development', '60 hours', 'Expert Instructor'),
+('dropshipping-business-from-scratch', 'Dropshipping Business from Scratch', 34.99, 69.99, 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=250&fit=crop', 'Business', '25 hours', 'Expert Instructor'),
+('advanced-graphics-design-portfolio', 'Advanced Graphics Design Portfolio', 54.99, 109.99, 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=250&fit=crop', 'Design', '50 hours', 'Expert Instructor'),
+('full-stack-javascript-development', 'Full Stack JavaScript Development', 64.99, 129.99, 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=250&fit=crop', 'Development', '55 hours', 'Expert Instructor')
+ON CONFLICT (slug) DO NOTHING;

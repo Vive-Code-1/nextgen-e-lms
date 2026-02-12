@@ -18,6 +18,17 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Look up course_id from slug
+    let courseId: string | null = null;
+    if (course_slug) {
+      const { data: courseData } = await supabase
+        .from("courses")
+        .select("id")
+        .eq("slug", course_slug)
+        .single();
+      courseId = courseData?.id || null;
+    }
+
     // Manual BD payments and COD - create order directly as pending
     if (["bkash_manual", "nagad_manual", "rocket_manual", "cod"].includes(payment_method)) {
       const { data: order, error: orderErr } = await supabase
@@ -28,6 +39,7 @@ Deno.serve(async (req) => {
           currency: "BDT",
           payment_method,
           payment_status: "pending",
+          course_id: courseId,
           sender_phone: sender_phone || null,
           trx_id: trx_id || null,
         })
@@ -50,6 +62,7 @@ Deno.serve(async (req) => {
         currency: "USD",
         payment_method,
         payment_status: "pending",
+        course_id: courseId,
       })
       .select()
       .single();
@@ -74,7 +87,7 @@ Deno.serve(async (req) => {
           full_name: full_name || "Customer",
           email: email || "customer@example.com",
           amount: amount.toString(),
-          metadata: { order_id: order.id, course_slug },
+          metadata: { order_id: order.id, course_slug, course_id: courseId },
           redirect_url: `${supabaseUrl}/functions/v1/payment-callback`,
           return_type: "GET",
           cancel_url: `${appOrigin}/courses/${course_slug}`,

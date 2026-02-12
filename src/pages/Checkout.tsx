@@ -102,6 +102,9 @@ const Checkout = () => {
           if (signUpErr.message.toLowerCase().includes("rate limit") || signUpErr.message.toLowerCase().includes("already")) {
             const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
             if (signInErr) {
+              if (signInErr.message.toLowerCase().includes("invalid login")) {
+                throw new Error("এই ইমেইল দিয়ে আগে একাউন্ট আছে, সঠিক পাসওয়ার্ড দিন");
+              }
               throw new Error("অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন");
             }
             currentUser = signInData.user;
@@ -142,7 +145,11 @@ const Checkout = () => {
       if (fnErr) throw fnErr;
 
       if (data?.redirect_url) {
-        window.location.href = data.redirect_url;
+        // Open payment gateway in new tab (avoid iframe blocking)
+        window.open(data.redirect_url, '_blank');
+        navigate("/thank-you", {
+          state: createdEmail ? { email: createdEmail, password: createdPassword } : undefined,
+        });
       } else if (data?.success || isCod) {
         // Manual/COD payment - redirect to thank you
         navigate("/thank-you", {
