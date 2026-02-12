@@ -1,4 +1,6 @@
 import { Heart, CheckCircle, Users } from "lucide-react";
+import ScrollFloat from "@/components/ui/ScrollFloat";
+import ScrollReveal from "@/components/ui/ScrollReveal";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import {
@@ -104,11 +106,17 @@ const FeaturedInstructors = () => {
       <div className="max-w-[80vw] mx-auto px-4" ref={ref}>
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">
-            {t("instructors.title")}
+            <ScrollFloat textClassName="text-3xl md:text-4xl font-extrabold text-foreground">
+              {t("instructors.title")}
+            </ScrollFloat>
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+          <ScrollReveal
+            baseRotation={0}
+            containerClassName="text-muted-foreground max-w-2xl mx-auto"
+            textClassName="text-muted-foreground"
+          >
             {t("instructors.subtitle")}
-          </p>
+          </ScrollReveal>
         </div>
         <div
           className={`transition-all duration-700 ${

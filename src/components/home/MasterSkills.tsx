@@ -2,6 +2,7 @@ import { CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
+import ScrollRevealText from "@/components/ui/ScrollReveal";
 
 const MasterSkills = () => {
   const { t } = useLanguage();
@@ -34,9 +35,13 @@ const MasterSkills = () => {
             <h2 className="text-3xl md:text-4xl font-extrabold text-foreground">
               {t("master.title")}
             </h2>
-            <p className="text-muted-foreground">
+            <ScrollRevealText
+              baseRotation={0}
+              containerClassName="text-muted-foreground"
+              textClassName="text-muted-foreground"
+            >
               {t("master.desc")}
-            </p>
+            </ScrollRevealText>
             <ul className="space-y-3">
               {skills.map((s) => (
                 <li key={s.key} className="flex items-center gap-3">

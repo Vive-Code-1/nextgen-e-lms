@@ -1,4 +1,5 @@
 import { ArrowRight, Search, ChevronDown } from "lucide-react";
+import ScrollReveal from "@/components/ui/ScrollReveal";
 import { useLanguage } from "@/contexts/LanguageContext";
 import heroBanner from "@/assets/hero-banner.webp";
 import heroVideo from "@/assets/hero-video.webm";
@@ -43,9 +44,13 @@ const HeroSection = () => {
               <span className="text-coral-pink">{t("hero.headline_highlight")}</span>
               {t("hero.headline_2")}
             </h1>
-            <p className="text-lg text-white/70 max-w-lg animate-fade-in-up-delay-1">
+            <ScrollReveal
+              baseRotation={0}
+              containerClassName="text-lg text-white/70 max-w-lg animate-fade-in-up-delay-1"
+              textClassName="text-lg text-white/70"
+            >
               {t("hero.subheadline")}
-            </p>
+            </ScrollReveal>
 
             {/* Search Bar */}
             <div className="animate-fade-in-up-delay-2">
