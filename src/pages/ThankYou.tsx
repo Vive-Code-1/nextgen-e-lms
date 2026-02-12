@@ -6,7 +6,12 @@ import { CheckCircle, LogIn } from "lucide-react";
 
 const ThankYou = () => {
   const location = useLocation();
-  const state = location.state as { email?: string; password?: string } | null;
+  // Check location.state first (COD/manual), then localStorage (gateway redirects)
+  const locState = location.state as { email?: string; password?: string } | null;
+  const stored = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('checkout_credentials') || 'null') : null;
+  const state = locState || stored;
+  // Clear localStorage after reading
+  if (stored) localStorage.removeItem('checkout_credentials');
 
   return (
     <div className="min-h-screen flex flex-col">
