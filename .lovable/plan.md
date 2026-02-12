@@ -1,158 +1,86 @@
 
 
-# Fully Functional Student Dashboard
+# ChromaGrid Effect যোগ করা - Courses Grid ও Instructors Section
 
-This is a comprehensive overhaul of the Student Dashboard with new database tables, storage, and multiple functional tabs.
+## কি করা হবে
 
-## New Database Tables Required
+ReactBits এর ChromaGrid কম্পোনেন্ট তোমার সাইটের ৩টি জায়গায় যোগ করা হবে। এটি একটি interactive spotlight effect -- মাউস যেখানে যাবে সেখানে কার্ডগুলো রঙিন দেখাবে, বাকিগুলো grayscale/dimmed থাকবে।
 
-### 1. `lessons` - Course content
-- `id` (uuid, PK)
-- `course_id` (uuid, FK -> courses)
-- `title` (text)
-- `video_url` (text, nullable) - embedded video link
-- `notes` (text, nullable) - prompts/notes shown below the lesson
-- `sort_order` (integer, default 0)
-- `created_at` (timestamptz)
+## যেখানে যোগ হবে
 
-### 2. `lesson_progress` - Track which lessons a student completed
-- `id` (uuid, PK)
-- `user_id` (uuid)
-- `lesson_id` (uuid, FK -> lessons)
-- `completed` (boolean, default false)
-- `completed_at` (timestamptz, nullable)
+1. **Homepage Trending Courses** (`PopularCourses.tsx`) - 8টি কোর্স কার্ড
+2. **All Courses Page** (`Courses.tsx`) - ফিল্টার সহ কোর্স গ্রিড
+3. **Featured Instructors** (`FeaturedInstructors.tsx`) - ইন্সট্রাক্টর কার্ড
 
-### 3. `announcements` - Admin announcements
-- `id` (uuid, PK)
-- `title` (text)
-- `content` (text)
-- `created_by` (uuid)
-- `created_at` (timestamptz)
+## কালার থিম
 
-### 4. `reviews` - Student reviews (admin-approved)
-- `id` (uuid, PK)
-- `user_id` (uuid)
-- `course_id` (uuid, FK -> courses)
-- `rating` (integer, 1-5)
-- `comment` (text)
-- `approved` (boolean, default false)
-- `created_at` (timestamptz)
+তোমার সাইটের ব্র্যান্ড কালার ব্যবহার করা হবে:
+- **Vivid Violet (#7C3AED)** - Primary cards
+- **Golden Amber (#FBBF24)** - CTA/accent cards  
+- **Emerald Green (#10B981)** - Success/verified cards
+- **Coral Pink (#FF4667)** - Highlight cards
+- **Deep Indigo (#1E1B4B)** - Dark gradient base
 
-### 5. `assignments` - Admin-created assignments
-- `id` (uuid, PK)
-- `course_id` (uuid, FK -> courses)
-- `title` (text)
-- `description` (text)
-- `due_date` (timestamptz, nullable)
-- `created_by` (uuid)
-- `created_at` (timestamptz)
+প্রতিটি কার্ডের gradient ও border color ভিন্ন হবে যাতে বৈচিত্র্য থাকে।
 
-### 6. `assignment_submissions` - Student submissions
-- `id` (uuid, PK)
-- `assignment_id` (uuid, FK -> assignments)
-- `user_id` (uuid)
-- `content` (text) - submission text/link
-- `submitted_at` (timestamptz)
-- `status` (text, default 'pending') - pending/approved/rejected
-- `marks` (integer, nullable)
-- `feedback` (text, nullable) - admin feedback
+---
 
-### Storage
-- Create `avatars` bucket (public) for profile picture uploads
+## Technical Details
 
-## RLS Policies
+### Step 1: Create `ChromaGrid` Component
 
-- **lessons**: Public read (enrolled students), admin ALL
-- **lesson_progress**: Users read/insert/update own, admin read all
-- **announcements**: Public read, admin ALL
-- **reviews**: Users insert own, read approved ones, admin ALL
-- **assignments**: Students read (enrolled courses), admin ALL
-- **assignment_submissions**: Users read/insert own, admin ALL
+**New file: `src/components/ui/ChromaGrid.tsx`**
 
-## Frontend: Student Dashboard Tabs
+ReactBits এর ChromaGrid component adapt করা হবে:
+- GSAP (already installed) ব্যবহার করে spotlight tracking
+- `--x`, `--y` CSS variables দিয়ে mouse position track
+- Radial gradient mask দিয়ে grayscale/brightness dimming
+- Card-level spotlight (hover glow) effect
+- Props: `items`, `radius`, `damping`, `fadeOut`, `className`
+- `ChromaItem` interface: `image`, `title`, `subtitle`, `borderColor`, `gradient`, `url` etc.
+- Children render prop pattern যোগ করা হবে যাতে existing card designs রাখা যায়
 
-The `StudentDashboard.tsx` will be refactored into a tab-based layout with a working sidebar:
+### Step 2: Create `ChromaGridWrapper` Component
 
-### Tab 1: Dashboard (Home)
-- Welcome message, stats cards (total courses, running, completed, certificates)
-- Course support banner, quick links, FAQ -- similar to current but with real data
+**New file: `src/components/ui/ChromaGridWrapper.tsx`**
 
-### Tab 2: My Courses
-- List of enrolled courses with:
-  - Course image, title, instructor/mentor name
-  - Progress bar (% of lessons completed)
-  - "Continue Learning" button that navigates to the course lesson player
+একটি wrapper component যা existing card components কে ChromaGrid এর spotlight effect দেবে কিন্তু card design পরিবর্তন না করে:
+- শুধু grayscale/brightness overlay layers যোগ করবে
+- Existing grid layout ও card components অক্ষুণ্ণ থাকবে
+- Mouse tracking logic ChromaGrid থেকে নেওয়া
 
-### Tab 3: Course Lesson Player (sub-view within My Courses)
-- When a student clicks a course, show:
-  - Lesson list sidebar (checkable)
-  - Main area: video embed or lesson content
-  - Below the lesson: Notes/Prompts field (read-only, set by admin)
-  - Mark as complete button
+### Step 3: Update `PopularCourses.tsx`
 
-### Tab 4: Announcements
-- List of all announcements from admin
-- Title, content, date -- read-only for students
+- Course card grid কে `ChromaGridWrapper` দিয়ে wrap করা
+- প্রতিটি course card এর জন্য brand-themed gradient assign:
+  - Graphics Design -> Violet gradient
+  - Video Editing -> Coral Pink gradient  
+  - Digital Marketing -> Amber gradient
+  - SEO -> Emerald gradient
+  - Web Dev -> Indigo gradient
+  - Dropshipping -> Violet/Pink mixed
 
-### Tab 5: Assignments
-- List of assignments for enrolled courses
-- Each assignment shows: title, description, due date, status
-- "Submit" button opens a form to submit text/link
-- Shows marks and feedback after admin review
+### Step 4: Update `Courses.tsx`
 
-### Tab 6: Reviews
-- Two sections:
-  - **Course Review**: Select a course, give rating (stars) + comment, submit
-  - **Facebook Page Link**: Button/link to the Facebook page for external review
-- Shows "Pending approval" status after submission
+- All Courses page এর grid section এ ChromaGridWrapper যোগ
+- Filter sidebar অপরিবর্তিত থাকবে
+- শুধু course card grid area তে spotlight effect
 
-### Tab 7: Profile
-- Edit full name, phone, address
-- Change password (using Supabase auth.updateUser)
-- Upload avatar (using Supabase Storage `avatars` bucket)
-- Display current profile info
+### Step 5: Update `FeaturedInstructors.tsx`
 
-## Admin Dashboard Updates
+- Carousel এর পরিবর্তে ChromaGrid ব্যবহার (carousel এর ভেতরে spotlight effect ভালো কাজ করে না)
+- Instructor cards গুলো ChromaGrid items হিসেবে render হবে
+- প্রতিটি instructor এর জন্য আলাদা gradient color
 
-Add management tabs in `AdminDashboard.tsx` for:
+### Files Summary
 
-### Announcements Management
-- Create/edit/delete announcements
+| File | Action |
+|------|--------|
+| `src/components/ui/ChromaGrid.tsx` | Create - Core ChromaGrid component |
+| `src/components/ui/ChromaGridWrapper.tsx` | Create - Wrapper for existing grids |
+| `src/components/home/PopularCourses.tsx` | Modify - Add ChromaGridWrapper |
+| `src/pages/Courses.tsx` | Modify - Add ChromaGridWrapper |
+| `src/components/home/FeaturedInstructors.tsx` | Modify - Replace carousel with ChromaGrid |
 
-### Assignments Management
-- Create assignments per course
-- View submissions, approve/reject, give marks + feedback
-
-### Reviews Management
-- View all reviews, approve/reject for public display
-
-### Lessons Management
-- Add/edit/delete lessons per course with video URL and notes
-
-## Files to Create/Modify
-
-### New Files:
-1. `src/components/dashboard/DashboardHome.tsx` - Stats & welcome
-2. `src/components/dashboard/MyCourses.tsx` - Enrolled courses list
-3. `src/components/dashboard/LessonPlayer.tsx` - Video + notes player
-4. `src/components/dashboard/Announcements.tsx` - Read announcements
-5. `src/components/dashboard/Assignments.tsx` - View & submit assignments
-6. `src/components/dashboard/Reviews.tsx` - Submit reviews
-7. `src/components/dashboard/Profile.tsx` - Edit profile & avatar
-
-### Modified Files:
-1. `src/pages/StudentDashboard.tsx` - Refactor to use tab components with working sidebar navigation
-2. `src/pages/AdminDashboard.tsx` - Add announcements, assignments, reviews, lessons management tabs
-
-### Database Migration:
-- 1 migration with all 6 new tables, RLS policies, and storage bucket
-
-## Technical Notes
-
-- Avatar uploads use Supabase Storage with a public `avatars` bucket
-- Password change uses `supabase.auth.updateUser({ password })` from the client
-- Lesson progress calculates course completion percentage
-- Reviews require `approved = true` to show on the public course details page
-- Assignment marks are shown only after admin sets status to 'approved'
-- All new tables use RLS with appropriate policies for student vs admin access
+No new dependencies needed (GSAP already installed).
 
