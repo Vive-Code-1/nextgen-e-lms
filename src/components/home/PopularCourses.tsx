@@ -7,32 +7,46 @@ import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 const courses = [
   {
-    titleKey: "courses.web_dev",
-    catKey: "courses.cat.development",
-    image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=250&fit=crop",
+    titleKey: "courses.graphics_design_course",
+    catKey: "categories.graphics_design",
+    image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=400&h=250&fit=crop",
     rating: 4.8,
     price: "$49.99",
   },
   {
-    titleKey: "courses.data_science",
-    catKey: "courses.cat.data",
-    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=250&fit=crop",
+    titleKey: "courses.video_editing_course",
+    catKey: "categories.video_editing",
+    image: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400&h=250&fit=crop",
+    rating: 4.7,
+    price: "$44.99",
+  },
+  {
+    titleKey: "courses.digital_marketing_course",
+    catKey: "categories.digital_marketing",
+    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=250&fit=crop",
     rating: 4.9,
     price: "$59.99",
   },
   {
-    titleKey: "courses.ui_design",
-    catKey: "courses.cat.design",
-    image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=250&fit=crop",
-    rating: 4.7,
+    titleKey: "courses.seo_course",
+    catKey: "categories.seo",
+    image: "https://images.unsplash.com/photo-1562577309-4932fdd64cd1?w=400&h=250&fit=crop",
+    rating: 4.6,
     price: "$39.99",
   },
   {
-    titleKey: "courses.mobile_dev",
-    catKey: "courses.cat.mobile",
-    image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&h=250&fit=crop",
-    rating: 4.6,
+    titleKey: "courses.web_dev_course",
+    catKey: "categories.web_dev",
+    image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=250&fit=crop",
+    rating: 4.8,
     price: "$54.99",
+  },
+  {
+    titleKey: "courses.dropshipping_course",
+    catKey: "categories.dropshipping",
+    image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=250&fit=crop",
+    rating: 4.5,
+    price: "$34.99",
   },
 ];
 
@@ -80,18 +94,18 @@ const PopularCourses = () => {
   const { ref, isVisible } = useScrollReveal();
 
   return (
-    <section className="py-16 md:py-20 gradient-section">
-      <div className="container mx-auto px-4" ref={ref}>
+    <section className="py-16 md:py-20 bg-background">
+      <div className="max-w-[80vw] mx-auto px-4" ref={ref}>
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
             {t("courses.title")}
           </h2>
-          <p className="text-white/70 max-w-2xl mx-auto">
+          <p className="text-muted-foreground max-w-2xl mx-auto">
             {t("courses.subtitle")}
           </p>
         </div>
         <div
-          className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 transition-all duration-700 ${
+          className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-700 ${
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >

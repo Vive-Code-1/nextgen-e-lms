@@ -2,7 +2,11 @@ import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/home/HeroSection";
 import CategorySection from "@/components/home/CategorySection";
 import PopularCourses from "@/components/home/PopularCourses";
+import MasterSkills from "@/components/home/MasterSkills";
+import FeaturedInstructors from "@/components/home/FeaturedInstructors";
+import TrustedBy from "@/components/home/TrustedBy";
 import WhyChooseUs from "@/components/home/WhyChooseUs";
+import ShareKnowledge from "@/components/home/ShareKnowledge";
 import Footer from "@/components/Footer";
 
 const Index = () => {
@@ -13,7 +17,11 @@ const Index = () => {
         <HeroSection />
         <CategorySection />
         <PopularCourses />
+        <MasterSkills />
+        <FeaturedInstructors />
+        <TrustedBy />
         <WhyChooseUs />
+        <ShareKnowledge />
       </main>
       <Footer />
     </div>
