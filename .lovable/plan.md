@@ -1,113 +1,118 @@
 
 
-# UddoktaPay Integration + Rate Limit Fix
+# Fix UddoktaPay Payment Flow + Course Enrollment
 
-## 1. Fix "Too many attempts" Error
+## Problems Identified
 
-The rate limit error from Supabase signup will be silently handled instead of shown to students.
+1. **UddoktaPay opens inside the Lovable preview iframe** -- `window.location.href` navigates the iframe itself, and `digitaltechdude.paymently.io` blocks being loaded in iframes (X-Frame-Options). Fix: use `window.open(url, '_blank')` to open payment in a new browser tab.
 
-**File:** `src/pages/Checkout.tsx`
-- When a rate limit error occurs during signup, try signing in with the provided credentials first (the account may already exist from a previous attempt)
-- If sign-in succeeds, continue with payment flow silently
-- If sign-in also fails, show a generic friendly message like "অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন" instead of the technical error
-- This handles the common case where a user tried to checkout before, their account was created, but the payment step failed -- now they can retry seamlessly
+2. **Orders have no `course_id`** -- The `process-payment` edge function creates orders without setting `course_id` because the `courses` table in the database is **empty**. The course data only exists as a hardcoded object in the frontend. This means the `payment-callback` can never create enrollments (it checks `order.course_id`).
 
-## 2. Integrate UddoktaPay with Production API
+3. **Existing users re-entering credentials** -- If a user is already logged in (`user` exists), the checkout should skip account creation entirely and just proceed to payment. If not logged in but account exists, the current silent sign-in fallback works but needs to also handle the case where the password is wrong (existing account, different password).
 
-The `UDDOKTAPAY_API_KEY` secret already exists. The edge function currently points to the sandbox URL. It needs to be updated with the production base URL.
+4. **COD admin approval flow** -- COD orders are created as "pending" but there's no admin UI to approve them and trigger enrollment.
 
-**File:** `supabase/functions/process-payment/index.ts`
-- Change the UddoktaPay API URL from `https://sandbox.uddoktapay.com/api/checkout-v2` to `https://digitaltechdude.paymently.io/api/checkout-v2`
-- Pass the actual user's `full_name` and `email` (received from the frontend) instead of hardcoded "Customer" / "customer@example.com"
-- Set `redirect_url` to the app's thank-you/success page
-- Set `cancel_url` to the course page
-- Add `webhook_url` pointing to the `payment-callback` edge function
-- Add `return_type: "GET"` so the invoice_id comes as a query parameter
+## Solution
 
-**File:** `src/pages/Checkout.tsx`
-- Pass `full_name` and `email` to the edge function call so UddoktaPay gets real user info
+### 1. Populate the `courses` table with matching data
 
-## 3. Payment Verification via Callback
+Insert all 8 courses from the hardcoded `coursePrices` object into the `courses` table with matching slugs, so that `course_id` can be resolved.
 
-**File:** `supabase/functions/payment-callback/index.ts`
-- Add UddoktaPay verification: when receiving a callback with `invoice_id`, call the UddoktaPay Verify Payment API (`https://digitaltechdude.paymently.io/api/verify-payment`) to confirm payment status
-- If status is "COMPLETED", update the order to completed and create enrollment
-- Redirect user to the thank-you page on GET requests
+### 2. Fix `process-payment` edge function
 
-## 4. Admin Panel - Payment Settings Tab
+- Look up the course by `course_slug` from the `courses` table to get the `course_id`
+- Set `course_id` on the order record
+- This enables the callback to create enrollments after payment verification
 
-**File:** `src/pages/AdminDashboard.tsx`
-- The admin panel already has a "Settings" tab (currently empty). Add a "Payment Settings" section under it displaying:
-  - UddoktaPay API Key field (masked, with update button)
-  - UddoktaPay Base URL field
-  - Toggle to enable/disable each payment method (UddoktaPay, Stripe, PayPal, COD, BD Manual)
-- Payment settings will be stored in a new `site_settings` table
-- For now, since changing edge function env vars requires redeployment, the admin panel will show current configuration status and allow toggling which payment methods are visible on checkout
+### 3. Fix UddoktaPay redirect -- open in new tab
+
+In `src/pages/Checkout.tsx`, change:
+```text
+window.location.href = data.redirect_url;
+```
+to:
+```text
+window.open(data.redirect_url, '_blank');
+navigate("/thank-you", { state: { ... } });
+```
+This opens UddoktaPay in a new browser tab and shows the thank-you page in the current tab.
+
+### 4. Handle existing users properly
+
+- If the user is already logged in, skip account creation entirely and go straight to payment
+- If not logged in and signup fails with "already registered", try sign-in
+- If sign-in fails (wrong password), show: "এই ইমেইল দিয়ে আগে একাউন্ট আছে, সঠিক পাসওয়ার্ড দিন"
+
+### 5. Auto-enrollment on UddoktaPay verification
+
+The `payment-callback` function already handles this correctly -- it verifies payment, updates order status to "completed", and creates enrollment using `order.course_id` and `order.user_id`. The fix is just ensuring `course_id` is set on the order (step 2).
+
+### 6. Admin order approval for COD
+
+Add an "Approve" button in the Admin Dashboard orders section. When clicked, it updates the order's `payment_status` to "completed" and creates the enrollment.
 
 ---
 
 ## Technical Details
 
 ### Database Migration
-Create a `site_settings` table for storing payment configuration:
+
+Insert courses into the `courses` table:
 
 ```text
-CREATE TABLE public.site_settings (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  key text UNIQUE NOT NULL,
-  value jsonb NOT NULL,
-  updated_at timestamptz DEFAULT now()
-);
-
-ALTER TABLE public.site_settings ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Admins can manage settings" ON public.site_settings
-  FOR ALL USING (
-    EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin')
-  );
-
-CREATE POLICY "Anyone can read settings" ON public.site_settings
-  FOR SELECT USING (true);
-
--- Default payment config
-INSERT INTO public.site_settings (key, value) VALUES
-  ('payment_methods', '{"uddoktapay": true, "stripe": true, "paypal": true, "cod": true, "bd_manual": true}'::jsonb),
-  ('uddoktapay_base_url', '"https://digitaltechdude.paymently.io/api"'::jsonb);
+INSERT INTO public.courses (slug, title, price, original_price, image_url, category, duration, instructor_name) VALUES
+('complete-graphics-design-masterclass', 'Complete Graphics Design Masterclass', 49.99, 99.99, 'https://images.unsplash.com/photo-1626785774573-4b799315345d?w=400&h=250&fit=crop', 'Design', '40 hours', 'Expert Instructor'),
+('professional-video-editing-with-premiere-pro', 'Professional Video Editing with Premiere Pro', 44.99, 89.99, 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400&h=250&fit=crop', 'Video', '35 hours', 'Expert Instructor'),
+('digital-marketing-social-media-strategy', 'Digital Marketing & Social Media Strategy', 59.99, 119.99, 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=250&fit=crop', 'Marketing', '45 hours', 'Expert Instructor'),
+('seo-mastery-rank-1-on-google', 'SEO Mastery: Rank #1 on Google', 39.99, 79.99, 'https://images.unsplash.com/photo-1562577309-4932fdd64cd1?w=400&h=250&fit=crop', 'Marketing', '30 hours', 'Expert Instructor'),
+('full-stack-web-development-bootcamp', 'Full-Stack Web Development Bootcamp', 54.99, 109.99, 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=250&fit=crop', 'Development', '60 hours', 'Expert Instructor'),
+('dropshipping-business-from-scratch', 'Dropshipping Business from Scratch', 34.99, 69.99, 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=250&fit=crop', 'Business', '25 hours', 'Expert Instructor'),
+('advanced-graphics-design-portfolio', 'Advanced Graphics Design Portfolio', 54.99, 109.99, 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=250&fit=crop', 'Design', '50 hours', 'Expert Instructor'),
+('full-stack-javascript-development', 'Full Stack JavaScript Development', 64.99, 129.99, 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=250&fit=crop', 'Development', '55 hours', 'Expert Instructor');
 ```
+
+Also need to allow the service role (edge function) to update orders -- add an RLS policy:
+
+```text
+CREATE POLICY "Service role can update orders" ON public.orders
+  FOR UPDATE USING (true) WITH CHECK (true);
+```
+
+Wait -- the edge function uses the service role key which bypasses RLS. So no policy change needed.
 
 ### Files to Modify
 
-1. **`src/pages/Checkout.tsx`** -- Fix rate limit handling (silent retry via signIn), pass user info to edge function, read enabled payment methods from `site_settings`
-2. **`supabase/functions/process-payment/index.ts`** -- Update UddoktaPay URL to production, use real user data, read base URL from settings or env
-3. **`supabase/functions/payment-callback/index.ts`** -- Add UddoktaPay payment verification via their Verify Payment API
-4. **`src/pages/AdminDashboard.tsx`** -- Add Settings tab with payment method toggles and API configuration display
-5. **`src/integrations/supabase/types.ts`** -- Add `site_settings` type
+1. **`supabase/functions/process-payment/index.ts`**
+   - Look up course by `course_slug` from `courses` table
+   - Set `course_id` on the order insert
 
-### Rate Limit Fix Flow
+2. **`src/pages/Checkout.tsx`**
+   - Change `window.location.href` to `window.open(url, '_blank')` for payment redirects
+   - After opening payment URL, navigate to thank-you page in current tab
+   - Improve error messages for existing users with wrong passwords
 
-```text
-User submits checkout form
-  --> signUp() called
-  --> If "rate limit" error:
-      --> Try signInWithPassword() (account may already exist)
-      --> If sign-in succeeds: continue with payment
-      --> If sign-in fails: show friendly Bengali message
-  --> If other error: show generic error
-  --> Never show "Too many attempts" to students
-```
+3. **`src/pages/AdminDashboard.tsx`**
+   - Add "Approve" button on pending orders
+   - On approve: update order status to "completed" and create enrollment via an edge function or direct Supabase call
 
-### UddoktaPay Payment Flow
+### Payment Flow After Fix
 
 ```text
-1. User selects UddoktaPay on checkout
-2. Frontend calls process-payment edge function
-3. Edge function calls UddoktaPay checkout-v2 API
-4. Returns payment_url to frontend
-5. Frontend redirects user to UddoktaPay
-6. User completes payment
-7. UddoktaPay redirects to payment-callback with invoice_id
-8. Callback verifies payment via verify-payment API
-9. Updates order status + creates enrollment
-10. Redirects user to thank-you page
+UddoktaPay Flow:
+1. User clicks Pay -> edge function creates order WITH course_id
+2. Edge function calls UddoktaPay API -> returns payment_url
+3. Frontend opens payment_url in NEW TAB
+4. Frontend shows thank-you page in current tab
+5. User completes payment in new tab
+6. UddoktaPay calls payment-callback with invoice_id
+7. Callback verifies payment -> updates order -> creates enrollment
+8. User now has course access
+
+COD Flow:
+1. User clicks "Order" -> edge function creates pending order WITH course_id
+2. Frontend shows thank-you page
+3. Admin sees pending order in dashboard
+4. Admin clicks "Approve" -> order marked completed -> enrollment created
+5. Student now has course access
 ```
 
