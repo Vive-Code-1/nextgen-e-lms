@@ -20,10 +20,10 @@ const Navbar = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header className="sticky top-0 z-50 glass shadow-sm">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+    <header className="fixed top-0 left-0 right-0 z-50 px-4 pt-4">
+      <div className="max-w-[80vw] mx-auto flex h-14 items-center justify-between px-6 rounded-full bg-white/10 backdrop-blur-xl border border-white/20">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 font-bold text-xl text-primary">
+        <Link to="/" className="flex items-center gap-2 font-bold text-xl text-white">
           <GraduationCap className="h-7 w-7 text-accent" />
           <span>NextGen LMS</span>
         </Link>
@@ -35,7 +35,7 @@ const Navbar = () => {
               key={link.to}
               to={link.to}
               className={`text-sm font-medium transition-colors hover:text-accent ${
-                isActive(link.to) ? "text-accent" : "text-foreground/80"
+                isActive(link.to) ? "text-accent" : "text-white/70"
               }`}
             >
               {link.label}
@@ -45,20 +45,19 @@ const Navbar = () => {
 
         {/* Right actions */}
         <div className="hidden md:flex items-center gap-3">
-          {/* Language toggle */}
           <Button
             variant="ghost"
             size="sm"
             onClick={toggleLanguage}
-            className="gap-1.5 text-sm font-medium"
+            className="gap-1.5 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10"
           >
             <Globe className="h-4 w-4" />
             {language === "en" ? "EN" : "BN"}
           </Button>
 
-          <div className="h-6 w-px bg-border" />
+          <div className="h-6 w-px bg-white/20" />
 
-          <Button variant="ghost" size="sm" className="text-sm font-medium">
+          <Button variant="ghost" size="sm" className="text-sm font-medium text-white/70 hover:text-white hover:bg-white/10">
             {t("nav.login")}
           </Button>
           <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 text-sm font-medium">
@@ -69,7 +68,7 @@ const Navbar = () => {
         {/* Mobile hamburger */}
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
