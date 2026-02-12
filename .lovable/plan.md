@@ -1,89 +1,93 @@
 
 
-# Add ScrollFloat and ScrollReveal Text Animations (from React Bits)
+# Animation Speed, Stats Layout, Trending Courses Grid, and Category Filtering Fixes
 
 ## Summary
-Install GSAP and create two reusable animation components (`ScrollFloat` and `ScrollReveal`) from the React Bits library. Then apply them to specific section headings and subtitle/description texts across the homepage.
+Four changes: (1) Slow down ScrollFloat and ScrollReveal animations for smoother scroll experience, (2) Make stats cards fit within the marked area (search bar width), (3) Change Trending Courses to 4-column grid with 8 courses and "View All Courses" button, (4) Add category filtering on the Courses page linked from homepage categories.
 
 ---
 
-## Step 1: Install GSAP dependency
+## 1. Smoother Text Animations
 
-Install `gsap` package -- required by both ScrollFloat and ScrollReveal components.
+**Files:** `src/components/ui/ScrollFloat.tsx`, `src/components/ui/ScrollReveal.tsx`
 
-## Step 2: Create ScrollFloat component
+Current issue: Animations complete too quickly because the scroll trigger range (`scrollStart` to `scrollEnd`) is too narrow.
 
-**New file:** `src/components/ui/ScrollFloat.tsx`
+Changes:
+- **ScrollFloat**: Change default `scrollStart` from `"center bottom+=50%"` to `"top bottom"` and `scrollEnd` from `"bottom bottom-=40%"` to `"center center"` -- this spreads the animation over a much longer scroll distance, making it feel smooth
+- **ScrollReveal**: Change `rotationEnd` and `wordAnimationEnd` defaults, and widen the scroll trigger start from `"top bottom-=20%"` to `"top bottom"` and end to `"center center+=10%"` -- same effect, longer scroll range for gradual reveal
 
-A component that splits text into individual characters and animates them with a floating-in effect on scroll using GSAP ScrollTrigger. Based on the React Bits source code with TypeScript + Tailwind variant.
+This makes the animations unfold gradually as the user scrolls rather than snapping in quickly.
 
-Props: `children` (string), `containerClassName`, `textClassName`, `animationDuration`, `ease`, `scrollStart`, `scrollEnd`, `stagger`
+## 2. Stats Cards Within Marked Area
 
-## Step 3: Create ScrollReveal component
+**File:** `src/components/home/StatsSection.tsx`
 
-**New file:** `src/components/ui/ScrollReveal.tsx`
+The reference image shows all 4 stats cards should fit within the same width as the search bar. Currently the grid spans wider.
 
-A component that splits text into words and reveals them with opacity + blur animation on scroll using GSAP ScrollTrigger. Based on the React Bits source code with TypeScript + Tailwind variant.
+Changes:
+- Change `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4` to just `grid-cols-2 sm:grid-cols-4` so all 4 cards appear in a single row on small screens too
+- Reduce gap from `gap-4` to `gap-2` for tighter spacing
+- Further reduce card padding and text sizes to ensure they fit within the `max-w-xl` search bar width
 
-Props: `children` (string), `containerClassName`, `textClassName`, `enableBlur`, `baseOpacity`, `baseRotation`, `blurStrength`, `rotationEnd`, `wordAnimationEnd`
+**File:** `src/components/home/HeroSection.tsx`
+- Wrap the StatsSection `<div>` with `max-w-xl` to constrain it to the same width as the search bar above it
 
-## Step 4: Apply ScrollFloat to section headings
+## 3. Trending Courses: 4 Columns, 8 Courses, View All Button
 
-Wrap these section title texts with the `ScrollFloat` component (replacing the plain `<h2>` text content):
+**File:** `src/components/home/PopularCourses.tsx`
 
-| Component | Text (translation key) |
-|-----------|----------------------|
-| `CategorySection.tsx` | "Browse Categories" (`categories.title`) |
-| `PopularCourses.tsx` | "Trending Courses" (`courses.title`) |
-| `FeaturedInstructors.tsx` | "Featured Instructor" (`instructors.title`) |
-| `WhyChooseUs.tsx` | "Why Choose Us" (`why.title`) |
-| `ShareKnowledge.tsx` | "Want to Share Your Knowledge? Join as Instructor" (`share.title`) |
+Changes:
+- Add 2 more courses to the array (total 8) -- add a second course for 2 categories (e.g., "Advanced Graphics Design" and "Full Stack Web Development")
+- Change grid from `lg:grid-cols-3` to `lg:grid-cols-4` for 4 cards per row (2 rows of 4)
+- Add a "View All Courses" button below the grid that links to `/courses` using `react-router-dom`'s `Link` component
+- Add translation keys for the button text and new course titles
 
-Each heading `<h2>` will keep its existing className styling but render its text content through `<ScrollFloat>` instead of plain text.
+## 4. Category Click Filters Courses Page
 
-## Step 5: Apply ScrollReveal to subtitle/description texts
+**File:** `src/components/home/CategorySection.tsx`
+- Wrap each category card with a `Link` to `/courses?category=CategoryName`
+- Use the category label (e.g., "Graphics Design") as the query parameter value
 
-Wrap these description/subtitle texts with the `ScrollReveal` component:
-
-| Component | Text (translation key) |
-|-----------|----------------------|
-| `HeroSection.tsx` | Hero subheadline (`hero.subheadline`) |
-| `CategorySection.tsx` | Category subtitle (`categories.subtitle`) |
-| `PopularCourses.tsx` | Courses subtitle (`courses.subtitle`) |
-| `WhyChooseUs.tsx` | Why subtitle (`why.subtitle`) |
-| `FeaturedInstructors.tsx` | Instructors subtitle (`instructors.subtitle`) |
-| `MasterSkills.tsx` | Master description (`master.desc`) |
-| `ShareKnowledge.tsx` | Share description (`share.desc`) |
-
-Each `<p>` element's text content will be rendered through `<ScrollReveal>` with appropriate styling overrides (font size, color) via the `textClassName` and `containerClassName` props.
+**File:** `src/pages/Courses.tsx`
+- Read `category` from URL search params using `useSearchParams`
+- Update `filterCategories` to match the 6 homepage categories: Graphics Design, Video Editing, Digital Marketing, SEO, Website Development, Dropshipping
+- Add state for selected categories (initialized from URL param if present)
+- Filter the displayed courses based on selected categories
+- Update the courses data to include courses from all 6 categories
+- When a category checkbox is checked/unchecked, update the filtered results
+- When no category is selected, show all courses
 
 ---
 
 ## Technical Details
 
-### Files to Create
-
-| File | Description |
-|------|-------------|
-| `src/components/ui/ScrollFloat.tsx` | GSAP-powered character-level float animation on scroll |
-| `src/components/ui/ScrollReveal.tsx` | GSAP-powered word-level reveal animation with blur on scroll |
-
 ### Files to Modify
 
-| File | Change |
-|------|--------|
-| `src/components/home/CategorySection.tsx` | ScrollFloat on title, ScrollReveal on subtitle |
-| `src/components/home/PopularCourses.tsx` | ScrollFloat on title, ScrollReveal on subtitle |
-| `src/components/home/FeaturedInstructors.tsx` | ScrollFloat on title, ScrollReveal on subtitle |
-| `src/components/home/WhyChooseUs.tsx` | ScrollFloat on title, ScrollReveal on subtitle |
-| `src/components/home/ShareKnowledge.tsx` | ScrollFloat on title, ScrollReveal on description |
-| `src/components/home/HeroSection.tsx` | ScrollReveal on subheadline |
-| `src/components/home/MasterSkills.tsx` | ScrollReveal on description |
+| File | Changes |
+|------|---------|
+| `src/components/ui/ScrollFloat.tsx` | Widen default scroll range (scrollStart/scrollEnd) |
+| `src/components/ui/ScrollReveal.tsx` | Widen default scroll range for word animation |
+| `src/components/home/StatsSection.tsx` | Tighter grid (grid-cols-2 sm:grid-cols-4), smaller gap |
+| `src/components/home/HeroSection.tsx` | Add max-w-xl wrapper around StatsSection |
+| `src/components/home/PopularCourses.tsx` | 4-col grid, 8 courses, "View All Courses" link button |
+| `src/components/home/CategorySection.tsx` | Link each category to /courses?category=Name |
+| `src/pages/Courses.tsx` | Read URL params, state-based filtering, updated categories |
+| `src/lib/translations.ts` | Add keys for new courses and "View All" button |
 
-### Component Adaptations
-- The original ScrollFloat renders an `<h2>` wrapper -- we will make the wrapper element configurable or use it inside existing `<h2>` tags by rendering as `<span>` instead to avoid nested headings
-- The original ScrollReveal renders an `<h2>` wrapper -- similarly adapted to render as `<div>` or `<span>` to work inside `<p>` elements
-- Font sizes will be controlled via `textClassName` to match existing design (not using the default `clamp(1.6rem,4vw,3rem)`)
-- The ShareKnowledge section has white text on gradient background -- `textClassName` will include `text-white` for proper contrast
-- ScrollReveal's `baseRotation` will be set to `0` for subtitle texts to avoid unwanted rotation on small paragraphs
+### Scroll Animation Defaults (Before/After)
+
+**ScrollFloat:**
+- scrollStart: `"center bottom+=50%"` -> `"top bottom"`
+- scrollEnd: `"bottom bottom-=40%"` -> `"center center"`
+
+**ScrollReveal:**
+- word trigger start: `"top bottom-=20%"` -> `"top bottom"`
+- word trigger end: `"bottom bottom"` -> `"center center+=10%"`
+
+### Courses Page Filter Logic
+- URL: `/courses?category=Graphics%20Design`
+- On mount: parse `searchParams.get("category")` and pre-select that filter
+- Checkbox state: `selectedCategories: string[]`
+- Display: `courses.filter(c => selectedCategories.length === 0 || selectedCategories.includes(c.category))`
 
