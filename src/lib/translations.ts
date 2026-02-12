@@ -9,14 +9,18 @@ export const translations: Record<string, Record<string, string>> = {
     "nav.register": "Register",
 
     // Hero
-    "hero.headline": "Unlock Your Potential with Expert-Led Courses",
+    "hero.headline_1": "Unlock Your ",
+    "hero.headline_highlight": "Potential with",
+    "hero.headline_2": " Expert-Led Courses",
     "hero.subheadline": "Join thousands of learners gaining real-world skills from industry experts. Quality education, accessible anywhere.",
-    "hero.cta": "Explore Courses",
+    "hero.search_placeholder": "Search School, Online educational centers, etc",
+    "hero.category": "Category",
 
     // Stats
-    "stats.students": "Active Students",
-    "stats.courses": "Total Courses",
-    "stats.instructors": "Expert Instructors",
+    "stats.online_courses": "Online Courses",
+    "stats.expert_tutors": "Expert Tutors",
+    "stats.certified_courses": "Certified Courses",
+    "stats.online_students": "Online Students",
 
     // Popular Courses
     "courses.title": "Popular Courses",
@@ -75,14 +79,18 @@ export const translations: Record<string, Record<string, string>> = {
     "nav.register": "নিবন্ধন",
 
     // Hero
-    "hero.headline": "বিশেষজ্ঞদের সাথে আপনার দক্ষতা বৃদ্ধি করুন",
+    "hero.headline_1": "বিশেষজ্ঞদের সাথে আপনার ",
+    "hero.headline_highlight": "দক্ষতা বৃদ্ধি",
+    "hero.headline_2": " করুন",
     "hero.subheadline": "হাজার হাজার শিক্ষার্থীর সাথে যোগ দিন এবং ইন্ডাস্ট্রি বিশেষজ্ঞদের কাছ থেকে বাস্তব দক্ষতা অর্জন করুন।",
-    "hero.cta": "কোর্স দেখুন",
+    "hero.search_placeholder": "স্কুল, অনলাইন শিক্ষা কেন্দ্র ইত্যাদি খুঁজুন",
+    "hero.category": "ক্যাটাগরি",
 
     // Stats
-    "stats.students": "সক্রিয় শিক্ষার্থী",
-    "stats.courses": "মোট কোর্স",
-    "stats.instructors": "বিশেষজ্ঞ প্রশিক্ষক",
+    "stats.online_courses": "অনলাইন কোর্স",
+    "stats.expert_tutors": "বিশেষজ্ঞ টিউটর",
+    "stats.certified_courses": "সার্টিফাইড কোর্স",
+    "stats.online_students": "অনলাইন শিক্ষার্থী",
 
     // Popular Courses
     "courses.title": "জনপ্রিয় কোর্স",

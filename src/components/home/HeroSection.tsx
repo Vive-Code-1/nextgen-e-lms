@@ -1,43 +1,70 @@
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowRight, Search, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Link } from "react-router-dom";
+import heroBanner from "@/assets/hero-banner.webp";
+import { useState } from "react";
 
 const HeroSection = () => {
   const { t } = useLanguage();
+  const [categoryOpen, setCategoryOpen] = useState(false);
 
   return (
-    <section className="relative overflow-hidden bg-indigo-dark">
-      <div className="container mx-auto px-4 py-16 md:py-24">
+    <section className="relative overflow-hidden bg-indigo-dark pb-24">
+      <div className="max-w-[80vw] mx-auto px-4 py-16 md:py-24">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           {/* Text */}
           <div className="space-y-6">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight text-white animate-fade-in-up">
-              {t("hero.headline")}
+              {t("hero.headline_1")}
+              <span className="text-coral-pink">{t("hero.headline_highlight")}</span>
+              {t("hero.headline_2")}
             </h1>
             <p className="text-lg text-white/70 max-w-lg animate-fade-in-up-delay-1">
               {t("hero.subheadline")}
             </p>
+
+            {/* Search Bar */}
             <div className="animate-fade-in-up-delay-2">
-              <Button
-                asChild
-                size="lg"
-                className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg shadow-accent/25 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-accent/30 text-base px-8"
-              >
-                <Link to="/courses">
-                  {t("hero.cta")}
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
+              <div className="flex items-center bg-white rounded-full shadow-lg overflow-hidden max-w-xl">
+                <div className="flex items-center flex-1 px-4 py-3">
+                  <Search className="h-5 w-5 text-muted-foreground shrink-0" />
+                  <input
+                    type="text"
+                    placeholder={t("hero.search_placeholder")}
+                    className="ml-3 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none border-none"
+                  />
+                </div>
+                <div className="hidden sm:flex items-center border-l border-border px-3">
+                  <div className="relative">
+                    <button
+                      onClick={() => setCategoryOpen(!categoryOpen)}
+                      className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors py-2 px-1"
+                    >
+                      {t("hero.category")}
+                      <ChevronDown className="h-4 w-4" />
+                    </button>
+                    {categoryOpen && (
+                      <div className="absolute top-full right-0 mt-2 w-44 bg-white rounded-lg shadow-lg border border-border z-50 py-1">
+                        <button className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">Development</button>
+                        <button className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">Data Science</button>
+                        <button className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">Design</button>
+                        <button className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">Mobile</button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <button className="m-1.5 h-10 w-10 rounded-full bg-coral-pink flex items-center justify-center shrink-0 hover:opacity-90 transition-opacity">
+                  <ArrowRight className="h-5 w-5 text-white" />
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Image */}
           <div className="animate-fade-in-up-delay-2 hidden md:block">
             <img
-              src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=450&fit=crop"
+              src={heroBanner}
               alt="Students learning together"
-              className="rounded-2xl shadow-2xl w-full object-cover"
+              className="w-full object-contain"
               loading="lazy"
             />
           </div>
