@@ -8,7 +8,7 @@ const HeroSection = () => {
   const [categoryOpen, setCategoryOpen] = useState(false);
 
   return (
-    <section className="relative overflow-hidden bg-indigo-dark pb-24">
+    <section className="relative overflow-hidden bg-indigo-dark pb-36">
       <div className="max-w-[80vw] mx-auto px-4 py-16 md:py-24">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           {/* Text */}
@@ -44,10 +44,12 @@ const HeroSection = () => {
                     </button>
                     {categoryOpen && (
                       <div className="absolute top-full right-0 mt-2 w-44 bg-white rounded-lg shadow-lg border border-border z-50 py-1">
-                        <button className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">Development</button>
-                        <button className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">Data Science</button>
-                        <button className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">Design</button>
-                        <button className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">Mobile</button>
+                        <button className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">Graphics Design</button>
+                        <button className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">Video Editing</button>
+                        <button className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">Digital Marketing</button>
+                        <button className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">SEO</button>
+                        <button className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">Website Development</button>
+                        <button className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">Dropshipping</button>
                       </div>
                     )}
                   </div>
