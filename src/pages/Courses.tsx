@@ -8,6 +8,7 @@ import { ChevronRight, Star, Users, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import ChromaGridWrapper from "@/components/ui/ChromaGridWrapper";
 
 const courseImages = [
   "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=400&h=250&fit=crop",
@@ -153,42 +154,44 @@ const Courses = () => {
                   </div>
                 </div>
 
-                <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {filteredCourses.map((course, i) => (
-                    <div key={i} className="bg-card border border-border rounded-2xl overflow-hidden hover:shadow-lg transition-shadow group">
-                      <div className="relative overflow-hidden">
-                        <img src={courseImages[course.image]} alt={course.title} className="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-300" />
-                        <span className="absolute top-3 left-3 bg-primary text-primary-foreground text-xs font-medium px-2.5 py-1 rounded-full">{course.category}</span>
-                      </div>
-                      <div className="p-5 space-y-3">
-                        <div className="flex items-center gap-2">
-                          <img src={`https://i.pravatar.cc/30?img=${i + 5}`} alt={course.instructor} className="w-6 h-6 rounded-full" />
-                          <span className="text-xs text-muted-foreground">{course.instructor}</span>
+                <ChromaGridWrapper radius={350}>
+                  <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {filteredCourses.map((course, i) => (
+                      <div key={i} className="bg-card border border-border rounded-2xl overflow-hidden hover:shadow-lg transition-shadow group">
+                        <div className="relative overflow-hidden">
+                          <img src={courseImages[course.image]} alt={course.title} className="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-300" />
+                          <span className="absolute top-3 left-3 bg-primary text-primary-foreground text-xs font-medium px-2.5 py-1 rounded-full">{course.category}</span>
                         </div>
-                        <h4 className="font-bold text-foreground text-sm leading-tight line-clamp-2">{course.title}</h4>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" />{course.students}</span>
-                          <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{course.duration}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          {Array.from({ length: 5 }).map((_, j) => (
-                            <Star key={j} className={`h-3.5 w-3.5 ${j < Math.floor(course.rating) ? "text-accent fill-accent" : "text-muted-foreground"}`} />
-                          ))}
-                          <span className="text-xs text-muted-foreground ml-1">({course.reviews})</span>
-                        </div>
-                        <div className="flex items-center justify-between pt-2 border-t border-border">
-                          <div>
-                            <span className="text-lg font-extrabold text-primary">{currency}{language === 'en' ? (course.price / 100).toFixed(2) : course.price}</span>
-                            <span className="text-xs text-muted-foreground line-through ml-2">{currency}{language === 'en' ? (course.originalPrice / 100).toFixed(2) : course.originalPrice}</span>
+                        <div className="p-5 space-y-3">
+                          <div className="flex items-center gap-2">
+                            <img src={`https://i.pravatar.cc/30?img=${i + 5}`} alt={course.instructor} className="w-6 h-6 rounded-full" />
+                            <span className="text-xs text-muted-foreground">{course.instructor}</span>
                           </div>
-                          <Link to={`/courses/${course.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`}>
-                            <Button size="sm" variant="outline" className="text-xs">{t("coursepage.view_course")}</Button>
-                          </Link>
+                          <h4 className="font-bold text-foreground text-sm leading-tight line-clamp-2">{course.title}</h4>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" />{course.students}</span>
+                            <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{course.duration}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            {Array.from({ length: 5 }).map((_, j) => (
+                              <Star key={j} className={`h-3.5 w-3.5 ${j < Math.floor(course.rating) ? "text-accent fill-accent" : "text-muted-foreground"}`} />
+                            ))}
+                            <span className="text-xs text-muted-foreground ml-1">({course.reviews})</span>
+                          </div>
+                          <div className="flex items-center justify-between pt-2 border-t border-border">
+                            <div>
+                              <span className="text-lg font-extrabold text-primary">{currency}{language === 'en' ? (course.price / 100).toFixed(2) : course.price}</span>
+                              <span className="text-xs text-muted-foreground line-through ml-2">{currency}{language === 'en' ? (course.originalPrice / 100).toFixed(2) : course.originalPrice}</span>
+                            </div>
+                            <Link to={`/courses/${course.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`}>
+                              <Button size="sm" variant="outline" className="text-xs">{t("coursepage.view_course")}</Button>
+                            </Link>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                </ChromaGridWrapper>
 
                 {/* Pagination */}
                 <div className="flex items-center justify-center gap-2 mt-10">
