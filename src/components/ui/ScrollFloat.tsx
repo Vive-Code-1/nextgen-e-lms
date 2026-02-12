@@ -33,7 +33,15 @@ const ScrollFloat: React.FC<ScrollFloatProps> = ({
 
   const splitText = useMemo(() => {
     const text = typeof children === 'string' ? children : '';
-    return text.split('').map((char, index) => (
+    let chars: string[];
+    if (typeof Intl !== 'undefined' && 'Segmenter' in Intl) {
+      const SegmenterClass = (Intl as any).Segmenter;
+      const segmenter = new SegmenterClass(undefined, { granularity: 'grapheme' });
+      chars = Array.from(segmenter.segment(text), (s: any) => s.segment);
+    } else {
+      chars = Array.from(text);
+    }
+    return chars.map((char, index) => (
       <span className="inline-block scroll-float-char" key={index}>
         {char === ' ' ? '\u00A0' : char}
       </span>
