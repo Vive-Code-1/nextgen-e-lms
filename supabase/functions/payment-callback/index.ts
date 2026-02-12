@@ -14,10 +14,11 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const apiKey = Deno.env.get("UDDOKTAPAY_API_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const url = new URL(req.url);
-    const orderId = url.searchParams.get("order_id");
+    const invoiceId = url.searchParams.get("invoice_id");
 
     let body: any = {};
     try {
@@ -26,15 +27,70 @@ Deno.serve(async (req) => {
       // GET request from redirect, use query params
     }
 
-    const targetOrderId = orderId || body?.order_id || body?.metadata?.order_id;
+    // If we have an invoice_id, verify with UddoktaPay
+    if (invoiceId || body?.invoice_id) {
+      const targetInvoiceId = invoiceId || body.invoice_id;
+      const baseUrl = "https://digitaltechdude.paymently.io/api";
+
+      const verifyRes = await fetch(`${baseUrl}/verify-payment`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "RT-UDDOKTAPAY-API-KEY": apiKey,
+        },
+        body: JSON.stringify({ invoice_id: targetInvoiceId }),
+      });
+
+      const verifyData = await verifyRes.json();
+
+      if (verifyData.status === "COMPLETED" && verifyData.metadata?.order_id) {
+        const orderId = verifyData.metadata.order_id;
+
+        // Update order status
+        const { data: order, error: updateErr } = await supabase
+          .from("orders")
+          .update({
+            payment_status: "completed",
+            transaction_id: verifyData.transaction_id || targetInvoiceId,
+          })
+          .eq("id", orderId)
+          .select()
+          .single();
+
+        if (updateErr) throw updateErr;
+
+        // Create enrollment
+        if (order?.course_id && order?.user_id) {
+          await supabase.from("enrollments").upsert({
+            user_id: order.user_id,
+            course_id: order.course_id,
+          }, { onConflict: "user_id,course_id" });
+        }
+      }
+
+      // Redirect to thank-you page for GET requests
+      if (req.method === "GET") {
+        return new Response(null, {
+          status: 302,
+          headers: { ...corsHeaders, Location: "https://nextgen-e-lms.lovable.app/thank-you?payment=success" },
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Fallback: handle by order_id (for non-UddoktaPay callbacks)
+    const targetOrderId = url.searchParams.get("order_id") || body?.order_id || body?.metadata?.order_id;
     if (!targetOrderId) {
-      return new Response(JSON.stringify({ error: "Missing order_id" }), {
+      return new Response(JSON.stringify({ error: "Missing invoice_id or order_id" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Update order status
     const { data: order, error: updateErr } = await supabase
       .from("orders")
       .update({ payment_status: "completed", transaction_id: body?.transaction_id || "callback" })
@@ -44,7 +100,6 @@ Deno.serve(async (req) => {
 
     if (updateErr) throw updateErr;
 
-    // Create enrollment if course_id exists
     if (order?.course_id && order?.user_id) {
       await supabase.from("enrollments").upsert({
         user_id: order.user_id,
@@ -52,11 +107,10 @@ Deno.serve(async (req) => {
       }, { onConflict: "user_id,course_id" });
     }
 
-    // Redirect to dashboard for GET requests
     if (req.method === "GET") {
       return new Response(null, {
         status: 302,
-        headers: { ...corsHeaders, Location: "https://nextgen-e-lms.lovable.app/dashboard?payment=success" },
+        headers: { ...corsHeaders, Location: "https://nextgen-e-lms.lovable.app/thank-you?payment=success" },
       });
     }
 

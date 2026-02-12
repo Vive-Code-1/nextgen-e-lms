@@ -3,17 +3,29 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import {
   GraduationCap, LayoutDashboard, BookOpen, Users, ShoppingCart,
-  Settings, LogOut, DollarSign, TrendingUp
+  Settings, LogOut, DollarSign, TrendingUp, Save
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const AdminDashboard = () => {
   const { user, isAdmin, isLoading, signOut } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [stats, setStats] = useState({ courses: 0, students: 0, orders: 0, revenue: 0 });
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("dashboard");
+
+  // Payment settings state
+  const [paymentMethods, setPaymentMethods] = useState({
+    uddoktapay: true, stripe: true, paypal: true, cod: true, bd_manual: true,
+  });
+  const [uddoktapayBaseUrl, setUddoktapayBaseUrl] = useState("https://digitaltechdude.paymently.io/api");
+  const [uddoktapayApiKey, setUddoktapayApiKey] = useState("••••••••••••••••");
+  const [savingSettings, setSavingSettings] = useState(false);
 
   useEffect(() => {
     if (!isLoading && (!user || !isAdmin)) {
@@ -40,8 +52,37 @@ const AdminDashboard = () => {
           setRecentOrders(data.slice(0, 10));
         }
       });
+
+      // Fetch payment settings
+      supabase.from("site_settings").select("*").then(({ data }) => {
+        if (data) {
+          const methods = data.find((s: any) => s.key === "payment_methods");
+          const baseUrl = data.find((s: any) => s.key === "uddoktapay_base_url");
+          if (methods?.value) setPaymentMethods(methods.value as any);
+          if (baseUrl?.value) setUddoktapayBaseUrl(baseUrl.value as string);
+        }
+      });
     }
   }, [user, isAdmin]);
+
+  const savePaymentSettings = async () => {
+    setSavingSettings(true);
+    try {
+      await supabase.from("site_settings").upsert(
+        { key: "payment_methods", value: paymentMethods as any, updated_at: new Date().toISOString() },
+        { onConflict: "key" }
+      );
+      await supabase.from("site_settings").upsert(
+        { key: "uddoktapay_base_url", value: uddoktapayBaseUrl as any, updated_at: new Date().toISOString() },
+        { onConflict: "key" }
+      );
+      toast({ title: "Settings saved!", description: "Payment settings updated successfully." });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setSavingSettings(false);
+    }
+  };
 
   if (isLoading) return <div className="min-h-screen flex items-center justify-center"><span className="text-muted-foreground">Loading...</span></div>;
   if (!user || !isAdmin) return null;
@@ -59,6 +100,14 @@ const AdminDashboard = () => {
     { label: "Total Students", value: stats.students, icon: Users, color: "bg-accent/10 text-accent" },
     { label: "Total Revenue", value: `$${stats.revenue.toFixed(2)}`, icon: DollarSign, color: "bg-emerald-500/10 text-emerald-500" },
     { label: "Total Orders", value: stats.orders, icon: TrendingUp, color: "bg-violet-500/10 text-violet-500" },
+  ];
+
+  const paymentMethodsList = [
+    { key: "uddoktapay", label: "UddoktaPay", desc: "bKash, Nagad, Rocket & more" },
+    { key: "stripe", label: "Stripe", desc: "Credit/Debit Card" },
+    { key: "paypal", label: "PayPal", desc: "Pay with PayPal" },
+    { key: "cod", label: "Cash on Delivery", desc: "Pay on delivery" },
+    { key: "bd_manual", label: "BD Manual Payment", desc: "Manual bKash/Nagad/Rocket" },
   ];
 
   return (
@@ -101,55 +150,105 @@ const AdminDashboard = () => {
           <p className="text-muted-foreground text-sm mt-1">Manage your LMS platform.</p>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {statCards.map((s) => (
-            <div key={s.label} className="bg-card border border-border rounded-2xl p-5">
-              <div className={`w-10 h-10 rounded-xl ${s.color} flex items-center justify-center mb-3`}>
-                <s.icon className="h-5 w-5" />
-              </div>
-              <p className="text-2xl font-extrabold text-foreground">{s.value}</p>
-              <p className="text-xs text-muted-foreground mt-1">{s.label}</p>
+        {activeTab === "dashboard" && (
+          <>
+            {/* Stats */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              {statCards.map((s) => (
+                <div key={s.label} className="bg-card border border-border rounded-2xl p-5">
+                  <div className={`w-10 h-10 rounded-xl ${s.color} flex items-center justify-center mb-3`}>
+                    <s.icon className="h-5 w-5" />
+                  </div>
+                  <p className="text-2xl font-extrabold text-foreground">{s.value}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{s.label}</p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        {/* Recent Orders */}
-        <div className="bg-card border border-border rounded-2xl p-6">
-          <h2 className="text-lg font-bold text-foreground mb-4">Recent Orders</h2>
-          {recentOrders.length === 0 ? (
-            <p className="text-muted-foreground text-sm">No orders yet.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-3 text-muted-foreground font-medium">Order ID</th>
-                    <th className="text-left py-3 text-muted-foreground font-medium">Amount</th>
-                    <th className="text-left py-3 text-muted-foreground font-medium">Method</th>
-                    <th className="text-left py-3 text-muted-foreground font-medium">Status</th>
-                    <th className="text-left py-3 text-muted-foreground font-medium">Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentOrders.map((order: any) => (
-                    <tr key={order.id} className="border-b border-border last:border-0">
-                      <td className="py-3 text-foreground font-mono text-xs">{order.id.slice(0, 8)}...</td>
-                      <td className="py-3 text-foreground">${Number(order.amount).toFixed(2)}</td>
-                      <td className="py-3 text-foreground capitalize">{order.payment_method || "-"}</td>
-                      <td className="py-3">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${order.payment_status === "completed" ? "bg-emerald-500/10 text-emerald-500" : "bg-accent/10 text-accent"}`}>
-                          {order.payment_status}
-                        </span>
-                      </td>
-                      <td className="py-3 text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            {/* Recent Orders */}
+            <div className="bg-card border border-border rounded-2xl p-6">
+              <h2 className="text-lg font-bold text-foreground mb-4">Recent Orders</h2>
+              {recentOrders.length === 0 ? (
+                <p className="text-muted-foreground text-sm">No orders yet.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-3 text-muted-foreground font-medium">Order ID</th>
+                        <th className="text-left py-3 text-muted-foreground font-medium">Amount</th>
+                        <th className="text-left py-3 text-muted-foreground font-medium">Method</th>
+                        <th className="text-left py-3 text-muted-foreground font-medium">Status</th>
+                        <th className="text-left py-3 text-muted-foreground font-medium">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentOrders.map((order: any) => (
+                        <tr key={order.id} className="border-b border-border last:border-0">
+                          <td className="py-3 text-foreground font-mono text-xs">{order.id.slice(0, 8)}...</td>
+                          <td className="py-3 text-foreground">${Number(order.amount).toFixed(2)}</td>
+                          <td className="py-3 text-foreground capitalize">{order.payment_method || "-"}</td>
+                          <td className="py-3">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${order.payment_status === "completed" ? "bg-emerald-500/10 text-emerald-500" : "bg-accent/10 text-accent"}`}>
+                              {order.payment_status}
+                            </span>
+                          </td>
+                          <td className="py-3 text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </>
+        )}
+
+        {activeTab === "settings" && (
+          <div className="space-y-6">
+            <div className="bg-card border border-border rounded-2xl p-6">
+              <h2 className="text-lg font-bold text-foreground mb-6">Payment Settings</h2>
+
+              {/* Payment Methods Toggle */}
+              <div className="space-y-4 mb-8">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Payment Methods</h3>
+                {paymentMethodsList.map((method) => (
+                  <div key={method.key} className="flex items-center justify-between p-4 border border-border rounded-xl">
+                    <div>
+                      <p className="font-semibold text-foreground">{method.label}</p>
+                      <p className="text-xs text-muted-foreground">{method.desc}</p>
+                    </div>
+                    <Switch
+                      checked={(paymentMethods as any)[method.key] ?? false}
+                      onCheckedChange={(checked) =>
+                        setPaymentMethods((prev) => ({ ...prev, [method.key]: checked }))
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* UddoktaPay Config */}
+              <div className="space-y-4 mb-8">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">UddoktaPay Configuration</h3>
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1 block">API Key</label>
+                  <Input value={uddoktapayApiKey} disabled className="bg-muted font-mono text-sm" />
+                  <p className="text-xs text-muted-foreground mt-1">API key is managed via Supabase Edge Function secrets.</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1 block">Base URL</label>
+                  <Input value={uddoktapayBaseUrl} onChange={(e) => setUddoktapayBaseUrl(e.target.value)} className="font-mono text-sm" />
+                </div>
+              </div>
+
+              <Button onClick={savePaymentSettings} disabled={savingSettings} className="flex items-center gap-2">
+                <Save className="h-4 w-4" />
+                {savingSettings ? "Saving..." : "Save Settings"}
+              </Button>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
