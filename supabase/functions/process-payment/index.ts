@@ -43,6 +43,10 @@ Deno.serve(async (req) => {
           const existingUser = listData?.users?.find((u: any) => u.email === email);
           if (existingUser) {
             resolvedUserId = existingUser.id;
+            // Auto-confirm email for existing unconfirmed users
+            await supabase.auth.admin.updateUserById(existingUser.id, {
+              email_confirm: true,
+            });
           } else {
             throw new Error("User lookup failed");
           }
