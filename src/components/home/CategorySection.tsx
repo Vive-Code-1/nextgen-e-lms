@@ -2,14 +2,15 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Palette, Video, Megaphone, Search, Code, ShoppingCart } from "lucide-react";
 import ScrollFloat from "@/components/ui/ScrollFloat";
 import ScrollReveal from "@/components/ui/ScrollReveal";
+import { Link } from "react-router-dom";
 
 const categories = [
-  { icon: Palette, label: "categories.graphics_design", color: "text-coral-pink", bg: "bg-coral-pink/10" },
-  { icon: Video, label: "categories.video_editing", color: "text-violet-brand", bg: "bg-violet-brand/10" },
-  { icon: Megaphone, label: "categories.digital_marketing", color: "text-blue-500", bg: "bg-blue-100" },
-  { icon: Search, label: "categories.seo", color: "text-emerald-accent", bg: "bg-emerald-accent/10" },
-  { icon: Code, label: "categories.web_dev", color: "text-amber-cta", bg: "bg-amber-cta/10" },
-  { icon: ShoppingCart, label: "categories.dropshipping", color: "text-cyan-500", bg: "bg-cyan-100" },
+  { icon: Palette, label: "categories.graphics_design", color: "text-coral-pink", bg: "bg-coral-pink/10", filterValue: "Graphics Design" },
+  { icon: Video, label: "categories.video_editing", color: "text-violet-brand", bg: "bg-violet-brand/10", filterValue: "Video Editing" },
+  { icon: Megaphone, label: "categories.digital_marketing", color: "text-blue-500", bg: "bg-blue-100", filterValue: "Digital Marketing" },
+  { icon: Search, label: "categories.seo", color: "text-emerald-accent", bg: "bg-emerald-accent/10", filterValue: "SEO" },
+  { icon: Code, label: "categories.web_dev", color: "text-amber-cta", bg: "bg-amber-cta/10", filterValue: "Website Development" },
+  { icon: ShoppingCart, label: "categories.dropshipping", color: "text-cyan-500", bg: "bg-cyan-100", filterValue: "Dropshipping" },
 ];
 
 const CategorySection = () => {
@@ -34,9 +35,10 @@ const CategorySection = () => {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-          {categories.map(({ icon: Icon, label, color, bg }) => (
-            <div
+          {categories.map(({ icon: Icon, label, color, bg, filterValue }) => (
+            <Link
               key={label}
+              to={`/courses?category=${encodeURIComponent(filterValue)}`}
               className="flex flex-col items-center gap-3 bg-card border border-border rounded-2xl p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer"
             >
               <div className={`rounded-full ${bg} p-4`}>
@@ -45,7 +47,7 @@ const CategorySection = () => {
               <span className="text-sm font-semibold text-foreground text-center">
                 {t(label)}
               </span>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

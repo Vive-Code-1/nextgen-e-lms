@@ -91,7 +91,7 @@ const HeroSection = () => {
             </div>
 
             {/* Stats Cards below search bar */}
-            <div className="mt-8">
+            <div className="mt-8 max-w-xl">
               <StatsSection embedded />
             </div>
           </div>

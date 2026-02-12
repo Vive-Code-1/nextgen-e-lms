@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -8,35 +10,60 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const courseImages = [
-  "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=250&fit=crop",
-  "https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&h=250&fit=crop",
-  "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=250&fit=crop",
+  "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=400&h=250&fit=crop",
+  "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400&h=250&fit=crop",
   "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=250&fit=crop",
+  "https://images.unsplash.com/photo-1562577309-4932fdd64cd1?w=400&h=250&fit=crop",
+  "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=250&fit=crop",
+  "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=250&fit=crop",
+  "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=250&fit=crop",
+  "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=250&fit=crop",
   "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&h=250&fit=crop",
   "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&h=250&fit=crop",
-  "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=250&fit=crop",
   "https://images.unsplash.com/photo-1587620962725-abab7fe55159?w=400&h=250&fit=crop",
   "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&h=250&fit=crop",
 ];
 
 const courses = [
-  { title: "Complete Web Development Bootcamp", category: "Development", instructor: "Md. Rahman", rating: 4.8, reviews: 245, price: 4999, originalPrice: 9999, students: 1200, duration: "40 hrs", image: 0 },
-  { title: "Data Science & Machine Learning A-Z", category: "Data Science", instructor: "Fatima Akter", rating: 4.9, reviews: 189, price: 5999, originalPrice: 12999, students: 890, duration: "55 hrs", image: 1 },
-  { title: "UI/UX Design Masterclass", category: "Design", instructor: "Arif Hossain", rating: 4.7, reviews: 312, price: 3999, originalPrice: 7999, students: 1500, duration: "30 hrs", image: 2 },
-  { title: "Digital Marketing Complete Guide", category: "Marketing", instructor: "Sara Khan", rating: 4.6, reviews: 156, price: 2999, originalPrice: 5999, students: 780, duration: "25 hrs", image: 3 },
-  { title: "Mobile App Development with React Native", category: "Development", instructor: "Md. Rahman", rating: 4.8, reviews: 201, price: 5499, originalPrice: 10999, students: 650, duration: "45 hrs", image: 4 },
-  { title: "Python for Beginners to Advanced", category: "Development", instructor: "Kamal Ahmed", rating: 4.5, reviews: 178, price: 3499, originalPrice: 6999, students: 920, duration: "35 hrs", image: 5 },
-  { title: "Graphic Design with Adobe Suite", category: "Design", instructor: "Nadia Islam", rating: 4.7, reviews: 134, price: 4499, originalPrice: 8999, students: 540, duration: "28 hrs", image: 6 },
-  { title: "SEO & Content Marketing Strategy", category: "Marketing", instructor: "Tanvir Hasan", rating: 4.4, reviews: 98, price: 2499, originalPrice: 4999, students: 430, duration: "20 hrs", image: 7 },
-  { title: "Cloud Computing with AWS", category: "Development", instructor: "Arif Hossain", rating: 4.9, reviews: 267, price: 6999, originalPrice: 13999, students: 1100, duration: "50 hrs", image: 8 },
+  { title: "Complete Graphics Design Masterclass", category: "Graphics Design", instructor: "Nadia Islam", rating: 4.8, reviews: 245, price: 4999, originalPrice: 9999, students: 1200, duration: "40 hrs", image: 0 },
+  { title: "Professional Video Editing with Premiere Pro", category: "Video Editing", instructor: "James Wilson", rating: 4.7, reviews: 189, price: 3999, originalPrice: 7999, students: 890, duration: "35 hrs", image: 1 },
+  { title: "Digital Marketing & Social Media Strategy", category: "Digital Marketing", instructor: "Sara Khan", rating: 4.9, reviews: 312, price: 5999, originalPrice: 12999, students: 1500, duration: "30 hrs", image: 2 },
+  { title: "SEO Mastery: Rank #1 on Google", category: "SEO", instructor: "Tanvir Hasan", rating: 4.6, reviews: 156, price: 2999, originalPrice: 5999, students: 780, duration: "25 hrs", image: 3 },
+  { title: "Full-Stack Web Development Bootcamp", category: "Website Development", instructor: "Md. Rahman", rating: 4.8, reviews: 201, price: 5499, originalPrice: 10999, students: 650, duration: "45 hrs", image: 4 },
+  { title: "Dropshipping Business from Scratch", category: "Dropshipping", instructor: "Kamal Ahmed", rating: 4.5, reviews: 178, price: 3499, originalPrice: 6999, students: 920, duration: "35 hrs", image: 5 },
+  { title: "Advanced Graphics Design Portfolio", category: "Graphics Design", instructor: "Arif Hossain", rating: 4.7, reviews: 134, price: 4499, originalPrice: 8999, students: 540, duration: "28 hrs", image: 6 },
+  { title: "Full Stack JavaScript Development", category: "Website Development", instructor: "Fatima Akter", rating: 4.9, reviews: 267, price: 6999, originalPrice: 13999, students: 1100, duration: "50 hrs", image: 7 },
+  { title: "Advanced SEO & Content Strategy", category: "SEO", instructor: "David Kim", rating: 4.4, reviews: 98, price: 2499, originalPrice: 4999, students: 430, duration: "20 hrs", image: 8 },
+  { title: "Social Media Marketing Mastery", category: "Digital Marketing", instructor: "Emily Rodriguez", rating: 4.8, reviews: 220, price: 4999, originalPrice: 9999, students: 980, duration: "32 hrs", image: 9 },
+  { title: "After Effects Motion Graphics", category: "Video Editing", instructor: "Michael Chen", rating: 4.6, reviews: 145, price: 4499, originalPrice: 8999, students: 670, duration: "38 hrs", image: 10 },
+  { title: "E-commerce & Dropshipping Mastery", category: "Dropshipping", instructor: "Sarah Johnson", rating: 4.7, reviews: 190, price: 3999, originalPrice: 7999, students: 850, duration: "30 hrs", image: 11 },
 ];
 
-const filterCategories = ["Development", "Data Science", "Design", "Marketing", "Business"];
+const filterCategories = ["Graphics Design", "Video Editing", "Digital Marketing", "SEO", "Website Development", "Dropshipping"];
 const filterLevels = ["Beginner", "Intermediate", "Advanced", "All Levels"];
 const filterPrices = ["Free", "Under ৳3000", "৳3000 - ৳5000", "Above ৳5000"];
 
 const Courses = () => {
   const { t } = useLanguage();
+  const [searchParams] = useSearchParams();
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
+  useEffect(() => {
+    const cat = searchParams.get("category");
+    if (cat && filterCategories.includes(cat)) {
+      setSelectedCategories([cat]);
+    }
+  }, [searchParams]);
+
+  const toggleCategory = (cat: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+    );
+  };
+
+  const filteredCourses = selectedCategories.length === 0
+    ? courses
+    : courses.filter((c) => selectedCategories.includes(c.category));
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -69,7 +96,10 @@ const Courses = () => {
                         <div className="space-y-3">
                           {filterCategories.map((cat) => (
                             <label key={cat} className="flex items-center gap-2 cursor-pointer">
-                              <Checkbox />
+                              <Checkbox
+                                checked={selectedCategories.includes(cat)}
+                                onCheckedChange={() => toggleCategory(cat)}
+                              />
                               <span className="text-sm text-muted-foreground">{cat}</span>
                             </label>
                           ))}
@@ -109,7 +139,7 @@ const Courses = () => {
               {/* Course Grid */}
               <div className="lg:col-span-3">
                 <div className="flex items-center justify-between mb-6">
-                  <p className="text-sm text-muted-foreground">{t("coursepage.showing")} <strong>9</strong> {t("coursepage.courses_label")}</p>
+                  <p className="text-sm text-muted-foreground">{t("coursepage.showing")} <strong>{filteredCourses.length}</strong> {t("coursepage.courses_label")}</p>
                   <div className="flex gap-2">
                     {["Newest", "Trending", "Top Rated"].map((sort) => (
                       <Button key={sort} variant="outline" size="sm" className="text-xs">
@@ -120,7 +150,7 @@ const Courses = () => {
                 </div>
 
                 <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {courses.map((course, i) => (
+                  {filteredCourses.map((course, i) => (
                     <div key={i} className="bg-card border border-border rounded-2xl overflow-hidden hover:shadow-lg transition-shadow group">
                       <div className="relative overflow-hidden">
                         <img src={courseImages[course.image]} alt={course.title} className="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-300" />
