@@ -1,90 +1,46 @@
 
-# Checkout Page Enhancements + Admin Dashboard Fix
 
-## 1. Add "BD Manual Payment" Section to Checkout
+# Checkout Page Fixes
 
-Below the existing Payment Method section, add a new **"BD Manual Payment"** section with:
+## 1. Show/Hide Password Toggle
 
-- **Three payment options as cards**: bKash, Nagad, Rocket (styled like the reference image with icons/logos)
-- When a BD manual method is selected, show:
-  - **Payment number display** with a copy button (e.g., "01332052874")
-  - **Input field**: "যে নম্বর থেকে পাঠিয়েছেন" (sender phone number)
-  - **Input field**: "Transaction ID (TrxID)"
-- The payment method radio selection will include these BD manual options alongside UddoktaPay/Stripe/PayPal
-- When a BD manual method is chosen, the Pay button submits the order with `payment_status: "pending"` (admin manually verifies) -- no redirect needed
+Add a show/hide password button next to the password input field in the "Create Your Account" section.
 
-## 2. Add COD (Cash on Delivery) Option
+**File:** `src/pages/Checkout.tsx`
+- Add `showPassword` state (`useState(false)`)
+- Import `Eye` and `EyeOff` icons from lucide-react
+- Wrap the password input in a `relative` div with a toggle button positioned on the right
+- Toggle input `type` between `"password"` and `"text"`
 
-- Add a "Cash on Delivery" radio option in the Payment Method section
-- When selected, no additional fields needed -- just submit order as pending
+## 2. Remove Bengali Text from Cash on Delivery
 
-## 3. Add Phone & Address Fields to "Create Your Account" Section
+**File:** `src/pages/Checkout.tsx` (line 234)
+- Remove `<p className="text-xs text-muted-foreground">ক্যাশ অন ডেলিভারি</p>` from the COD label
 
-- Add **Phone Number** input field
-- Add **Address** textarea field
-- All fields (Full Name, Email, Password, Phone, Address) will be **required**
-- Phone and address stored in the user's profile (requires adding columns to `profiles` table)
+## 3. BD Manual Payment: Remove Flag Emoji + IP-Based Visibility
 
-## 4. Auto-Login After Checkout (No Email Verification)
+**File:** `src/pages/Checkout.tsx`
+- Change heading from `"🇧🇩 BD Manual Payment"` to `"BD Manual Payment"` (line 243)
+- Add a `useEffect` that fetches the user's country via a free IP geolocation API (e.g., `https://ipapi.co/json/`) and stores `isBangladesh` in state
+- Conditionally render the entire BD Manual Payment section only when `isBangladesh` is true
+- Default `isBangladesh` to `false` so non-BD users never see the section
 
-- Use `supabase.auth.signUp()` with auto-confirm approach
-- After successful payment submission, redirect to a **Thank You page** (`/thank-you`) showing:
-  - "Your account has been created"
-  - Display the email and password used
-  - Message: "আপনার একাউন্ট এর ইমেল ও পাস দিয়ে লগিন করে আপনার অর্ডার স্টাটাস দেখুন"
-  - A "Student Login" link button pointing to `/auth`
+## 4. Fix "email rate limit exceeded" Error
 
-## 5. Fix Admin Dashboard Redirect
+The error occurs because Supabase's `signUp()` triggers a confirmation email, and repeated attempts hit the rate limit. The fix is to disable email confirmation requirement for signup.
 
-- **Problem**: `Auth.tsx` always redirects to `/dashboard` after login, ignoring admin role
-- **Fix**: After login, check `user_roles` table. If user has `admin` role, redirect to `/admin`; otherwise redirect to `/dashboard`
+**File:** `src/pages/Checkout.tsx`
+- The `signUp` call already exists. The root cause is Supabase Auth settings -- email confirmation must be disabled in the Supabase dashboard (Auth > Providers > Email > "Confirm email" toggle OFF).
+- As an additional safeguard in the code, wrap the signUp call to handle this specific error gracefully: if the error message contains "rate limit", show a user-friendly message like "Too many attempts. Please try again in a few minutes."
+- Also, after signup, immediately sign in with `supabase.auth.signInWithPassword()` to ensure the user session is active regardless of email confirmation settings.
 
 ---
 
-## Technical Details
+## Technical Summary
 
-### Database Migration
-
-Add `phone` and `address` columns to `profiles` table:
-
-```text
-ALTER TABLE public.profiles ADD COLUMN phone text;
-ALTER TABLE public.profiles ADD COLUMN address text;
-```
-
-Add `sender_phone` and `trx_id` columns to `orders` table for BD manual payments:
-
-```text
-ALTER TABLE public.orders ADD COLUMN sender_phone text;
-ALTER TABLE public.orders ADD COLUMN trx_id text;
-```
-
-### Files to Create
-
-- **`src/pages/ThankYou.tsx`** -- Post-checkout confirmation page with login link
-
-### Files to Modify
-
-- **`src/pages/Checkout.tsx`** -- Add BD manual payment section (bKash/Nagad/Rocket), COD option, phone/address fields, validation, and redirect to ThankYou page
-- **`src/pages/Auth.tsx`** -- Fix login redirect: check `user_roles` for admin role, redirect accordingly
-- **`src/App.tsx`** -- Add `/thank-you` route
-- **`src/integrations/supabase/types.ts`** -- Update types for new columns
-- **`supabase/functions/process-payment/index.ts`** -- Add `bkash_manual`, `nagad_manual`, `rocket_manual`, and `cod` payment method handlers that create order with pending status and return success (no redirect)
-
-### Edge Function Changes
-
-For BD manual and COD methods, the `process-payment` function will:
-1. Create the order with `payment_status: "pending"`, store `sender_phone` and `trx_id`
-2. Return `{ success: true }` (no redirect URL) so the frontend navigates to the Thank You page
-
-### Checkout Flow
-
-```text
-User fills form --> Selects BD Manual (bKash/Nagad/Rocket)
-  --> Shows payment number + copy button
-  --> User enters sender phone + TrxID
-  --> Clicks Pay
-  --> Account created (if not logged in)
-  --> Order created with pending status
-  --> Redirect to /thank-you with credentials
-```
+### Changes in `src/pages/Checkout.tsx`:
+1. Add `showPassword` state + Eye/EyeOff toggle button on password field
+2. Remove Bengali subtitle from COD option
+3. Remove flag emoji from BD Manual Payment heading
+4. Add `isBangladesh` state + `useEffect` with IP geolocation check to conditionally show BD Manual section
+5. After `signUp`, call `signInWithPassword` to auto-login and avoid email confirmation issues; add friendly error message for rate limit errors
