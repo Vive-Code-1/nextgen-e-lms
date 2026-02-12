@@ -1,65 +1,106 @@
 
 
-# Hero Video Background and Floating Glass Navbar
+# 7 Changes: Hero Layout, Category Dropdown, Scroll Navbar, About/Contact/Courses Pages, Category Grid
 
 ## Summary
-Two changes: (1) Replace the hero section's solid `#1E1B4B` background color with the uploaded video as a full-cover background video, and (2) Redesign the navbar to a floating, rounded pill-shape with a translucent glass effect matching the reference image.
+Seven changes across the site: (1) shrink hero banner image and ensure stats cards remain visible within hero area, (2) fix category dropdown in search bar, (3) navbar background changes to white on scroll, (4) full About Us page based on DreamsLMS reference, (5) full Contact Us page, (6) full Courses page with grid + filters, (7) replace category carousel with a simple 6-card grid.
 
 ---
 
-## Changes
+## 1. Hero Banner Image Smaller + Stats Cards Inside Hero
 
-### 1. Hero Section: Video Background Instead of Solid Color
+**File:** `src/components/home/HeroSection.tsx`, `src/components/home/StatsSection.tsx`, `src/pages/Index.tsx`
 
-**Current state:** The hero section uses `bg-indigo-dark` (solid `#1E1B4B`) as background. The video is placed as a separate `HeroVideo` component below the stats cards.
+- Reduce the hero banner image size (e.g., `max-w-sm` or `w-3/4` instead of `w-full`)
+- Move the `StatsSection` component INSIDE the `HeroSection` so the stats cards render within the hero's video background area (before the closing `</section>`)
+- Remove `StatsSection` from `Index.tsx` as a separate component
+- The stats cards will sit at the bottom of the hero, still with their glassmorphism effect, fully within the dark video background
 
-**New approach:**
-- Remove the `HeroVideo` component from `Index.tsx` (it will no longer be a standalone section)
-- In `HeroSection.tsx`, replace `bg-indigo-dark` with a full-cover background video using the existing `hero-video.webm` asset
-- The video will be positioned absolutely behind the hero content using `absolute inset-0 w-full h-full object-cover` with a dark overlay (`bg-black/50`) to keep text readable
-- Hero text, search bar, and banner image remain on top of the video via `relative z-10`
+## 2. Fix Category Dropdown in Search Bar
 
-### 2. Navbar: Floating Glass Pill Design
+**File:** `src/components/home/HeroSection.tsx`
 
-**Reference:** The uploaded image shows a floating navbar with rounded-full shape, translucent purple/violet glass effect, centered on the page with margin from edges.
+The category dropdown code exists but it's clipped by `overflow-hidden` on the search bar container. Fix:
+- Remove `overflow-hidden` from the search bar's white container
+- Use `overflow-visible` or restructure so the dropdown can appear outside the search bar bounds
+- The dropdown itself is already implemented with the 6 categories
 
-**New approach:**
-- Change the outer `<header>` from `sticky top-0` full-width to a floating container with padding from top and sides
-- The inner navbar bar gets: `rounded-full`, translucent violet glass effect (`bg-white/10 backdrop-blur-xl border border-white/20`), max-width constraint, and auto margins
-- Logo and nav link text colors become white/white-70 since the navbar floats over the dark video hero
-- Login/Register buttons adapt to light-on-dark styling
-- On scroll or on non-hero pages, the glass effect remains readable
+## 3. Navbar Background Changes on Scroll
+
+**File:** `src/components/Navbar.tsx`
+
+- Add a scroll listener using `useState` + `useEffect` to detect when user scrolls past the hero section
+- When scrolled past ~100px: change navbar background from `bg-white/10 backdrop-blur-xl border-white/20` to `bg-white shadow-md border-gray-200`
+- Change text colors from white to dark (`text-foreground`) when on white background
+- This ensures readability on both hero (dark) and content (light) sections
+
+## 4. About Us Page (DreamsLMS-inspired)
+
+**File:** `src/pages/About.tsx`
+
+Full page rebuild with sections from the reference:
+- Page header banner: "About Us" with breadcrumb (Home > About Us) on gradient background
+- About section: image on left, "Empowering Learning, Inspiring Growth" text on right with "Learn from anywhere" and "Expert Mentors" features
+- Skills section: "Master the Skills to Drive your Career" with 3 cards (Flexible Learning, Lifetime Access, Expert Instruction)
+- Stats counter section (reuse existing stats data)
+- Instructors section: 3 instructor cards with avatar, name, role, quote, star rating
+- FAQ accordion section with 5 questions
+
+## 5. Contact Us Page (DreamsLMS-inspired)
+
+**File:** `src/pages/Contact.tsx`
+
+Full page rebuild:
+- Page header banner: "Contact Us" with breadcrumb on gradient background
+- 3 info cards: Address, Phone, Email
+- Two-column section: left side "Get in touch with us today" text, right side contact form (Name, Email, Phone, Subject, Message, Send Enquiry button)
+
+## 6. Courses Page (DreamsLMS-inspired Grid)
+
+**File:** `src/pages/Courses.tsx`
+
+Full page rebuild:
+- Page header banner: "Course Grid" with breadcrumb
+- Left sidebar with filter accordion panels: Categories, Instructors, Price, Level, Reviews (using checkboxes)
+- Right content area: grid of 9 course cards (3 columns x 3 rows)
+- Each course card: image, instructor avatar + name, category badge, title, rating + reviews, price, "View Course" button
+- Sorting options: Newly Published, Trending, Top Rated, Free
+- Pagination at bottom
+- Use placeholder/Unsplash images for course thumbnails
+
+## 7. Category Section: Grid Instead of Carousel
+
+**File:** `src/components/home/CategorySection.tsx`
+
+- Remove embla-carousel dependency and autoplay logic
+- Replace with a simple CSS grid: `grid-cols-2 sm:grid-cols-3 lg:grid-cols-6`
+- Keep the same 6 category cards with icons and hover effects
+- Much simpler code
 
 ---
 
-## Files to Modify
+## Files to Modify/Create
 
-### `src/components/Navbar.tsx`
-- Restructure: outer `<header>` becomes `fixed top-0 left-0 right-0 z-50 px-4 pt-4`
-- Inner container: `max-w-[80vw] mx-auto rounded-full bg-white/10 backdrop-blur-xl border border-white/20 px-6`
-- Text colors: logo, nav links, and buttons switch to white/white-70 for contrast against the dark/video background
-- Mobile menu stays the same (Sheet overlay)
-
-### `src/components/home/HeroSection.tsx`
-- Remove `bg-indigo-dark` from section
-- Add background video element: `<video>` with `absolute inset-0 w-full h-full object-cover` playing the `hero-video.webm`
-- Add dark overlay div: `absolute inset-0 bg-black/50` for text readability
-- Wrap existing content in `relative z-10`
-- Add top padding to account for the floating navbar (`pt-24` or similar)
-- Import `heroVideo` from assets
-
-### `src/pages/Index.tsx`
-- Remove `HeroVideo` import and usage from the page layout (video is now the hero background)
-
-### `src/index.css`
-- Update `.glass` utility or add a new `.glass-nav` utility for the floating navbar: `bg-white/10 backdrop-blur-xl border border-white/20 rounded-full`
+| File | Action |
+|------|--------|
+| `src/components/home/HeroSection.tsx` | Shrink banner image, embed StatsSection, fix category dropdown overflow |
+| `src/components/home/StatsSection.tsx` | Minor adjustments for embedding inside hero |
+| `src/pages/Index.tsx` | Remove standalone StatsSection import |
+| `src/components/Navbar.tsx` | Add scroll-based background color toggle |
+| `src/pages/About.tsx` | Full rebuild with DreamsLMS-inspired sections |
+| `src/pages/Contact.tsx` | Full rebuild with contact form and info cards |
+| `src/pages/Courses.tsx` | Full rebuild with course grid, filters, pagination |
+| `src/components/home/CategorySection.tsx` | Replace carousel with simple grid |
+| `src/lib/translations.ts` | Add translation keys for new page content |
 
 ---
 
 ## Technical Notes
 
-- The video background uses `autoPlay loop muted playsInline` for silent auto-playing across all browsers
-- The dark overlay ensures white text remains readable regardless of video content
-- The floating navbar needs extra top padding on the hero section content to avoid overlap
-- The `HeroVideo.tsx` component file can be kept or deleted -- it will just be unused after removing from Index.tsx
+- Scroll detection for navbar: `window.addEventListener('scroll', ...)` with a threshold of ~80px, using `useState(false)` for `isScrolled`
+- Category dropdown fix: the parent div with `rounded-full overflow-hidden` clips the absolutely-positioned dropdown. Solution is to move the dropdown portal outside the overflow container or remove `overflow-hidden`
+- Course grid page uses static data (no database) with hardcoded course objects similar to the existing `PopularCourses` component
+- FAQ accordion on About page will use the existing `@radix-ui/react-accordion` component
+- Contact form is frontend-only (no backend submission)
+- All new translation keys will be added for both EN and BN
 
