@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronRight, CreditCard, ShieldCheck, Copy, Phone, MapPin, Truck } from "lucide-react";
+import { ChevronRight, CreditCard, ShieldCheck, Copy, Phone, MapPin, Truck, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const coursePrices: Record<string, { title: string; price: number; image: string }> = {
@@ -47,6 +47,17 @@ const Checkout = () => {
   const [trxId, setTrxId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isBangladesh, setIsBangladesh] = useState(false);
+
+  useEffect(() => {
+    fetch("https://ipapi.co/json/")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.country_code === "BD") setIsBangladesh(true);
+      })
+      .catch(() => {});
+  }, []);
 
   const isBdManual = ["bkash_manual", "nagad_manual", "rocket_manual"].includes(paymentMethod);
   const isCod = paymentMethod === "cod";
@@ -85,8 +96,21 @@ const Checkout = () => {
           password,
           options: { data: { full_name: fullName }, emailRedirectTo: window.location.origin },
         });
-        if (signUpErr) throw signUpErr;
-        currentUser = data.user;
+        if (signUpErr) {
+          if (signUpErr.message.toLowerCase().includes("rate limit")) {
+            throw new Error("Too many attempts. Please try again in a few minutes.");
+          }
+          throw signUpErr;
+        }
+        
+        // Auto-login after signup to bypass email confirmation
+        const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+        if (signInErr) {
+          // If sign-in fails, still use signup user
+          currentUser = data.user;
+        } else {
+          currentUser = signInData.user;
+        }
         createdEmail = email;
         createdPassword = password;
 
@@ -172,7 +196,12 @@ const Checkout = () => {
                     <div className="space-y-3">
                       <Input placeholder="Full Name *" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
                       <Input type="email" placeholder="Email Address *" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                      <Input type="password" placeholder="Password (min 6 characters) *" value={password} onChange={(e) => setPassword(e.target.value)} minLength={6} required />
+                      <div className="relative">
+                        <Input type={showPassword ? "text" : "password"} placeholder="Password (min 6 characters) *" value={password} onChange={(e) => setPassword(e.target.value)} minLength={6} required className="pr-10" />
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
                       <div className="relative">
                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input placeholder="Phone Number *" value={phone} onChange={(e) => setPhone(e.target.value)} className="pl-10" required />
@@ -231,7 +260,6 @@ const Checkout = () => {
                         <Truck className="h-5 w-5 text-muted-foreground" />
                         <div>
                           <span className="font-semibold text-foreground">Cash on Delivery</span>
-                          <p className="text-xs text-muted-foreground">ক্যাশ অন ডেলিভারি</p>
                         </div>
                       </div>
                     </label>
@@ -239,8 +267,9 @@ const Checkout = () => {
                 </div>
 
                 {/* BD Manual Payment */}
+                {isBangladesh && (
                 <div className="bg-card border border-border rounded-2xl p-6">
-                  <h2 className="text-xl font-bold text-foreground mb-4">🇧🇩 BD Manual Payment</h2>
+                  <h2 className="text-xl font-bold text-foreground mb-4">BD Manual Payment</h2>
                   <div className="grid grid-cols-3 gap-3 mb-4">
                     {bdManualMethods.map((method) => (
                       <button
@@ -284,6 +313,7 @@ const Checkout = () => {
                     </div>
                   )}
                 </div>
+                )}
 
                 {error && (
                   <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-lg">
