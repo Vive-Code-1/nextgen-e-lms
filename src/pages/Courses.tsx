@@ -41,10 +41,14 @@ const courses = [
 
 const filterCategories = ["Graphics Design", "Video Editing", "Digital Marketing", "SEO", "Website Development", "Dropshipping"];
 const filterLevels = ["Beginner", "Intermediate", "Advanced", "All Levels"];
-const filterPrices = ["Free", "Under ৳3000", "৳3000 - ৳5000", "Above ৳5000"];
+const getFilterPrices = (lang: string) => lang === 'en'
+  ? ["Free", "Under $30", "$30 - $50", "Above $50"]
+  : ["ফ্রি", "৳3000 এর নিচে", "৳3000 - ৳5000", "৳5000 এর উপরে"];
 
 const Courses = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const currency = language === 'en' ? '$' : '৳';
+  const filterPrices = getFilterPrices(language);
   const [searchParams] = useSearchParams();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
@@ -174,10 +178,12 @@ const Courses = () => {
                         </div>
                         <div className="flex items-center justify-between pt-2 border-t border-border">
                           <div>
-                            <span className="text-lg font-extrabold text-primary">৳{course.price}</span>
-                            <span className="text-xs text-muted-foreground line-through ml-2">৳{course.originalPrice}</span>
+                            <span className="text-lg font-extrabold text-primary">{currency}{language === 'en' ? (course.price / 100).toFixed(2) : course.price}</span>
+                            <span className="text-xs text-muted-foreground line-through ml-2">{currency}{language === 'en' ? (course.originalPrice / 100).toFixed(2) : course.originalPrice}</span>
                           </div>
-                          <Button size="sm" variant="outline" className="text-xs">{t("coursepage.view_course")}</Button>
+                          <Link to={`/courses/${course.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`}>
+                            <Button size="sm" variant="outline" className="text-xs">{t("coursepage.view_course")}</Button>
+                          </Link>
                         </div>
                       </div>
                     </div>

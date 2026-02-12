@@ -166,7 +166,7 @@ export const translations: Record<string, Record<string, string>> = {
     "contact.send_button": "Send Enquiry",
 
     // Courses Page
-    "coursepage.page_title": "Course Grid",
+    "coursepage.page_title": "All Courses",
     "coursepage.filters": "Filters",
     "coursepage.categories": "Categories",
     "coursepage.level": "Level",
@@ -342,7 +342,7 @@ export const translations: Record<string, Record<string, string>> = {
     "contact.send_button": "বার্তা পাঠান",
 
     // Courses Page
-    "coursepage.page_title": "কোর্স গ্রিড",
+    "coursepage.page_title": "সকল কোর্স",
     "coursepage.filters": "ফিল্টার",
     "coursepage.categories": "ক্যাটাগরি",
     "coursepage.level": "লেভেল",

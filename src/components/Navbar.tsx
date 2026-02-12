@@ -1,15 +1,18 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { GraduationCap, Menu, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Navbar = () => {
   const { language, toggleLanguage, t } = useLanguage();
+  const { user, isAdmin, signOut } = useAuth();
   const [open, setOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,6 +30,11 @@ const Navbar = () => {
   ];
 
   const isActive = (path: string) => location.pathname === path;
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 px-4 pt-4">
@@ -85,20 +93,47 @@ const Navbar = () => {
 
           <div className={`h-6 w-px ${isScrolled ? "bg-border" : "bg-white/20"}`} />
 
-          <Button
-            variant="ghost"
-            size="sm"
-            className={`text-sm font-medium transition-colors ${
-              isScrolled
-                ? "text-foreground/70 hover:text-foreground hover:bg-muted"
-                : "text-white/70 hover:text-white hover:bg-white/10"
-            }`}
-          >
-            {t("nav.login")}
-          </Button>
-          <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 text-sm font-medium">
-            {t("nav.register")}
-          </Button>
+          {user ? (
+            <>
+              <Link to={isAdmin ? "/admin" : "/dashboard"}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`text-sm font-medium transition-colors ${
+                    isScrolled
+                      ? "text-foreground/70 hover:text-foreground hover:bg-muted"
+                      : "text-white/70 hover:text-white hover:bg-white/10"
+                  }`}
+                >
+                  Dashboard
+                </Button>
+              </Link>
+              <Button size="sm" onClick={handleLogout} className="bg-accent text-accent-foreground hover:bg-accent/90 text-sm font-medium">
+                Logout
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link to="/auth">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`text-sm font-medium transition-colors ${
+                    isScrolled
+                      ? "text-foreground/70 hover:text-foreground hover:bg-muted"
+                      : "text-white/70 hover:text-white hover:bg-white/10"
+                  }`}
+                >
+                  {t("nav.login")}
+                </Button>
+              </Link>
+              <Link to="/auth">
+                <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 text-sm font-medium">
+                  {t("nav.register")}
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile hamburger */}
@@ -140,10 +175,27 @@ const Navbar = () => {
                 <Globe className="h-4 w-4" />
                 {language === "en" ? "Switch to বাংলা" : "Switch to English"}
               </Button>
-              <Button variant="outline" className="w-full">{t("nav.login")}</Button>
-              <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
-                {t("nav.register")}
-              </Button>
+              {user ? (
+                <>
+                  <Link to={isAdmin ? "/admin" : "/dashboard"} onClick={() => setOpen(false)}>
+                    <Button variant="outline" className="w-full">Dashboard</Button>
+                  </Link>
+                  <Button onClick={() => { handleLogout(); setOpen(false); }} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link to="/auth" onClick={() => setOpen(false)}>
+                    <Button variant="outline" className="w-full">{t("nav.login")}</Button>
+                  </Link>
+                  <Link to="/auth" onClick={() => setOpen(false)}>
+                    <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+                      {t("nav.register")}
+                    </Button>
+                  </Link>
+                </>
+              )}
             </nav>
           </SheetContent>
         </Sheet>

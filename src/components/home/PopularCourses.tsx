@@ -68,7 +68,9 @@ const courses = [
 ];
 
 const CourseCard = ({ course }: { course: (typeof courses)[0] }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const currency = language === 'en' ? '$' : '৳';
+  const slug = t(course.titleKey).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   return (
     <Card className="group overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-2 bg-card">
       <div className="overflow-hidden">
@@ -96,10 +98,12 @@ const CourseCard = ({ course }: { course: (typeof courses)[0] }) => {
           <span className="text-xs text-muted-foreground ml-1">{course.rating}</span>
         </div>
         <div className="flex items-center justify-between pt-1">
-          <span className="text-lg font-bold text-accent">{course.price}</span>
-          <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 transition-all duration-200 hover:scale-105">
-            {t("courses.enroll")}
-          </Button>
+          <span className="text-lg font-bold text-accent">{currency}{course.price}</span>
+          <Link to={`/courses/${slug}`}>
+            <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 transition-all duration-200 hover:scale-105">
+              {t("courses.enroll")}
+            </Button>
+          </Link>
         </div>
       </CardContent>
     </Card>
