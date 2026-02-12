@@ -12,13 +12,56 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { course_slug, payment_method, amount, user_id, course_title, full_name, email, sender_phone, trx_id } = await req.json();
+    const {
+      course_slug, payment_method, amount, user_id,
+      course_title, full_name, email, password, phone, address,
+      sender_phone, trx_id
+    } = await req.json();
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Look up course_id from slug
+    // === Step 1: Resolve user ===
+    let resolvedUserId = user_id;
+    let userEmail = email;
+    let userPassword = password;
+
+    if (!resolvedUserId && email && password) {
+      // Try to create a new user with auto-confirm
+      const { data: createData, error: createErr } = await supabase.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: { full_name },
+      });
+
+      if (createErr) {
+        if (createErr.message?.includes("already been registered") || createErr.message?.includes("already exists")) {
+          // User exists - look up by email
+          const { data: listData } = await supabase.auth.admin.listUsers();
+          const existingUser = listData?.users?.find((u: any) => u.email === email);
+          if (existingUser) {
+            resolvedUserId = existingUser.id;
+          } else {
+            throw new Error("User lookup failed");
+          }
+        } else {
+          throw createErr;
+        }
+      } else {
+        resolvedUserId = createData.user.id;
+      }
+
+      // Update profile with phone and address
+      if (resolvedUserId) {
+        await supabase.from("profiles").update({ phone, address, full_name }).eq("id", resolvedUserId);
+      }
+    }
+
+    if (!resolvedUserId) throw new Error("No user identified");
+
+    // === Step 2: Look up course_id ===
     let courseId: string | null = null;
     if (course_slug) {
       const { data: courseData } = await supabase
@@ -29,12 +72,14 @@ Deno.serve(async (req) => {
       courseId = courseData?.id || null;
     }
 
-    // Manual BD payments and COD - create order directly as pending
+    // === Step 3: Create order and process payment ===
+
+    // Manual BD payments and COD
     if (["bkash_manual", "nagad_manual", "rocket_manual", "cod"].includes(payment_method)) {
       const { data: order, error: orderErr } = await supabase
         .from("orders")
         .insert({
-          user_id,
+          user_id: resolvedUserId,
           amount,
           currency: "BDT",
           payment_method,
@@ -48,16 +93,21 @@ Deno.serve(async (req) => {
 
       if (orderErr) throw orderErr;
 
-      return new Response(JSON.stringify({ success: true, order_id: order.id }), {
+      return new Response(JSON.stringify({
+        success: true,
+        order_id: order.id,
+        user_email: userEmail,
+        user_password: userPassword,
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Create order record for gateway payments
+    // Gateway payments
     const { data: order, error: orderErr } = await supabase
       .from("orders")
       .insert({
-        user_id,
+        user_id: resolvedUserId,
         amount,
         currency: "USD",
         payment_method,
@@ -98,7 +148,11 @@ Deno.serve(async (req) => {
       const data = await response.json();
       if (!data.status) throw new Error(data.message || "UddoktaPay error");
 
-      return new Response(JSON.stringify({ redirect_url: data.payment_url }), {
+      return new Response(JSON.stringify({
+        redirect_url: data.payment_url,
+        user_email: userEmail,
+        user_password: userPassword,
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -127,7 +181,11 @@ Deno.serve(async (req) => {
       });
 
       const session = await response.json();
-      return new Response(JSON.stringify({ redirect_url: session.url }), {
+      return new Response(JSON.stringify({
+        redirect_url: session.url,
+        user_email: userEmail,
+        user_password: userPassword,
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -168,7 +226,11 @@ Deno.serve(async (req) => {
 
       const paypalOrder = await orderRes.json();
       const approveLink = paypalOrder.links?.find((l: any) => l.rel === "approve");
-      return new Response(JSON.stringify({ redirect_url: approveLink?.href }), {
+      return new Response(JSON.stringify({
+        redirect_url: approveLink?.href,
+        user_email: userEmail,
+        user_password: userPassword,
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
