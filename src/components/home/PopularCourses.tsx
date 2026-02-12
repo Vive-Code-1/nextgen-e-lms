@@ -6,6 +6,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import ScrollFloat from "@/components/ui/ScrollFloat";
 import ScrollRevealText from "@/components/ui/ScrollReveal";
+import { Link } from "react-router-dom";
 
 const courses = [
   {
@@ -49,6 +50,20 @@ const courses = [
     image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=250&fit=crop",
     rating: 4.5,
     price: "$34.99",
+  },
+  {
+    titleKey: "courses.adv_graphics_course",
+    catKey: "categories.graphics_design",
+    image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=250&fit=crop",
+    rating: 4.7,
+    price: "$54.99",
+  },
+  {
+    titleKey: "courses.fullstack_course",
+    catKey: "categories.web_dev",
+    image: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=250&fit=crop",
+    rating: 4.9,
+    price: "$64.99",
   },
 ];
 
@@ -113,13 +128,20 @@ const PopularCourses = () => {
           </ScrollRevealText>
         </div>
         <div
-          className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-700 ${
+          className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 transition-all duration-700 ${
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
           {courses.map((course) => (
             <CourseCard key={course.titleKey} course={course} />
           ))}
+        </div>
+        <div className="text-center mt-10">
+          <Link to="/courses">
+            <Button variant="outline" size="lg" className="px-8 font-semibold">
+              {t("courses.view_all")}
+            </Button>
+          </Link>
         </div>
       </div>
     </section>

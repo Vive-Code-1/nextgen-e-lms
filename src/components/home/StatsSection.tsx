@@ -28,7 +28,7 @@ const StatCard = ({ icon: Icon, value, label, color, bg, suffix }: { icon: any; 
 const StatsSection = ({ embedded = false }: { embedded?: boolean }) => {
   if (embedded) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {stats.map((stat) => (
           <StatCard key={stat.label} {...stat} />
         ))}
