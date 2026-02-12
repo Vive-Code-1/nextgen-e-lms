@@ -1,89 +1,92 @@
 
 
-# Hero Section Redesign - Search Bar, New Image, and Glass Counter Cards
+# Hero Stats Overlap, Bengali Font, and Category Carousel Section
 
 ## Summary
-Redesign the hero section with a new banner image, colored headline text, a search bar with category dropdown replacing the CTA button, and 4 glass-effect counter cards overlapping the hero bottom.
+Three changes: (1) Move the stats cards to visually sit inside/overlap the hero section so they appear as part of the header with no white background gap, (2) Add Google Sans font for Bengali text, (3) Add a new auto-scrolling category carousel section before Popular Courses with 6 specific categories, and update the hero search bar's category dropdown to show the same 6 categories.
 
 ---
 
 ## Changes
 
-### 1. Hero Banner Image Replacement
-- Copy the uploaded `Hero_Banner_Image.webp` to `src/assets/hero-banner.webp`
-- Replace the Unsplash placeholder in `HeroSection.tsx` with an import of this local image
-- Remove the `rounded-2xl shadow-2xl` styling since this image has a transparent/styled background
+### 1. Stats Cards Inside Hero (No White Background Gap)
 
-### 2. Headline Text Color Update
-- The current headline is "Unlock Your Potential with Expert-Led Courses"
-- Split the headline so that **"Potential with"** renders in `#FF4667` (coral-pink) while the rest stays white
-- Update the Bengali headline similarly for the equivalent words
-- Add `coral-pink` (`#FF4667`) as a custom color in `tailwind.config.ts`
+**Problem:** The stats cards currently sit in their own `StatsSection` with a light background visible between the hero and the cards. The user wants the cards to overlap directly onto the hero's dark indigo background, with no white/light gap beneath them.
 
-### 3. Replace "Explore Courses" Button with Search Bar
-- Remove the existing CTA button (`<Button asChild>` linking to `/courses`)
-- Add a search bar component matching the reference design:
-  - A rounded-full container with white background
-  - Search icon (magnifying glass) on the left
-  - Text input with placeholder "Search School, Online educational centers, etc"
-  - A "Category" dropdown (using a Select or native dropdown) on the right side within the bar
-  - A circular button with `#FF4667` background containing a right-arrow icon
-- The search bar will be purely visual for now (no backend search functionality)
+**Solution:**
+- In `HeroSection.tsx`: increase bottom padding (`pb-32` or more) so the hero extends further down
+- In `StatsSection.tsx`: remove any background styling and use a larger negative margin-top (`-mt-24`) so the cards sit fully within the hero's indigo zone. Remove `pb-8` so there's no extra padding below the cards
+- The cards' glassmorphism (`bg-white/70 backdrop-blur-md`) will contrast beautifully against the dark hero background
 
-### 4. Hero Content Width to 80% Viewport
-- Change the hero container from the default `container mx-auto` to `max-w-[80vw] mx-auto` so the content area spans 80% of the viewport width
+### 2. Google Sans for Bengali Text
 
-### 5. Glass-Effect Counter Cards (Replacing Stats Section)
-- Redesign the `StatsSection` to render 4 cards in a horizontal row that visually overlaps the bottom of the hero section
-- Each card has:
-  - A colored icon in a soft-tinted circle (matching the reference: pink, purple, blue, light-blue tints)
-  - Bold counter number with "K" suffix
-  - Label text below
-- Cards use glassmorphism: `bg-white/70 backdrop-blur-md shadow-lg border border-white/30 rounded-2xl`
-- Content:
-  - 10K - Online Courses (with a courses/book icon)
-  - 200K - Expert Tutors (with a people/tutor icon)
-  - 6K - Certified Courses (with a certificate/award icon)
-  - 60K - Online Students (with a graduation cap icon)
-- Position the cards to overlap the hero: use negative margin-top (`-mt-16`) or absolute positioning within the hero section
-- Update the `useCountUp` hook values accordingly (10000 -> "10K", etc.) or use static "K" formatting
+**Solution:**
+- Add Google Sans (Product Sans alternative: "Google Sans" isn't publicly available via Google Fonts, so we'll use **"Noto Sans Bengali"** which is Google's recommended Bengali font) to `index.html`
+- Alternatively, if the user specifically wants "Google Sans" style, we can use **"Hind Siliguri"** which is a clean Google Font for Bengali
+- Update `src/index.css` body font-family to include the Bengali font as a fallback: `font-family: 'Inter', 'Hind Siliguri', sans-serif`
+- This way Bengali characters automatically render in Hind Siliguri while English stays in Inter
+
+### 3. Category Carousel Section (New Component)
+
+**New file:** `src/components/home/CategorySection.tsx`
+
+- Place between `StatsSection` and `PopularCourses` in `Index.tsx`
+- Section header: "Browse Categories" / "ক্যাটাগরি ব্রাউজ করুন"
+- 6 category cards in an auto-scrolling carousel using `embla-carousel-react` (already installed):
+  1. Graphics Design / গ্রাফিক্স ডিজাইন
+  2. Video Editing / ভিডিও এডিটিং
+  3. Digital Marketing / ডিজিটাল মার্কেটিং
+  4. SEO / এসইও
+  5. Website Development / ওয়েবসাইট ডেভেলপমেন্ট
+  6. Dropshipping / ড্রপশিপিং
+- Each card: icon + category name, with hover effect
+- Auto-scroll using embla's autoplay plugin or a `setInterval`-based scroll
+
+### 4. Update Hero Category Dropdown
+
+- Replace the hardcoded "Development, Data Science, Design, Mobile" options with the 6 actual categories
+- Both EN and BN translations
 
 ---
 
 ## Files to Modify
 
-### `tailwind.config.ts`
-- Add `"coral-pink": "#FF4667"` to the custom colors
+### `index.html`
+- Add Hind Siliguri font from Google Fonts CDN
 
-### `src/components/home/HeroSection.tsx` (Major rewrite)
-- Import the new hero banner image from `src/assets/`
-- Split headline into segments with colored span for "Potential with"
-- Remove the CTA button
-- Add the search bar with category dropdown and arrow button
-- Adjust container width to 80vw
-- Add a sub-tagline: "Trusted by over 15K Users worldwide since 2022" with rating display (optional)
+### `src/index.css`
+- Update body font-family to include `'Hind Siliguri'` as fallback for Bengali
 
-### `src/components/home/StatsSection.tsx` (Major rewrite)
-- Change from 3 vertical stat items to 4 horizontal glass cards
-- Update values: 10K Online Courses, 200K Expert Tutors, 6K Certified Courses, 60K Online Students
-- Apply glassmorphism styling
-- Use negative margin to overlap the hero section
+### `src/components/home/HeroSection.tsx`
+- Increase bottom padding to `pb-32` so hero extends behind stats cards
+- Replace category dropdown items with the 6 actual categories (Graphics Design, Video Editing, Digital Marketing, SEO, Website Development, Dropshipping)
+
+### `src/components/home/StatsSection.tsx`
+- Increase negative margin-top to `-mt-24`
+- Remove `pb-8` bottom padding
+- Remove any background that creates a white gap
+
+### `src/components/home/CategorySection.tsx` (New)
+- Auto-scrolling carousel with 6 category cards
+- Uses embla-carousel-react with autoplay via setInterval
+- Each card has an icon (from Lucide), category name, and hover lift effect
+- Light background section styling
+
+### `src/pages/Index.tsx`
+- Import and add `CategorySection` between `StatsSection` and `PopularCourses`
 
 ### `src/lib/translations.ts`
-- Update hero headline to split format: e.g., `"hero.headline_1"`, `"hero.headline_highlight"`, `"hero.headline_2"`
-- Update stats labels to match the new content
-- Add search placeholder and category text translations
-
-### `src/assets/hero-banner.webp` (New file)
-- Copy from user upload
+- Add translation keys for:
+  - `"categories.title"` / `"categories.subtitle"`
+  - All 6 category names in EN and BN
+  - Update category dropdown labels
 
 ---
 
 ## Technical Notes
 
-- The search bar is cosmetic initially -- it can be wired to actual search later when courses are in the database
-- The counter cards will use the existing `useCountUp` hook but with updated target values (10, 200, 6, 60) and a "K" suffix
-- The glass effect cards need `relative z-10` on the stats container and the hero section needs `relative` with appropriate padding-bottom to accommodate the overlap
-- The hero background changes from Deep Indigo to a lighter/gradient background (white to soft pink gradient) to match the reference design's light aesthetic
-- The `#FF4667` color is used for the arrow button background and the highlighted headline text
+- Embla carousel autoplay: will use a `useEffect` with `setInterval` calling `api.scrollNext()` every 3 seconds, since the autoplay plugin isn't installed separately
+- The carousel will loop infinitely with `loop: true` option
+- Category cards will show 3-4 at a time on desktop, 2 on tablet, 1 on mobile using embla's `slidesToScroll` and CSS basis classes
+- The stats section overlap is purely a CSS margin/padding adjustment -- no structural changes needed
 
