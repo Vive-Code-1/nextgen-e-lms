@@ -1,6 +1,7 @@
 import { ArrowRight, Search, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import heroBanner from "@/assets/hero-banner.webp";
+import heroVideo from "@/assets/hero-video.webm";
 import { useState } from "react";
 
 const HeroSection = () => {
@@ -8,8 +9,20 @@ const HeroSection = () => {
   const [categoryOpen, setCategoryOpen] = useState(false);
 
   return (
-    <section className="relative overflow-hidden bg-indigo-dark pb-36">
-      <div className="max-w-[80vw] mx-auto px-4 py-16 md:py-24">
+    <section className="relative overflow-hidden pb-36">
+      {/* Background Video */}
+      <video
+        src={heroVideo}
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+      {/* Dark Overlay */}
+      <div className="absolute inset-0 bg-black/50" />
+
+      <div className="relative z-10 max-w-[80vw] mx-auto px-4 pt-28 pb-16 md:pt-32 md:pb-24">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           {/* Text */}
           <div className="space-y-6">

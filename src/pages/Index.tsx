@@ -1,6 +1,6 @@
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/home/HeroSection";
-import HeroVideo from "@/components/home/HeroVideo";
+
 import StatsSection from "@/components/home/StatsSection";
 import CategorySection from "@/components/home/CategorySection";
 import PopularCourses from "@/components/home/PopularCourses";
@@ -14,7 +14,7 @@ const Index = () => {
       <main className="flex-1">
         <HeroSection />
         <StatsSection />
-        <HeroVideo />
+        
         <CategorySection />
         <PopularCourses />
         <WhyChooseUs />
