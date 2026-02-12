@@ -1,113 +1,78 @@
 
 
-# NextGen LMS - Premium Homepage Implementation Plan
+# Design System Overhaul: Vibrant EdTech Palette
 
-## Overview
-Build a modern, bilingual (EN/BN) LMS homepage inspired by the DreamsLMS reference but with a cleaner 2025 aesthetic using Deep Navy + Electric Teal color palette, glassmorphism navbar, and smooth CSS animations.
-
----
-
-## Phase 1: Foundation Setup
-
-### 1.1 Design System (index.css + tailwind.config.ts)
-- Update CSS variables to match the new palette:
-  - Primary: Deep Navy (#0F172A -> HSL 222.2 84% 4.9% -- already close, minor tweaks)
-  - Accent/Ring: Electric Teal (#0EA5E9 -> HSL 199 89% 48%)
-- Import 'Inter' font from Google Fonts in `index.html`
-- Add custom keyframes for fade-in-up, counter, and card-hover animations in Tailwind config
-- Add glassmorphism utility classes
-
-### 1.2 Language Context
-- Create `src/contexts/LanguageContext.tsx` with React Context
-- Store current language (`en` | `bn`) and toggle function
-- Create `src/lib/translations.ts` with all static text in both English and Bengali
+## Summary
+Replace the current Deep Navy + Electric Teal palette with a vibrant, youthful EdTech color scheme featuring Vivid Violet, Golden Amber CTAs, and Emerald Green accents. Update button shapes to pill-style and add gradient backgrounds.
 
 ---
 
-## Phase 2: Navigation Bar
+## New Color Mapping
 
-### 2.1 Navbar Component (`src/components/Navbar.tsx`)
-- Sticky top navbar with glassmorphism (backdrop-blur + semi-transparent bg)
-- **Left:** Logo with GraduationCap icon + "NextGen LMS" text
-- **Center:** Nav links (Home, Courses, About Us, Contact Us) using React Router Links
-- **Right:** Language toggle (EN/BN dropdown), Login (ghost button), Register (teal solid button), separated by vertical divider
-- Mobile: Hamburger menu using Sheet component from shadcn/ui
-- Wrap App in LanguageProvider
-
----
-
-## Phase 3: Homepage Sections
-
-### 3.1 Hero Section (`src/components/home/HeroSection.tsx`)
-- Split layout: text left (60%), image right (40%)
-- Headline and subheadline with bilingual support
-- "Explore Courses" CTA button with ArrowRight icon
-- Right side: placeholder illustration from Unsplash
-- CSS fade-in-up animation on load
-
-### 3.2 Stats Section (`src/components/home/StatsSection.tsx`)
-- Strip with 3 metrics: Active Students (500+), Total Courses (120+), Expert Instructors (50+)
-- Counter animation using a custom hook (`useCountUp`) with IntersectionObserver
-- Teal accent on numbers, subtle background differentiation
-
-### 3.3 Popular Courses Grid (`src/components/home/PopularCourses.tsx`)
-- Section header with bilingual title
-- 4 dummy course cards in a responsive grid (1/2/4 columns)
-- **Card anatomy:** Image placeholder, Category badge, Title, Star rating, Price, "Enroll" button
-- Hover: translateY(-8px) + deeper shadow transition
-
-### 3.4 Why Choose Us (`src/components/home/WhyChooseUs.tsx`)
-- 3 feature cards with icons (Award for Certificates, Headphones for Support, Users for Mentors)
-- Clean grid layout with bilingual text
-
-### 3.5 Footer (`src/components/Footer.tsx`)
-- Dark navy background (#0F172A)
-- 4 columns: Brand info, Quick Links, Support links, Newsletter signup
-- Bottom bar with copyright
-- Bilingual content support
+| Role | Old | New | HSL (approx) |
+|------|-----|-----|---------------|
+| Primary (titles, key UI) | Deep Navy #0F172A | Vivid Violet #7C3AED | 263 84% 58% |
+| Primary Foreground | White | White | 0 0% 100% |
+| Background | Near-white #FDFDFE | Light Violet tint #F5F3FF | 250 100% 98% |
+| Accent (buttons, CTAs) | Electric Teal #0EA5E9 | Golden Amber #FBBF24 | 45 97% 56% |
+| Accent Foreground | White | Black #000 | 0 0% 0% |
+| Hero/Footer bg (used via classes) | Deep Navy #0F172A | Deep Indigo #1E1B4B | 244 47% 20% |
+| Success/Stats icons | Teal | Emerald Green #10B981 | 160 84% 39% |
 
 ---
 
-## Phase 4: Routing & Pages
+## Files to Change
 
-### 4.1 Update App.tsx
-- Wrap with LanguageProvider
-- Add routes: `/`, `/courses`, `/about`, `/contact`
-- Create placeholder pages for Courses, About, Contact
+### 1. `src/index.css` -- CSS Variables
+- Update `:root` variables: `--primary` to Violet HSL, `--accent` to Amber HSL, `--background` to light violet, `--ring` to violet
+- Update `.dark` variables accordingly
+- Update `.glass` utility for violet-tinted glassmorphism
+- Add a `.gradient-section` utility class for Violet-to-Indigo gradient backgrounds
+
+### 2. `tailwind.config.ts` -- Extended Colors
+- Add custom colors: `violet-brand`, `amber-cta`, `emerald-accent`, `indigo-dark` for direct use in components
+- No structural changes needed
+
+### 3. `src/components/ui/button.tsx` -- Pill Shape
+- Change the base `rounded-md` to `rounded-full` in the `buttonVariants` cva definition
+- Also update the `sm` and `lg` size variants from `rounded-md` to `rounded-full`
+
+### 4. `src/components/Navbar.tsx`
+- Register button: change from `bg-accent` to the amber CTA color (it will inherit from the new accent variable automatically)
+- Glassmorphism stays, colors update via CSS variables
+
+### 5. `src/components/home/HeroSection.tsx`
+- Wrap hero in Deep Indigo background (`bg-[#1E1B4B]`) with white text
+- Update headline and subheadline text to white
+- CTA button already uses `bg-accent` which will now be Golden Amber with black text
+
+### 6. `src/components/home/StatsSection.tsx`
+- Change stat icon backgrounds to Emerald Green tint (`bg-emerald-500/10`)
+- Change stat icon color to Emerald Green (`text-emerald-500`)
+- Number color stays accent (now Amber) or switch to Violet for variety
+
+### 7. `src/components/home/PopularCourses.tsx`
+- Add gradient background (Violet to Indigo) to the section
+- Update section title to white text (since on gradient bg)
+- Badge and price accent colors update automatically via CSS variables
+- "Enroll" button picks up new amber accent automatically
+
+### 8. `src/components/home/WhyChooseUs.tsx`
+- Section background stays light; icon accents update via CSS variables automatically
+
+### 9. `src/components/Footer.tsx`
+- Change footer background from `bg-primary` to `bg-[#1E1B4B]` (Deep Indigo)
+- Accent links change from teal to amber automatically
+
+### 10. Placeholder pages (`Courses.tsx`, `About.tsx`, `Contact.tsx`)
+- Icon colors update automatically via `text-accent` variable change
 
 ---
 
-## File Structure
+## Technical Notes
 
-```text
-src/
-  contexts/
-    LanguageContext.tsx
-  lib/
-    translations.ts
-  components/
-    Navbar.tsx
-    Footer.tsx
-    home/
-      HeroSection.tsx
-      StatsSection.tsx
-      PopularCourses.tsx
-      WhyChooseUs.tsx
-  pages/
-    Index.tsx (rebuilt as homepage)
-    Courses.tsx (placeholder)
-    About.tsx (placeholder)
-    Contact.tsx (placeholder)
-```
-
----
-
-## Technical Details
-
-- **No GSAP**: GSAP is not available as a dependency. All animations will use CSS animations + Tailwind keyframes + IntersectionObserver for scroll-triggered reveals. The visual result will be equivalent.
-- **Font**: Inter loaded via Google Fonts CDN in `index.html`
-- **Images**: Unsplash placeholder URLs for hero and course card images
-- **Responsive**: Mobile-first with Tailwind breakpoints; navbar collapses to hamburger via shadcn Sheet
-- **Language toggle**: Simple React Context, no i18n library needed for static content
-- **Colors**: Updated CSS variables + new `teal` accent color in Tailwind config
+- Most color changes propagate automatically through CSS custom properties -- only components with hardcoded color classes (like `bg-primary`, specific hex values) need manual updates
+- The gradient section for Popular Courses will use `bg-gradient-to-br from-[#7C3AED] to-[#1E1B4B]`
+- Button pill shape is a single-line change in the CVA base class
+- The Emerald Green color is used explicitly (not via CSS variable) since it serves a distinct "success/stats" role separate from the primary accent
 
