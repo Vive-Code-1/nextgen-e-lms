@@ -64,6 +64,7 @@ export default {
         "emerald-accent": "hsl(160, 84%, 39%)",
         "violet-brand": "hsl(263, 84%, 58%)",
         "amber-cta": "hsl(45, 97%, 56%)",
+        "coral-pink": "#FF4667",
       },
       borderRadius: {
         lg: "var(--radius)",
