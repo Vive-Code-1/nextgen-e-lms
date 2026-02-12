@@ -21,7 +21,7 @@ const HeroSection = () => {
   }, []);
 
   return (
-    <section className="relative overflow-hidden pb-12">
+    <section className="relative overflow-hidden min-h-screen flex flex-col">
       {/* Background Video */}
       <video
         src={heroVideo}
@@ -34,8 +34,8 @@ const HeroSection = () => {
       {/* Dark Overlay */}
       <div className="absolute inset-0 bg-black/50" />
 
-      <div className="relative z-10 max-w-[80vw] mx-auto px-4 pt-28 pb-8 md:pt-32 md:pb-12">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
+      <div className="relative z-10 max-w-[80vw] mx-auto px-4 pt-28 pb-8 md:pt-32 md:pb-12 flex-1 flex items-center">
+        <div className="grid md:grid-cols-2 gap-12 items-center w-full">
           {/* Text */}
           <div className="space-y-6">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight text-white animate-fade-in-up">
@@ -68,7 +68,7 @@ const HeroSection = () => {
                       <ChevronDown className="h-4 w-4" />
                     </button>
                     {categoryOpen && (
-                      <div className="absolute top-full right-0 mt-2 w-44 bg-white rounded-lg shadow-lg border border-border z-50 py-1">
+                      <div className="absolute bottom-full right-0 mb-2 w-44 bg-white rounded-lg shadow-lg border border-border z-50 py-1">
                         <button className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">Graphics Design</button>
                         <button className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">Video Editing</button>
                         <button className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">Digital Marketing</button>
@@ -84,6 +84,11 @@ const HeroSection = () => {
                 </button>
               </div>
             </div>
+
+            {/* Stats Cards below search bar */}
+            <div className="mt-8">
+              <StatsSection embedded />
+            </div>
           </div>
 
           {/* Image - smaller */}
@@ -95,11 +100,6 @@ const HeroSection = () => {
               loading="lazy"
             />
           </div>
-        </div>
-
-        {/* Stats Cards inside hero */}
-        <div className="mt-12">
-          <StatsSection embedded />
         </div>
       </div>
     </section>
