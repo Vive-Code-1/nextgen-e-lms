@@ -1,86 +1,76 @@
 
 
-# ChromaGrid Effect যোগ করা - Courses Grid ও Instructors Section
+# Homepage Fixes - 4 Changes
 
-## কি করা হবে
+## 1. Fix Double Dollar Sign in Course Prices
 
-ReactBits এর ChromaGrid কম্পোনেন্ট তোমার সাইটের ৩টি জায়গায় যোগ করা হবে। এটি একটি interactive spotlight effect -- মাউস যেখানে যাবে সেখানে কার্ডগুলো রঙিন দেখাবে, বাকিগুলো grayscale/dimmed থাকবে।
+**Problem:** Course prices in `PopularCourses.tsx` are stored as `"$49.99"` (already include `$`), but the template prepends another currency symbol: `{currency}{course.price}` = `$$49.99`.
 
-## যেখানে যোগ হবে
+**Fix:** Remove the `$` from the price data and store only the numeric value. Then display `{currency}{numericPrice}`. When language is Bengali, show `৳` instead.
 
-1. **Homepage Trending Courses** (`PopularCourses.tsx`) - 8টি কোর্স কার্ড
-2. **All Courses Page** (`Courses.tsx`) - ফিল্টার সহ কোর্স গ্রিড
-3. **Featured Instructors** (`FeaturedInstructors.tsx`) - ইন্সট্রাক্টর কার্ড
-
-## কালার থিম
-
-তোমার সাইটের ব্র্যান্ড কালার ব্যবহার করা হবে:
-- **Vivid Violet (#7C3AED)** - Primary cards
-- **Golden Amber (#FBBF24)** - CTA/accent cards  
-- **Emerald Green (#10B981)** - Success/verified cards
-- **Coral Pink (#FF4667)** - Highlight cards
-- **Deep Indigo (#1E1B4B)** - Dark gradient base
-
-প্রতিটি কার্ডের gradient ও border color ভিন্ন হবে যাতে বৈচিত্র্য থাকে।
+**File:** `src/components/home/PopularCourses.tsx`
+- Change price values from `"$49.99"` to `"49.99"` (remove $ from all 8 courses)
+- Line 101: `{currency}{course.price}` will then correctly show `$49.99` or `৳49.99`
 
 ---
 
-## Technical Details
+## 2. Testimonial Carousel (Infinite Loop with Blur Edges)
 
-### Step 1: Create `ChromaGrid` Component
+**New Section:** Add a Testimonial carousel after the Featured Instructors section. It will have:
+- Auto-scrolling infinite loop (using Embla carousel with autoplay)
+- Left and right gradient blur/fade edges
+- Each testimonial card: user avatar, name, role, star rating, and review text
+- Smooth continuous scrolling animation
+- Uses the site's brand palette (Violet, Amber accents)
 
-**New file: `src/components/ui/ChromaGrid.tsx`**
+**New File:** `src/components/home/TestimonialCarousel.tsx`
 
-ReactBits এর ChromaGrid component adapt করা হবে:
-- GSAP (already installed) ব্যবহার করে spotlight tracking
-- `--x`, `--y` CSS variables দিয়ে mouse position track
-- Radial gradient mask দিয়ে grayscale/brightness dimming
-- Card-level spotlight (hover glow) effect
-- Props: `items`, `radius`, `damping`, `fadeOut`, `className`
-- `ChromaItem` interface: `image`, `title`, `subtitle`, `borderColor`, `gradient`, `url` etc.
-- Children render prop pattern যোগ করা হবে যাতে existing card designs রাখা যায়
+**Modified File:** `src/pages/Index.tsx` -- Insert `<TestimonialCarousel />` between `<FeaturedInstructors />` and `<TrustedBy />`
 
-### Step 2: Create `ChromaGridWrapper` Component
+---
 
-**New file: `src/components/ui/ChromaGridWrapper.tsx`**
+## 3. Replace "Share Knowledge" Section with FAQ
 
-একটি wrapper component যা existing card components কে ChromaGrid এর spotlight effect দেবে কিন্তু card design পরিবর্তন না করে:
-- শুধু grayscale/brightness overlay layers যোগ করবে
-- Existing grid layout ও card components অক্ষুণ্ণ থাকবে
-- Mouse tracking logic ChromaGrid থেকে নেওয়া
+**Current:** The "Want to Share Your Knowledge?" section has a title, description, and CTA button.
 
-### Step 3: Update `PopularCourses.tsx`
+**Replace with:** A fully styled FAQ section using the existing shadcn Accordion component. Questions will cover common topics like enrollment, certificates, payment, refunds, etc.
 
-- Course card grid কে `ChromaGridWrapper` দিয়ে wrap করা
-- প্রতিটি course card এর জন্য brand-themed gradient assign:
-  - Graphics Design -> Violet gradient
-  - Video Editing -> Coral Pink gradient  
-  - Digital Marketing -> Amber gradient
-  - SEO -> Emerald gradient
-  - Web Dev -> Indigo gradient
-  - Dropshipping -> Violet/Pink mixed
+**Modified File:** `src/components/home/ShareKnowledge.tsx` -- Replace entire content with FAQ accordion
+**Modified File:** `src/lib/translations.ts` -- Add FAQ translation keys for both EN and BN
 
-### Step 4: Update `Courses.tsx`
+The section will keep the gradient background but contain an accordion-style FAQ with 5-6 common questions.
 
-- All Courses page এর grid section এ ChromaGridWrapper যোগ
-- Filter sidebar অপরিবর্তিত থাকবে
-- শুধু course card grid area তে spotlight effect
+---
 
-### Step 5: Update `FeaturedInstructors.tsx`
+## 4. SpotlightCard Effect on "Why Choose Us" Cards
 
-- Carousel এর পরিবর্তে ChromaGrid ব্যবহার (carousel এর ভেতরে spotlight effect ভালো কাজ করে না)
-- Instructor cards গুলো ChromaGrid items হিসেবে render হবে
-- প্রতিটি instructor এর জন্য আলাদা gradient color
+**Effect:** Each card gets a mouse-tracking radial gradient spotlight that follows the cursor. When the mouse hovers over a card, a colored glow appears and follows the pointer.
 
-### Files Summary
+**Implementation:** Create a `SpotlightCard` wrapper component that:
+- Tracks mouse position via `onMouseMove`
+- Renders a radial gradient overlay at the cursor position
+- Uses brand colors for the spotlight glow:
+  - Certified Courses card: Vivid Violet (`rgba(124, 58, 237, 0.25)`)
+  - 24/7 Support card: Golden Amber (`rgba(251, 191, 36, 0.25)`)
+  - Expert Mentors card: Emerald Green (`rgba(16, 185, 129, 0.25)`)
+
+**New File:** `src/components/ui/SpotlightCard.tsx`
+
+**Modified File:** `src/components/home/WhyChooseUs.tsx` -- Wrap each feature card with `<SpotlightCard>`
+
+---
+
+## Files Summary
 
 | File | Action |
 |------|--------|
-| `src/components/ui/ChromaGrid.tsx` | Create - Core ChromaGrid component |
-| `src/components/ui/ChromaGridWrapper.tsx` | Create - Wrapper for existing grids |
-| `src/components/home/PopularCourses.tsx` | Modify - Add ChromaGridWrapper |
-| `src/pages/Courses.tsx` | Modify - Add ChromaGridWrapper |
-| `src/components/home/FeaturedInstructors.tsx` | Modify - Replace carousel with ChromaGrid |
+| `src/components/home/PopularCourses.tsx` | Modify - fix price data |
+| `src/components/home/TestimonialCarousel.tsx` | Create - infinite testimonial carousel |
+| `src/components/ui/SpotlightCard.tsx` | Create - mouse-tracking spotlight effect |
+| `src/components/home/WhyChooseUs.tsx` | Modify - wrap cards with SpotlightCard |
+| `src/components/home/ShareKnowledge.tsx` | Modify - replace with FAQ section |
+| `src/lib/translations.ts` | Modify - add FAQ translation keys |
+| `src/pages/Index.tsx` | Modify - add TestimonialCarousel |
 
-No new dependencies needed (GSAP already installed).
+No new dependencies needed -- Embla Carousel and GSAP are already installed.
 
