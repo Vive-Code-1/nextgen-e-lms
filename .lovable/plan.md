@@ -1,20 +1,40 @@
 
 
-# Contact Form Height Fix
+# Hero Search Bar and Category Dropdown Fixes
 
-## Problem
-The right-side form card is not stretching to match the height of the left-side info cards. There's empty white space below the "Send Enquiry" button.
+## Changes
 
-## Solution
-In `src/pages/Contact.tsx`:
-- Change grid from `items-start` to `items-stretch` so both columns are equal height
-- Add `flex flex-col` to the form card container and `flex-1` to the form so the content stretches
-- Increase textarea rows from 5 to 7 for more vertical fill
-- Add `h-12` to all input fields for slightly taller inputs
+### 1. Dynamic Search with Category - Navigate to Courses Page
+Currently the search bar and category dropdown in `HeroSection.tsx` don't navigate anywhere. The fix will:
+- Add state for search text and selected category
+- Use `useNavigate` from react-router-dom
+- On Enter key press or arrow button click, navigate to `/courses?category=X&search=Y`
+- Update `Courses.tsx` to read the `search` query param and filter courses by title match
 
-## File Modified
+### 2. Category Dropdown - Show Below (Not Above) with Proper Z-Index
+Currently the dropdown uses `bottom-full` which opens it upward. The fix will:
+- Change `bottom-full mb-2` to `top-full mt-2` so it opens downward
+- Ensure `z-50` is present so it overlays the stats cards below
+- Show selected category name in the button text instead of generic "Category" label
 
-| File | Change |
-|------|--------|
-| `src/pages/Contact.tsx` | Grid `items-start` to `items-stretch`, taller inputs (`h-12`), bigger textarea (`rows={7}`), flex stretch on form card |
+### 3. Category Selection - Show Selected State
+- When a category is clicked, update button text to show selected category name
+- Close dropdown after selection
+
+---
+
+## Technical Details
+
+### File: `src/components/home/HeroSection.tsx`
+- Add `useNavigate` import
+- Add `searchText` and `selectedCategory` state
+- Wire input's `onChange` and `onKeyDown` (Enter triggers navigation)
+- Wire arrow button's `onClick` to navigate
+- Category buttons update `selectedCategory` state and close dropdown
+- Change dropdown position from `bottom-full mb-2` to `top-full mt-2`
+- Display selected category name in button text
+
+### File: `src/pages/Courses.tsx`
+- Read `search` query param alongside `category`
+- Filter courses by both category and search text (case-insensitive title match)
 
