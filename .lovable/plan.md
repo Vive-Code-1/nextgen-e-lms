@@ -1,40 +1,27 @@
 
 
-# Hero Search Bar and Category Dropdown Fixes
+# Category Dropdown Z-Index Fix and Course Filtering Fix
 
-## Changes
+## Problem 1: Dropdown Hidden Behind Stats Cards
+The category dropdown in the hero section appears behind the stats cards (6K, 5K cards). The dropdown container needs a higher z-index stacking context so it renders above the stats section below it.
 
-### 1. Dynamic Search with Category - Navigate to Courses Page
-Currently the search bar and category dropdown in `HeroSection.tsx` don't navigate anywhere. The fix will:
-- Add state for search text and selected category
-- Use `useNavigate` from react-router-dom
-- On Enter key press or arrow button click, navigate to `/courses?category=X&search=Y`
-- Update `Courses.tsx` to read the `search` query param and filter courses by title match
+## Problem 2: Category Search Not Filtering on Courses Page
+When selecting a category and searching from the hero, the Courses page navigates correctly but doesn't filter courses properly. The `useEffect` that reads URL params needs to properly reset state when params change.
 
-### 2. Category Dropdown - Show Below (Not Above) with Proper Z-Index
-Currently the dropdown uses `bottom-full` which opens it upward. The fix will:
-- Change `bottom-full mb-2` to `top-full mt-2` so it opens downward
-- Ensure `z-50` is present so it overlays the stats cards below
-- Show selected category name in the button text instead of generic "Category" label
+## Solution
 
-### 3. Category Selection - Show Selected State
-- When a category is clicked, update button text to show selected category name
-- Close dropdown after selection
+### File: `src/components/home/HeroSection.tsx`
+- Add `relative z-50` to the search bar wrapper div (the `animate-fade-in-up-delay-2` div) so the dropdown creates a stacking context above the StatsSection below it
+- This ensures the dropdown menu with `z-[100]` renders above the stats cards
 
----
+### File: `src/pages/Courses.tsx`
+- Fix the `useEffect` to properly handle cases where the category param exists but also reset `selectedCategories` to empty array when no category param is present
+- This ensures proper filtering when navigating from the hero search
 
 ## Technical Details
 
-### File: `src/components/home/HeroSection.tsx`
-- Add `useNavigate` import
-- Add `searchText` and `selectedCategory` state
-- Wire input's `onChange` and `onKeyDown` (Enter triggers navigation)
-- Wire arrow button's `onClick` to navigate
-- Category buttons update `selectedCategory` state and close dropdown
-- Change dropdown position from `bottom-full mb-2` to `top-full mt-2`
-- Display selected category name in button text
-
-### File: `src/pages/Courses.tsx`
-- Read `search` query param alongside `category`
-- Filter courses by both category and search text (case-insensitive title match)
+| File | Change |
+|------|--------|
+| `src/components/home/HeroSection.tsx` | Add `relative z-50` to search bar's parent div on line 67 |
+| `src/pages/Courses.tsx` | Update `useEffect` (lines 56-63) to always reset state before applying params - set `selectedCategories` to `[]` first, then conditionally set category; set `searchText` to `""` first, then conditionally set search text |
 
