@@ -1,56 +1,61 @@
 
-# Fix Three Issues: Mobile Category Dropdown, Broken Section Titles, Instructor Image Upload
+# Fix Card Heights and Category Filtering
 
-## Issue 1: Show Category Dropdown on Mobile (Compact)
+## Issue 1: Homepage Course Cards Have Unequal Heights
 
-The category dropdown was hidden on mobile (`hidden sm:flex`) to prevent overflow. We'll bring it back in a compact form that fits within the search bar.
+The "ভাইব কোডিং মাস্টারিং কোর্স" card appears shorter because the SpotlightCard wrapper and inner Card don't stretch to fill equal grid height.
 
-### File: `src/components/home/HeroSection.tsx`
+### File: `src/components/ui/SpotlightCard.tsx`
+- Add `h-full` to the root div className
 
-- Change the category dropdown container from `hidden sm:flex` back to `flex`
-- Make the category text very compact on mobile: show only a short truncated label (max 3-4 chars) using `max-w-[50px] sm:max-w-none overflow-hidden text-ellipsis`
-- Reduce padding on mobile: `px-1 sm:px-2`
+### File: `src/components/home/PopularCourses.tsx`
+- Add `h-full` to the Card component (line 52)
+- Make CardContent use `flex flex-col flex-1` so the price/button row stays pinned to the bottom
+- Add `flex flex-col h-full` to Card wrapper
+- Add `flex-1` spacer before the price row so cards with shorter titles still align
 
-## Issue 2: Fix Section Titles Breaking on Mobile
+## Issue 2: Category Filtering Broken for "Website Development"
 
-The `ScrollFloat` component renders each character as an `inline-block` span, which prevents normal word wrapping. On narrow screens, long words like "Categories" break mid-word. The fix is to reduce font size on mobile for these sections so text fits, and also apply `word-break: break-word` as fallback.
+**Root cause**: The database has inconsistent category values. The "ভাইব কোডিং মাস্টারিং কোর্স" has category `"Website Development"` while other dev courses have `"Development"`. This causes:
+- Two "Website Development" entries in the sidebar filter (one is actually "Development" displayed as "Website Development" via `categoryDisplayNames`, the other is the literal "Website Development" value)
+- Clicking the homepage "Website Development" category card links to `?category=Development`, which doesn't match courses with category `"Website Development"`
 
-### Files to modify:
-
-**`src/components/home/CategorySection.tsx`**
-- Change title font from `text-3xl md:text-4xl` to `text-2xl md:text-4xl` on both h2 and ScrollFloat textClassName
-
-**`src/components/home/FeaturedInstructors.tsx`**
-- Change title font from `text-3xl md:text-4xl` to `text-2xl md:text-4xl` on both h2 and ScrollFloat textClassName
-
-**`src/components/home/TestimonialCarousel.tsx`**
-- Change title font from `text-3xl md:text-4xl` to `text-2xl md:text-4xl` on both h2 and ScrollFloat textClassName
-
-## Issue 3: Instructor Image Upload in Admin Panel
-
-Currently the courses table only has `instructor_name` -- no `instructor_image` column. We need to:
-
-### Database Migration
-- Add `instructor_image text` column to the `courses` table
-
-### File: `src/components/admin/CourseWizard.tsx`
-- Add state: `const [instructorImage, setInstructorImage] = useState(course?.instructor_image || "")`
-- Add an image upload field next to the Instructor Name input (upload to `course-thumbnails` bucket with path `instructor-images/[timestamp]-[filename]`)
-- Include `instructor_image` in the save payload
+### Fix approach: Normalize filtering by grouping equivalent categories
 
 ### File: `src/pages/Courses.tsx`
-- Fetch `instructor_image` from the courses query
-- In the course card, if `instructor_image` exists, show the image instead of the letter avatar fallback
 
-### File: `src/integrations/supabase/types.ts`
-- Will be auto-updated after migration
+1. Add a reverse mapping to normalize equivalent DB values:
+```typescript
+const categoryAliases: Record<string, string> = {
+  "Website Development": "Development",
+};
+```
 
-## Technical Details
+2. Normalize categories when building the sidebar filter list -- merge "Website Development" into "Development" so only one checkbox appears
 
-| Change | File(s) | Type |
-|--------|---------|------|
-| Compact mobile category dropdown | HeroSection.tsx | CSS |
-| Smaller section titles on mobile | CategorySection, FeaturedInstructors, TestimonialCarousel | CSS |
-| Add `instructor_image` column | Migration | SQL |
-| Instructor image upload UI | CourseWizard.tsx | React |
-| Display instructor image on cards | Courses.tsx | React |
+3. Update the filter logic (line 74-78) to check both the selected category and its aliases:
+```typescript
+const matchCat = selectedCategories.length === 0 || 
+  selectedCategories.some(sel => {
+    const aliases = [sel, ...Object.entries(categoryAliases)
+      .filter(([_, v]) => v === sel).map(([k]) => k)];
+    if (categoryAliases[sel]) aliases.push(categoryAliases[sel]);
+    return aliases.includes(c.category || "");
+  });
+```
+
+4. Deduplicate sidebar categories by normalizing before creating the Set (line 121)
+
+### Alternative (simpler): Update the course's category in the database
+- Change "Website Development" to "Development" for the ভাইব কোডিং কোর্স to match the pattern
+
+I will use both approaches: fix the DB value AND add normalization in code to prevent future mismatches.
+
+## Technical Summary
+
+| Change | File | Type |
+|--------|------|------|
+| Add `h-full` to SpotlightCard | SpotlightCard.tsx | CSS |
+| Equal-height card layout with flex | PopularCourses.tsx | CSS |
+| Normalize category values in filter | Courses.tsx | Logic |
+| Fix DB category value | Data update | SQL |
