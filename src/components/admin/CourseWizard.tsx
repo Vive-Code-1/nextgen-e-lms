@@ -40,22 +40,22 @@ const CourseWizard = ({ course, onClose, onSaved }: CourseWizardProps) => {
   const [slugManual, setSlugManual] = useState(false);
 
   // Step 1 fields
-  const [title, setTitle] = useState("");
-  const [slug, setSlug] = useState("");
-  const [category, setCategory] = useState("");
-  const [level, setLevel] = useState("Beginner");
-  const [language, setLanguage] = useState("Bengali");
-  const [maxStudents, setMaxStudents] = useState(0);
-  const [isPublic, setIsPublic] = useState(true);
-  const [shortDescription, setShortDescription] = useState("");
-  const [description, setDescription] = useState("");
-  const [whatWillLearn, setWhatWillLearn] = useState<string[]>([]);
-  const [requirements, setRequirements] = useState<string[]>([]);
-  const [isFeatured, setIsFeatured] = useState(false);
+  const [title, setTitle] = useState(course?.title || "");
+  const [slug, setSlug] = useState(course?.slug || "");
+  const [category, setCategory] = useState(course?.category || "");
+  const [level, setLevel] = useState(course?.level || "Beginner");
+  const [language, setLanguage] = useState(course?.language || "Bengali");
+  const [maxStudents, setMaxStudents] = useState(course?.max_students || 0);
+  const [isPublic, setIsPublic] = useState(course?.is_public !== false);
+  const [shortDescription, setShortDescription] = useState(course?.short_description || "");
+  const [description, setDescription] = useState(course?.description || "");
+  const [whatWillLearn, setWhatWillLearn] = useState<string[]>(Array.isArray(course?.what_will_learn) ? course.what_will_learn : []);
+  const [requirements, setRequirements] = useState<string[]>(Array.isArray(course?.requirements) ? course.requirements : []);
+  const [isFeatured, setIsFeatured] = useState(course?.is_featured || false);
 
   // Step 2 fields
-  const [imageUrl, setImageUrl] = useState("");
-  const [videoUrl, setVideoUrl] = useState("");
+  const [imageUrl, setImageUrl] = useState(course?.image_url || "");
+  const [videoUrl, setVideoUrl] = useState(course?.video_url || "");
   const [uploading, setUploading] = useState(false);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
 
@@ -71,43 +71,23 @@ const CourseWizard = ({ course, onClose, onSaved }: CourseWizardProps) => {
   const [faqs, setFaqs] = useState<any[]>([]);
   const [faqForm, setFaqForm] = useState({ question: "", answer: "", is_enabled: true });
   const [editingFaqId, setEditingFaqId] = useState<string | null>(null);
+  const [showFaqForm, setShowFaqForm] = useState(false);
 
   // Step 5 fields
-  const [isFree, setIsFree] = useState(false);
-  const [price, setPrice] = useState("");
-  const [hasDiscount, setHasDiscount] = useState(false);
-  const [discountPrice, setDiscountPrice] = useState("");
-  const [expiryPeriod, setExpiryPeriod] = useState("lifetime");
-  const [expiryMonths, setExpiryMonths] = useState("");
-  const [instructorName, setInstructorName] = useState("");
+  const [isFree, setIsFree] = useState(course?.is_free || false);
+  const [price, setPrice] = useState(course?.price?.toString() || "");
+  const [hasDiscount, setHasDiscount] = useState(course?.has_discount || false);
+  const [discountPrice, setDiscountPrice] = useState(course?.discount_price?.toString() || "");
+  const [expiryPeriod, setExpiryPeriod] = useState(course?.expiry_period || "lifetime");
+  const [expiryMonths, setExpiryMonths] = useState(course?.expiry_months?.toString() || "");
+  const [instructorName, setInstructorName] = useState(course?.instructor_name || "");
 
   const isEditMode = !!course;
   const courseId = course?.id;
 
-  // Load course data
+  // Load course lessons/faqs
   useEffect(() => {
     if (course) {
-      setTitle(course.title || "");
-      setSlug(course.slug || "");
-      setCategory(course.category || "");
-      setLevel(course.level || "Beginner");
-      setLanguage(course.language || "Bengali");
-      setMaxStudents(course.max_students || 0);
-      setIsPublic(course.is_public !== false);
-      setShortDescription(course.short_description || "");
-      setDescription(course.description || "");
-      setWhatWillLearn(Array.isArray(course.what_will_learn) ? course.what_will_learn : []);
-      setRequirements(Array.isArray(course.requirements) ? course.requirements : []);
-      setIsFeatured(course.is_featured || false);
-      setImageUrl(course.image_url || "");
-      setVideoUrl(course.video_url || "");
-      setIsFree(course.is_free || false);
-      setPrice(course.price?.toString() || "");
-      setHasDiscount(course.has_discount || false);
-      setDiscountPrice(course.discount_price?.toString() || "");
-      setExpiryPeriod(course.expiry_period || "lifetime");
-      setExpiryMonths(course.expiry_months?.toString() || "");
-      setInstructorName(course.instructor_name || "");
       setSlugManual(true);
       fetchLessons(course.id);
       fetchFaqs(course.id);
@@ -167,8 +147,12 @@ const CourseWizard = ({ course, onClose, onSaved }: CourseWizardProps) => {
 
   // Save course
   const saveCourse = async () => {
-    if (!title.trim() || !slug.trim()) {
+    if (!title.trim()) {
       toast({ title: "Title is required", variant: "destructive" });
+      return;
+    }
+    if (!slug.trim()) {
+      toast({ title: "Slug is required", variant: "destructive" });
       return;
     }
     setSaving(true);
@@ -242,6 +226,7 @@ const CourseWizard = ({ course, onClose, onSaved }: CourseWizardProps) => {
     }
     setFaqForm({ question: "", answer: "", is_enabled: true });
     setEditingFaqId(null);
+    setShowFaqForm(false);
     fetchFaqs(courseId);
   };
 
@@ -526,7 +511,7 @@ const CourseWizard = ({ course, onClose, onSaved }: CourseWizardProps) => {
             </div>
           ) : (
             <>
-              <Button size="sm" onClick={() => { setEditingFaqId(null); setFaqForm({ question: "", answer: "", is_enabled: true }); }}>
+              <Button size="sm" onClick={() => { setEditingFaqId(null); setFaqForm({ question: "", answer: "", is_enabled: true }); setShowFaqForm(true); }}>
                 <Plus className="h-4 w-4 mr-1" />Add FAQ
               </Button>
               {faqs.map((f) => (
@@ -552,7 +537,7 @@ const CourseWizard = ({ course, onClose, onSaved }: CourseWizardProps) => {
                   </CollapsibleContent>
                 </Collapsible>
               ))}
-              {(editingFaqId !== null || faqForm.question || (!editingFaqId && faqs.length === 0)) && (
+              {(editingFaqId !== null || showFaqForm || faqs.length === 0) && (
                 <div className="bg-muted/50 rounded-xl p-4 space-y-3">
                   <h4 className="text-sm font-semibold">{editingFaqId ? "Edit FAQ" : "Add FAQ"}</h4>
                   <div>
@@ -569,7 +554,7 @@ const CourseWizard = ({ course, onClose, onSaved }: CourseWizardProps) => {
                   </div>
                   <div className="flex gap-2">
                     <Button size="sm" onClick={saveFaq}>{editingFaqId ? "Update" : "Add"}</Button>
-                    <Button size="sm" variant="outline" onClick={() => { setEditingFaqId(null); setFaqForm({ question: "", answer: "", is_enabled: true }); }}>Cancel</Button>
+                    <Button size="sm" variant="outline" onClick={() => { setEditingFaqId(null); setFaqForm({ question: "", answer: "", is_enabled: true }); setShowFaqForm(false); }}>Cancel</Button>
                   </div>
                 </div>
               )}

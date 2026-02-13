@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
-import AdminLessons from "@/components/admin/AdminLessons";
+
 import AdminAnnouncements from "@/components/admin/AdminAnnouncements";
 import AdminReviews from "@/components/admin/AdminReviews";
 import AdminAssignments from "@/components/admin/AdminAssignments";
@@ -24,7 +24,7 @@ import AdminOrderManagement from "@/components/admin/AdminOrderManagement";
 const sidebarLinks = [
   { icon: LayoutDashboard, label: "Dashboard", id: "dashboard" },
   { icon: BookOpen, label: "Course Manager", id: "course-manager" },
-  { icon: ClipboardList, label: "Lessons", id: "lessons" },
+  
   { icon: Bell, label: "Announcements", id: "announcements" },
   { icon: ClipboardList, label: "Assignments", id: "assignments" },
   { icon: Star, label: "Reviews", id: "reviews" },
@@ -351,7 +351,7 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          {activeTab === "lessons" && <AdminLessons />}
+          
           {activeTab === "announcements" && <AdminAnnouncements />}
           {activeTab === "reviews" && <AdminReviews />}
           {activeTab === "assignments" && <AdminAssignments />}
