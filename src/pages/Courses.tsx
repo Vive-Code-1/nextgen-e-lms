@@ -11,6 +11,16 @@ import { supabase } from "@/integrations/supabase/client";
 
 const filterLevels = ["beginner", "intermediate", "advanced"];
 
+const categoryDisplayNames: Record<string, string> = {
+  "Design": "Graphics Design",
+  "Video": "Video Editing",
+  "Marketing": "Digital Marketing",
+  "SEO": "SEO",
+  "Development": "Website Development",
+  "Website Development": "Website Development",
+  "Business": "Dropshipping",
+};
+
 interface Course {
   id: string;
   title: string;
@@ -110,7 +120,7 @@ const Courses = () => {
                           {[...new Set(courses.map(c => c.category).filter(Boolean))].map(cat => (
                             <label key={cat} className="flex items-center gap-2 cursor-pointer">
                               <Checkbox checked={selectedCategories.includes(cat)} onCheckedChange={() => toggleCategory(cat)} />
-                              <span className="text-sm text-muted-foreground">{cat}</span>
+                              <span className="text-sm text-muted-foreground">{categoryDisplayNames[cat as string] || cat}</span>
                             </label>
                           ))}
                         </div>
