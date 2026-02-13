@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -6,15 +7,43 @@ import { MapPin, Phone, Mail, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Contact = () => {
   const { t } = useLanguage();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({ name: "", email: "", phone: "", subject: "", message: "" });
 
   const infoCards = [
-  { icon: MapPin, title: t("contact.address_title"), line1: t("contact.address_line1"), line2: t("contact.address_line2"), color: "text-coral-pink", bg: "bg-coral-pink/10" },
-  { icon: Phone, title: t("contact.phone_title"), line1: "+880 1234 567 890", line2: "+880 9876 543 210", color: "text-violet-brand", bg: "bg-violet-brand/10" },
-  { icon: Mail, title: t("contact.email_title"), line1: "info@nextgenlms.com", line2: "support@nextgenlms.com", color: "text-emerald-accent", bg: "bg-emerald-accent/10" }];
+    { icon: MapPin, title: t("contact.address_title"), line1: t("contact.address_line1"), line2: t("contact.address_line2"), color: "text-coral-pink", bg: "bg-coral-pink/10" },
+    { icon: Phone, title: t("contact.phone_title"), line1: "+880 1234 567 890", line2: "+880 9876 543 210", color: "text-violet-brand", bg: "bg-violet-brand/10" },
+    { icon: Mail, title: t("contact.email_title"), line1: "info@nextgenlms.com", line2: "support@nextgenlms.com", color: "text-emerald-accent", bg: "bg-emerald-accent/10" },
+  ];
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.name || !form.email || !form.message) {
+      toast({ title: "Please fill in required fields", variant: "destructive" });
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.from("contact_leads" as any).insert({
+      name: form.name,
+      email: form.email,
+      phone: form.phone || null,
+      subject: form.subject || null,
+      message: form.message,
+    });
+    setLoading(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Message sent!", description: "We'll get back to you soon." });
+      setForm({ name: "", email: "", phone: "", subject: "", message: "" });
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -37,30 +66,32 @@ const Contact = () => {
           <div className="max-w-[80vw] mx-auto px-4">
             <div className="grid md:grid-cols-2 gap-12 items-stretch">
               <div className="space-y-4">
-                {infoCards.map((card, i) =>
-                  <div key={i} className="bg-card border border-border rounded-2xl p-4 text-center hover:shadow-lg transition-shadow">
-                    <div className={`rounded-full ${card.bg} p-3 w-fit mx-auto mb-2`}>
+                {infoCards.map((card, i) => (
+                  <div key={i} className="bg-card border border-border rounded-2xl p-4 flex items-start gap-4 text-left hover:shadow-lg transition-shadow">
+                    <div className={`rounded-full ${card.bg} p-3 shrink-0`}>
                       <card.icon className={`h-5 w-5 ${card.color}`} />
                     </div>
-                    <h3 className="text-base font-bold text-foreground mb-1">{card.title}</h3>
-                    <p className="text-sm text-muted-foreground">{card.line1}</p>
-                    <p className="text-sm text-muted-foreground">{card.line2}</p>
+                    <div>
+                      <h3 className="text-base font-bold text-foreground mb-1">{card.title}</h3>
+                      <p className="text-sm text-muted-foreground">{card.line1}</p>
+                      <p className="text-sm text-muted-foreground">{card.line2}</p>
+                    </div>
                   </div>
-                )}
+                ))}
               </div>
               <div className="bg-card border border-border rounded-2xl p-8 flex flex-col">
-                <form className="space-y-4 flex flex-col flex-1" onSubmit={(e) => e.preventDefault()}>
+                <form className="space-y-4 flex flex-col flex-1" onSubmit={handleSubmit}>
                   <div className="grid grid-cols-2 gap-4">
-                    <Input placeholder={t("contact.name_placeholder")} className="h-12 bg-background" />
-                    <Input placeholder={t("contact.email_placeholder")} type="email" className="h-12 bg-background" />
+                    <Input placeholder={t("contact.name_placeholder")} value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} className="h-12 bg-background" />
+                    <Input placeholder={t("contact.email_placeholder")} type="email" value={form.email} onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))} className="h-12 bg-background" />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <Input placeholder={t("contact.phone_placeholder")} type="tel" className="h-12 bg-background" />
-                    <Input placeholder={t("contact.subject_placeholder")} className="h-12 bg-background" />
+                    <Input placeholder={t("contact.phone_placeholder")} type="tel" value={form.phone} onChange={(e) => setForm(f => ({ ...f, phone: e.target.value }))} className="h-12 bg-background" />
+                    <Input placeholder={t("contact.subject_placeholder")} value={form.subject} onChange={(e) => setForm(f => ({ ...f, subject: e.target.value }))} className="h-12 bg-background" />
                   </div>
-                  <Textarea placeholder={t("contact.message_placeholder")} rows={7} className="bg-background flex-1" />
-                  <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold">
-                    {t("contact.send_button")}
+                  <Textarea placeholder={t("contact.message_placeholder")} rows={7} value={form.message} onChange={(e) => setForm(f => ({ ...f, message: e.target.value }))} className="bg-background flex-1" />
+                  <Button type="submit" disabled={loading} className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold">
+                    {loading ? "Sending..." : t("contact.send_button")}
                   </Button>
                 </form>
               </div>
@@ -86,8 +117,8 @@ const Contact = () => {
         </section>
       </main>
       <Footer />
-    </div>);
-
+    </div>
+  );
 };
 
 export default Contact;

@@ -1,11 +1,17 @@
+import { useState } from "react";
 import { GraduationCap, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Footer = () => {
   const { t } = useLanguage();
+  const { toast } = useToast();
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const quickLinks = [
     { to: "/", label: t("nav.home") },
@@ -20,6 +26,23 @@ const Footer = () => {
     { label: t("footer.terms") },
     { label: t("footer.privacy") },
   ];
+
+  const handleNewsletter = async () => {
+    if (!email) return;
+    setLoading(true);
+    const { error } = await supabase.from("newsletter_subscribers" as any).insert({ email });
+    setLoading(false);
+    if (error) {
+      if (error.code === "23505") {
+        toast({ title: "Already subscribed!", description: "This email is already in our newsletter." });
+      } else {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      }
+    } else {
+      toast({ title: "Subscribed!", description: "You've been added to our newsletter." });
+      setEmail("");
+    }
+  };
 
   return (
     <footer className="bg-indigo-dark text-white">
@@ -71,9 +94,12 @@ const Footer = () => {
             <div className="flex gap-2">
               <Input
                 placeholder={t("footer.email_placeholder")}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleNewsletter()}
                 className="bg-white/10 border-white/20 text-white placeholder:text-white/40 text-sm rounded-full"
               />
-              <Button size="icon" className="bg-accent text-accent-foreground hover:bg-accent/90 shrink-0">
+              <Button size="icon" onClick={handleNewsletter} disabled={loading} className="bg-accent text-accent-foreground hover:bg-accent/90 shrink-0">
                 <Send className="h-4 w-4" />
               </Button>
             </div>
