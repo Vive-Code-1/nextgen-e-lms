@@ -11,13 +11,16 @@ import { supabase } from "@/integrations/supabase/client";
 
 const filterLevels = ["beginner", "intermediate", "advanced"];
 
+const categoryAliases: Record<string, string> = {
+  "Website Development": "Development",
+};
+
 const categoryDisplayNames: Record<string, string> = {
   "Design": "Graphics Design",
   "Video": "Video Editing",
   "Marketing": "Digital Marketing",
   "SEO": "SEO",
   "Development": "Website Development",
-  "Website Development": "Website Development",
   "Business": "Dropshipping",
 };
 
@@ -72,7 +75,11 @@ const Courses = () => {
   const toggleLevel = (lvl: string) => setSelectedLevels(prev => prev.includes(lvl) ? prev.filter(l => l !== lvl) : [...prev, lvl]);
 
   const filteredCourses = courses.filter(c => {
-    const matchCat = selectedCategories.length === 0 || selectedCategories.includes(c.category || "");
+    const courseCatNormalized = categoryAliases[c.category || ""] || c.category || "";
+    const matchCat = selectedCategories.length === 0 || selectedCategories.some(sel => {
+      const expandedAliases = [sel, ...Object.entries(categoryAliases).filter(([_, v]) => v === sel).map(([k]) => k)];
+      return expandedAliases.includes(c.category || "") || expandedAliases.includes(courseCatNormalized);
+    });
     const matchLevel = selectedLevels.length === 0 || selectedLevels.includes(c.level.toLowerCase());
     const matchSearch = !searchText || c.title.toLowerCase().includes(searchText.toLowerCase());
     return matchCat && matchLevel && matchSearch;
@@ -118,7 +125,7 @@ const Courses = () => {
                       <AccordionTrigger className="text-foreground font-semibold hover:no-underline">{t("coursepage.categories")}</AccordionTrigger>
                       <AccordionContent>
                         <div className="space-y-3">
-                          {[...new Set(courses.map(c => c.category).filter(Boolean))].map(cat => (
+                          {[...new Set(courses.map(c => categoryAliases[c.category || ""] || c.category).filter(Boolean))].map(cat => (
                             <label key={cat} className="flex items-center gap-2 cursor-pointer">
                               <Checkbox checked={selectedCategories.includes(cat)} onCheckedChange={() => toggleCategory(cat)} />
                               <span className="text-sm text-muted-foreground">{categoryDisplayNames[cat as string] || cat}</span>

@@ -49,7 +49,7 @@ const CourseCard = ({ course }: { course: Course }) => {
   };
 
   return (
-    <Card className="group overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-2 bg-card">
+    <Card className="group overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-2 bg-card flex flex-col h-full">
       <div className="overflow-hidden">
         <img
           src={course.image_url || "/placeholder.svg"}
@@ -58,13 +58,14 @@ const CourseCard = ({ course }: { course: Course }) => {
           loading="lazy"
         />
       </div>
-      <CardContent className="p-5 space-y-3">
+      <CardContent className="p-5 space-y-3 flex flex-col flex-1">
         {course.category && (
-          <Badge className="bg-accent/10 text-accent border-0 hover:bg-accent/20 text-xs font-medium">
+          <Badge className="bg-accent/10 text-accent border-0 hover:bg-accent/20 text-xs font-medium w-fit">
             {course.category}
           </Badge>
         )}
         <h3 className="font-semibold text-base text-primary leading-snug line-clamp-2">{course.title}</h3>
+        <div className="flex-1" />
         <div className="flex items-center justify-between pt-1">
           {displayPrice()}
           <Link to={`/courses/${course.slug}`}>
