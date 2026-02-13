@@ -10,35 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 const Contact = () => {
   const { t } = useLanguage();
 
-  const infoItems = [
-    {
-      icon: MapPin,
-      title: t("contact.address_title"),
-      line1: t("contact.address_line1"),
-      line2: t("contact.address_line2"),
-      color: "text-coral-pink",
-      bg: "bg-coral-pink/10",
-      border: "border-coral-pink/20",
-    },
-    {
-      icon: Phone,
-      title: t("contact.phone_title"),
-      line1: "+880 1234 567 890",
-      line2: "+880 9876 543 210",
-      color: "text-violet-brand",
-      bg: "bg-violet-brand/10",
-      border: "border-violet-brand/20",
-    },
-    {
-      icon: Mail,
-      title: t("contact.email_title"),
-      line1: "info@nextgenlms.com",
-      line2: "support@nextgenlms.com",
-      color: "text-emerald-accent",
-      bg: "bg-emerald-accent/10",
-      border: "border-emerald-accent/20",
-    },
-  ];
+  const infoCards = [
+  { icon: MapPin, title: t("contact.address_title"), line1: t("contact.address_line1"), line2: t("contact.address_line2"), color: "text-coral-pink", bg: "bg-coral-pink/10" },
+  { icon: Phone, title: t("contact.phone_title"), line1: "+880 1234 567 890", line2: "+880 9876 543 210", color: "text-violet-brand", bg: "bg-violet-brand/10" },
+  { icon: Mail, title: t("contact.email_title"), line1: "info@nextgenlms.com", line2: "support@nextgenlms.com", color: "text-emerald-accent", bg: "bg-emerald-accent/10" }];
+
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -56,38 +32,38 @@ const Contact = () => {
           </div>
         </section>
 
-        {/* Contact Section - Two Columns */}
+        {/* Info Cards */}
         <section className="py-16">
           <div className="max-w-[80vw] mx-auto px-4">
-            <div className="grid md:grid-cols-2 gap-8 items-start">
-              {/* Left - Info Cards */}
-              <div className="space-y-5">
-                <h2 className="text-2xl md:text-3xl font-extrabold text-foreground mb-6">{t("contact.form_title")}</h2>
-                <p className="text-muted-foreground leading-relaxed mb-6">{t("contact.form_desc")}</p>
-                {infoItems.map((item, i) => (
-                  <div
-                    key={i}
-                    className={`flex items-start gap-4 bg-card border ${item.border} rounded-2xl p-5 hover:shadow-lg transition-shadow`}
-                  >
-                    <div className={`rounded-xl ${item.bg} p-3 flex-shrink-0`}>
-                      <item.icon className={`h-6 w-6 ${item.color}`} />
-                    </div>
-                    <div>
-                      <h3 className="text-base font-bold text-foreground mb-1">{item.title}</h3>
-                      <p className="text-sm text-muted-foreground">{item.line1}</p>
-                      <p className="text-sm text-muted-foreground">{item.line2}</p>
-                    </div>
+            <div className="grid md:grid-cols-3 gap-6">
+              {infoCards.map((card, i) =>
+              <div key={i} className="bg-card border border-border rounded-2xl p-6 text-center hover:shadow-lg transition-shadow">
+                  <div className={`rounded-full ${card.bg} p-4 w-fit mx-auto mb-4`}>
+                    <card.icon className={`h-7 w-7 ${card.color}`} />
                   </div>
-                ))}
-              </div>
+                  <h3 className="text-lg font-bold text-foreground mb-2">{card.title}</h3>
+                  <p className="text-sm text-muted-foreground">{card.line1}</p>
+                  <p className="text-sm text-muted-foreground">{card.line2}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
 
-              {/* Right - Contact Form */}
-              <div className="bg-card border border-border rounded-2xl p-8 shadow-sm">
-                <h3 className="text-xl font-bold text-foreground mb-6">{t("contact.send_button")}</h3>
+        {/* Contact Form */}
+        <section className="py-16 bg-muted/50">
+          <div className="max-w-[80vw] mx-auto px-4">
+            <div className="grid md:grid-cols-2 gap-12 items-start">
+              <div className="space-y-6">
+                <h2 className="text-3xl md:text-4xl font-extrabold text-foreground">{t("contact.form_title")}</h2>
+                <p className="text-muted-foreground leading-relaxed">{t("contact.form_desc")}</p>
+                
+              </div>
+              <div className="bg-card border border-border rounded-2xl p-8">
                 <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
                   <div className="grid grid-cols-2 gap-4">
                     <Input placeholder={t("contact.name_placeholder")} className="bg-background" />
-                    <Input placeholder={t("contact.email_placeholder")} type="email" className="bg-background" />
+                    
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <Input placeholder={t("contact.phone_placeholder")} type="tel" className="bg-background" />
@@ -104,8 +80,8 @@ const Contact = () => {
         </section>
       </main>
       <Footer />
-    </div>
-  );
+    </div>);
+
 };
 
 export default Contact;
