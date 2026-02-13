@@ -33,7 +33,7 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="relative overflow-hidden min-h-screen flex flex-col bg-[#1a1a2e]">
+    <section className="relative overflow-hidden min-h-[100dvh] flex flex-col bg-[#1a1a2e]">
       {/* Background Video */}
       <video
         src={heroVideo}
@@ -46,10 +46,10 @@ const HeroSection = () => {
       {/* Dark Overlay */}
       <div className="absolute inset-0 bg-black/50" />
 
-      <div className="relative z-10 w-full md:max-w-[80vw] mx-auto px-6 md:px-4 pt-28 pb-8 md:pt-32 md:pb-12 flex-1 flex items-center">
-        <div className="grid md:grid-cols-2 gap-12 items-center w-full">
+      <div className="relative z-10 w-full md:max-w-[80vw] mx-auto px-6 md:px-4 pt-20 pb-4 md:pt-32 md:pb-12 flex-1 flex items-center">
+        <div className="grid md:grid-cols-2 gap-6 md:gap-12 items-center w-full">
           {/* Text */}
-          <div className="space-y-4 md:space-y-6 flex flex-col items-center md:items-start text-center md:text-left">
+          <div className="space-y-3 md:space-y-6 flex flex-col items-center md:items-start text-center md:text-left">
             <h1 className="text-2xl md:text-5xl lg:text-6xl font-extrabold leading-tight text-white animate-fade-in-up">
               {t("hero.headline_1")}
               <span className="text-coral-pink">{t("hero.headline_highlight")}</span>
@@ -57,8 +57,8 @@ const HeroSection = () => {
             </h1>
             <ScrollReveal
               baseRotation={0}
-              containerClassName="text-base md:text-lg text-white/70 max-w-lg animate-fade-in-up-delay-1 mx-auto md:mx-0"
-              textClassName="text-base md:text-lg text-white/70"
+              containerClassName="text-sm md:text-lg text-white/70 max-w-lg animate-fade-in-up-delay-1 mx-auto md:mx-0"
+              textClassName="text-sm md:text-lg text-white/70"
             >
               {t("hero.subheadline")}
             </ScrollReveal>
@@ -108,7 +108,7 @@ const HeroSection = () => {
             </div>
 
             {/* Stats Cards below search bar */}
-            <div className="mt-4 md:mt-8 w-full max-w-xl mx-auto md:mx-0">
+            <div className="mt-2 md:mt-8 w-full max-w-xl mx-auto md:mx-0">
               <StatsSection embedded />
             </div>
           </div>
