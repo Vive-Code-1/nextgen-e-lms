@@ -3,7 +3,13 @@ import ScrollFloat from "@/components/ui/ScrollFloat";
 import ScrollReveal from "@/components/ui/ScrollReveal";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
-import ChromaGridWrapper from "@/components/ui/ChromaGridWrapper";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from "@/components/ui/carousel";
 
 const instructors = [
   {
@@ -117,13 +123,17 @@ const FeaturedInstructors = () => {
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
-          <ChromaGridWrapper radius={300}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <Carousel opts={{ align: "start", loop: true }} className="w-full">
+            <CarouselContent className="-ml-4">
               {instructors.map((instructor) => (
-                <InstructorCard key={instructor.name} instructor={instructor} />
+                <CarouselItem key={instructor.name} className="pl-4 basis-full sm:basis-1/2 lg:basis-1/4">
+                  <InstructorCard instructor={instructor} />
+                </CarouselItem>
               ))}
-            </div>
-          </ChromaGridWrapper>
+            </CarouselContent>
+            <CarouselPrevious className="-left-6 bg-card border-border" />
+            <CarouselNext className="-right-6 bg-card border-border" />
+          </Carousel>
         </div>
       </div>
     </section>
