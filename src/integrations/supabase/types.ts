@@ -87,7 +87,10 @@ export type Database = {
           description: string | null
           due_date: string | null
           id: string
+          instructions: string | null
+          status: string
           title: string
+          total_marks: number
         }
         Insert: {
           course_id: string
@@ -96,7 +99,10 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          instructions?: string | null
+          status?: string
           title: string
+          total_marks?: number
         }
         Update: {
           course_id?: string
@@ -105,7 +111,10 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          instructions?: string | null
+          status?: string
           title?: string
+          total_marks?: number
         }
         Relationships: [
           {

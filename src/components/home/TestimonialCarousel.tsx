@@ -1,8 +1,10 @@
+import { useState, useEffect } from "react";
 import { Star } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ScrollFloat from "@/components/ui/ScrollFloat";
+import { supabase } from "@/integrations/supabase/client";
 
-const testimonials = [
+const staticTestimonials = [
   {
     name: "Rahim Uddin",
     role: "Web Developer",
@@ -47,10 +49,59 @@ const testimonials = [
   },
 ];
 
+interface DisplayTestimonial {
+  name: string;
+  role: string;
+  avatar: string;
+  rating: number;
+  comment: string;
+}
+
 const TestimonialCarousel = () => {
   const { t } = useLanguage();
+  const [dynamicReviews, setDynamicReviews] = useState<DisplayTestimonial[]>([]);
 
-  const allItems = [...testimonials, ...testimonials];
+  useEffect(() => {
+    const fetchReviews = async () => {
+      const { data } = await supabase
+        .from("reviews")
+        .select("rating, comment, user_id, courses(title)")
+        .eq("approved", true)
+        .order("created_at", { ascending: false });
+
+      if (data && data.length > 0) {
+        const userIds = [...new Set(data.map(r => r.user_id))];
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, full_name, avatar_url")
+          .in("id", userIds);
+        const profileMap = new Map((profiles || []).map(p => [p.id, p]));
+
+        setDynamicReviews(data.map(r => {
+          const p = profileMap.get(r.user_id);
+          return {
+            name: p?.full_name || "Student",
+            role: (r.courses as any)?.title || "",
+            avatar: p?.avatar_url || "",
+            rating: r.rating,
+            comment: r.comment || "",
+          };
+        }));
+      }
+    };
+    fetchReviews();
+  }, []);
+
+  const staticItems: DisplayTestimonial[] = staticTestimonials.map(item => ({
+    name: item.name,
+    role: item.role,
+    avatar: item.avatar,
+    rating: item.rating,
+    comment: t(item.commentKey),
+  }));
+
+  const allTestimonials = [...staticItems, ...dynamicReviews];
+  const scrollItems = [...allTestimonials, ...allTestimonials];
 
   return (
     <section className="py-16 md:py-20 bg-background overflow-hidden">
@@ -66,9 +117,7 @@ const TestimonialCarousel = () => {
       </div>
 
       <div className="relative">
-        {/* Left blur */}
         <div className="absolute left-0 top-0 bottom-0 w-24 md:w-40 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
-        {/* Right blur */}
         <div className="absolute right-0 top-0 bottom-0 w-24 md:w-40 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
 
         <div className="overflow-hidden">
@@ -79,41 +128,31 @@ const TestimonialCarousel = () => {
               width: "max-content",
             }}
           >
-            {allItems.map((item, i) => (
-              <div
-                key={i}
-                className="flex-shrink-0 w-[320px] md:w-[380px]"
-              >
+            {scrollItems.map((item, i) => (
+              <div key={i} className="flex-shrink-0 w-[320px] md:w-[380px]">
                 <div className="bg-card border border-border rounded-2xl p-6 h-full shadow-sm hover:shadow-md transition-shadow duration-300">
                   <div className="flex items-center gap-1 mb-4">
                     {[...Array(5)].map((_, s) => (
                       <Star
                         key={s}
-                        className={`h-4 w-4 ${
-                          s < item.rating
-                            ? "fill-accent text-accent"
-                            : "text-muted"
-                        }`}
+                        className={`h-4 w-4 ${s < item.rating ? "fill-accent text-accent" : "text-muted"}`}
                       />
                     ))}
                   </div>
                   <p className="text-sm text-muted-foreground leading-relaxed mb-5">
-                    "{t(item.commentKey)}"
+                    "{item.comment}"
                   </p>
                   <div className="flex items-center gap-3">
-                    <img
-                      src={item.avatar}
-                      alt={item.name}
-                      className="w-10 h-10 rounded-full object-cover"
-                      loading="lazy"
-                    />
+                    {item.avatar ? (
+                      <img src={item.avatar} alt={item.name} className="w-10 h-10 rounded-full object-cover" loading="lazy" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-sm font-bold text-muted-foreground">
+                        {item.name[0]?.toUpperCase()}
+                      </div>
+                    )}
                     <div>
-                      <p className="font-semibold text-sm text-foreground">
-                        {item.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {item.role}
-                      </p>
+                      <p className="font-semibold text-sm text-foreground">{item.name}</p>
+                      <p className="text-xs text-muted-foreground">{item.role}</p>
                     </div>
                   </div>
                 </div>
