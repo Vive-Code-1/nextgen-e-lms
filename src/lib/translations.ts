@@ -107,10 +107,31 @@ export const translations: Record<string, Record<string, string>> = {
     "trusted.label": "Trusted By",
     "trusted.title": "500+ Leading Universities And Companies",
 
-    // Share Knowledge
-    "share.title": "Want to Share Your Knowledge? Join as Instructor",
-    "share.desc": "Become an instructor and share your expertise with thousands of eager learners worldwide. Start teaching today!",
-    "share.cta": "Become an Instructor",
+    // Share Knowledge / FAQ
+    "faq.title": "Frequently Asked Questions",
+    "faq.subtitle": "Find answers to the most commonly asked questions about our platform",
+    "faq.1.q": "How do I enroll in a course?",
+    "faq.1.a": "Simply browse our course catalog, select a course, and click 'Enroll Now'. You can pay securely online and start learning immediately.",
+    "faq.2.q": "Are the certificates industry-recognized?",
+    "faq.2.a": "Yes, all our certificates are industry-recognized and can be added to your LinkedIn profile or resume to boost your career prospects.",
+    "faq.3.q": "Can I access courses on mobile devices?",
+    "faq.3.a": "Absolutely! Our platform is fully responsive and works seamlessly on smartphones, tablets, and desktop computers.",
+    "faq.4.q": "What payment methods are accepted?",
+    "faq.4.a": "We accept bKash, Nagad, credit/debit cards, and bank transfers for your convenience.",
+    "faq.5.q": "Is there a refund policy?",
+    "faq.5.a": "Yes, we offer a 7-day money-back guarantee. If you're not satisfied with a course, you can request a full refund within 7 days of enrollment.",
+    "faq.6.q": "Do I get lifetime access to course materials?",
+    "faq.6.a": "Yes! Once enrolled, you get lifetime access to all course materials, including future updates and additions.",
+
+    // Testimonials
+    "testimonials.title": "What Our Students Say",
+    "testimonials.subtitle": "Hear from our learners who have transformed their careers with our courses",
+    "testimonial.1": "The web development bootcamp completely changed my career. The instructors are incredibly knowledgeable and supportive.",
+    "testimonial.2": "I learned graphics design from scratch and now I'm working as a freelance designer. Best investment I've ever made!",
+    "testimonial.3": "The digital marketing course gave me practical skills I use daily in my business. Highly recommended!",
+    "testimonial.4": "Thanks to the SEO course, I was able to rank my client's website on the first page of Google within 3 months.",
+    "testimonial.5": "Professional video editing skills I gained here helped me land my dream job at a media company.",
+    "testimonial.6": "The full-stack course is comprehensive and well-structured. I went from zero to building real apps in just 6 months.",
 
     // About Page
     "about.page_title": "About Us",
@@ -283,10 +304,31 @@ export const translations: Record<string, Record<string, string>> = {
     "trusted.label": "বিশ্বস্ত",
     "trusted.title": "৫০০+ শীর্ষ বিশ্ববিদ্যালয় এবং কোম্পানি",
 
-    // Share Knowledge
-    "share.title": "আপনার জ্ঞান শেয়ার করতে চান? প্রশিক্ষক হিসেবে যোগ দিন",
-    "share.desc": "প্রশিক্ষক হন এবং বিশ্বজুড়ে হাজার হাজার আগ্রহী শিক্ষার্থীদের সাথে আপনার দক্ষতা শেয়ার করুন।",
-    "share.cta": "প্রশিক্ষক হন",
+    // FAQ
+    "faq.title": "সাধারণ জিজ্ঞাসা",
+    "faq.subtitle": "আমাদের প্ল্যাটফর্ম সম্পর্কে সবচেয়ে বেশি জিজ্ঞাসিত প্রশ্নের উত্তর খুঁজুন",
+    "faq.1.q": "কিভাবে একটি কোর্সে ভর্তি হব?",
+    "faq.1.a": "আমাদের কোর্স ক্যাটালগ ব্রাউজ করুন, একটি কোর্স নির্বাচন করুন এবং 'ভর্তি হন' ক্লিক করুন। নিরাপদে অনলাইনে পেমেন্ট করুন এবং সাথে সাথে শেখা শুরু করুন।",
+    "faq.2.q": "সার্টিফিকেটগুলো কি ইন্ডাস্ট্রি-স্বীকৃত?",
+    "faq.2.a": "হ্যাঁ, আমাদের সকল সার্টিফিকেট ইন্ডাস্ট্রি-স্বীকৃত এবং আপনার LinkedIn প্রোফাইল বা রেজুমেতে যোগ করা যায়।",
+    "faq.3.q": "মোবাইলে কোর্স অ্যাক্সেস করা যায়?",
+    "faq.3.a": "অবশ্যই! আমাদের প্ল্যাটফর্ম সম্পূর্ণ রেসপন্সিভ এবং স্মার্টফোন, ট্যাবলেট এবং ডেস্কটপে নিরবচ্ছিন্নভাবে কাজ করে।",
+    "faq.4.q": "কোন পেমেন্ট পদ্ধতি গ্রহণ করা হয়?",
+    "faq.4.a": "আমরা বিকাশ, নগদ, ক্রেডিট/ডেবিট কার্ড এবং ব্যাংক ট্রান্সফার গ্রহণ করি।",
+    "faq.5.q": "রিফান্ড পলিসি আছে কি?",
+    "faq.5.a": "হ্যাঁ, আমরা ৭ দিনের মানি-ব্যাক গ্যারান্টি দিই। ভর্তির ৭ দিনের মধ্যে সন্তুষ্ট না হলে সম্পূর্ণ রিফান্ড পেতে পারেন।",
+    "faq.6.q": "কোর্স ম্যাটেরিয়ালে আজীবন অ্যাক্সেস পাওয়া যায়?",
+    "faq.6.a": "হ্যাঁ! একবার ভর্তি হলে, সকল কোর্স ম্যাটেরিয়ালে আজীবন অ্যাক্সেস পাবেন, ভবিষ্যতের আপডেট সহ।",
+
+    // Testimonials
+    "testimonials.title": "আমাদের শিক্ষার্থীরা কি বলছেন",
+    "testimonials.subtitle": "যারা আমাদের কোর্সের মাধ্যমে তাদের ক্যারিয়ার পরিবর্তন করেছেন তাদের কথা শুনুন",
+    "testimonial.1": "ওয়েব ডেভেলপমেন্ট বুটক্যাম্প আমার ক্যারিয়ার সম্পূর্ণ বদলে দিয়েছে। প্রশিক্ষকরা অত্যন্ত জ্ঞানী এবং সহায়ক।",
+    "testimonial.2": "আমি শূন্য থেকে গ্রাফিক্স ডিজাইন শিখেছি এবং এখন ফ্রিল্যান্স ডিজাইনার হিসেবে কাজ করছি। সেরা বিনিয়োগ!",
+    "testimonial.3": "ডিজিটাল মার্কেটিং কোর্স আমাকে ব্যবহারিক দক্ষতা দিয়েছে যা আমি প্রতিদিন ব্যবসায় ব্যবহার করি।",
+    "testimonial.4": "এসইও কোর্সের জন্য ধন্যবাদ, আমি ৩ মাসের মধ্যে ক্লায়েন্টের ওয়েবসাইট গুগলের প্রথম পেজে র‍্যাংক করাতে পেরেছি।",
+    "testimonial.5": "এখানে শেখা প্রফেশনাল ভিডিও এডিটিং দক্ষতা আমাকে একটি মিডিয়া কোম্পানিতে স্বপ্নের চাকরি পেতে সাহায্য করেছে।",
+    "testimonial.6": "ফুল-স্ট্যাক কোর্সটি ব্যাপক এবং সুগঠিত। মাত্র ৬ মাসে শূন্য থেকে আসল অ্যাপ তৈরি করতে পেরেছি।",
 
     // About Page
     "about.page_title": "আমাদের সম্পর্কে",
