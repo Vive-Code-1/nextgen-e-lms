@@ -36,13 +36,13 @@ const Contact = () => {
         <section className="py-16 bg-muted/50">
           <div className="max-w-[80vw] mx-auto px-4">
             <div className="grid md:grid-cols-2 gap-12 items-start">
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {infoCards.map((card, i) =>
-                  <div key={i} className="bg-card border border-border rounded-2xl p-6 text-center hover:shadow-lg transition-shadow">
-                    <div className={`rounded-full ${card.bg} p-4 w-fit mx-auto mb-4`}>
-                      <card.icon className={`h-7 w-7 ${card.color}`} />
+                  <div key={i} className="bg-card border border-border rounded-2xl p-4 text-center hover:shadow-lg transition-shadow">
+                    <div className={`rounded-full ${card.bg} p-3 w-fit mx-auto mb-2`}>
+                      <card.icon className={`h-5 w-5 ${card.color}`} />
                     </div>
-                    <h3 className="text-lg font-bold text-foreground mb-2">{card.title}</h3>
+                    <h3 className="text-base font-bold text-foreground mb-1">{card.title}</h3>
                     <p className="text-sm text-muted-foreground">{card.line1}</p>
                     <p className="text-sm text-muted-foreground">{card.line2}</p>
                   </div>
@@ -52,7 +52,7 @@ const Contact = () => {
                 <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
                   <div className="grid grid-cols-2 gap-4">
                     <Input placeholder={t("contact.name_placeholder")} className="bg-background" />
-                    
+                    <Input placeholder={t("contact.email_placeholder")} type="email" className="bg-background" />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <Input placeholder={t("contact.phone_placeholder")} type="tel" className="bg-background" />
@@ -64,6 +64,23 @@ const Contact = () => {
                   </Button>
                 </form>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Google Map */}
+        <section className="pb-16 bg-muted/50">
+          <div className="max-w-[80vw] mx-auto px-4">
+            <div className="rounded-2xl overflow-hidden border border-border">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d233668.0384390866!2d90.27891109302494!3d23.780573258035968!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755b8b087026b81%3A0x8fa563962e0b151d!2sDhaka%2C%20Bangladesh!5e0!3m2!1sen!2sbd!4v1700000000000!5m2!1sen!2sbd"
+                className="w-full h-[400px]"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Google Map - Dhaka, Bangladesh"
+              />
             </div>
           </div>
         </section>
