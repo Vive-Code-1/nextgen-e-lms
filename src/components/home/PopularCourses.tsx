@@ -13,11 +13,16 @@ import { supabase } from "@/integrations/supabase/client";
 
 const spotlightColors: Record<string, string> = {
   "Graphics Design": "rgba(124, 58, 237, 0.15)",
+  "Design": "rgba(124, 58, 237, 0.15)",
   "Video Editing": "rgba(255, 70, 103, 0.15)",
+  "Video": "rgba(255, 70, 103, 0.15)",
   "Digital Marketing": "rgba(251, 191, 36, 0.15)",
+  "Marketing": "rgba(251, 191, 36, 0.15)",
   "SEO": "rgba(16, 185, 129, 0.15)",
   "Website Development": "rgba(30, 27, 75, 0.15)",
+  "Development": "rgba(30, 27, 75, 0.15)",
   "Dropshipping": "rgba(6, 182, 212, 0.15)",
+  "Business": "rgba(6, 182, 212, 0.15)",
 };
 
 interface Course {

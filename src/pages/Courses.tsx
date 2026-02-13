@@ -9,7 +9,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { supabase } from "@/integrations/supabase/client";
 
-const filterCategories = ["Graphics Design", "Video Editing", "Digital Marketing", "SEO", "Website Development", "Dropshipping"];
 const filterLevels = ["beginner", "intermediate", "advanced"];
 
 interface Course {
@@ -40,7 +39,7 @@ const Courses = () => {
 
   useEffect(() => {
     const cat = searchParams.get("category");
-    setSelectedCategories(cat && filterCategories.includes(cat) ? [cat] : []);
+    if (cat) setSelectedCategories([cat]);
     const s = searchParams.get("search");
     setSearchText(s || "");
   }, [searchParams]);
@@ -63,7 +62,7 @@ const Courses = () => {
 
   const filteredCourses = courses.filter(c => {
     const matchCat = selectedCategories.length === 0 || selectedCategories.includes(c.category || "");
-    const matchLevel = selectedLevels.length === 0 || selectedLevels.includes(c.level);
+    const matchLevel = selectedLevels.length === 0 || selectedLevels.includes(c.level.toLowerCase());
     const matchSearch = !searchText || c.title.toLowerCase().includes(searchText.toLowerCase());
     return matchCat && matchLevel && matchSearch;
   });
@@ -108,7 +107,7 @@ const Courses = () => {
                       <AccordionTrigger className="text-foreground font-semibold hover:no-underline">{t("coursepage.categories")}</AccordionTrigger>
                       <AccordionContent>
                         <div className="space-y-3">
-                          {filterCategories.map(cat => (
+                          {[...new Set(courses.map(c => c.category).filter(Boolean))].map(cat => (
                             <label key={cat} className="flex items-center gap-2 cursor-pointer">
                               <Checkbox checked={selectedCategories.includes(cat)} onCheckedChange={() => toggleCategory(cat)} />
                               <span className="text-sm text-muted-foreground">{cat}</span>

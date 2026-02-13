@@ -33,7 +33,7 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="relative overflow-hidden min-h-screen flex flex-col">
+    <section className="relative overflow-hidden min-h-screen flex flex-col bg-[#1a1a2e]">
       {/* Background Video */}
       <video
         src={heroVideo}
@@ -88,7 +88,7 @@ const HeroSection = () => {
                     </button>
                     {categoryOpen && (
                       <div className="absolute top-full right-0 mt-2 w-44 bg-white rounded-lg shadow-lg border border-border z-[100] py-1">
-                        {["Graphics Design", "Video Editing", "Digital Marketing", "SEO", "Website Development", "Dropshipping"].map((cat) => (
+                        {["Design", "Video", "Marketing", "SEO", "Development", "Business"].map((cat) => (
                           <button
                             key={cat}
                             className={`w-full text-left px-4 py-2 text-sm transition-colors ${selectedCategory === cat ? "bg-primary/10 text-primary font-medium" : "text-foreground hover:bg-muted"}`}
