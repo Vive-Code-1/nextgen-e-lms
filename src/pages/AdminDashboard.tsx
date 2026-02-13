@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import {
   GraduationCap, LayoutDashboard, BookOpen, Users, ShoppingCart,
   Settings, LogOut, DollarSign, TrendingUp, Save, CheckCircle,
-  Bell, ClipboardList, Star, Menu, X, MessageSquare, Newspaper
+  Bell, ClipboardList, Star, Menu, X, MessageSquare, Newspaper, Tag
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
@@ -22,6 +22,7 @@ import AdminUserManagement from "@/components/admin/AdminUserManagement";
 import AdminOrderManagement from "@/components/admin/AdminOrderManagement";
 import AdminContactLeads from "@/components/admin/AdminContactLeads";
 import AdminNewsletter from "@/components/admin/AdminNewsletter";
+import AdminCoupons from "@/components/admin/AdminCoupons";
 
 const sidebarLinks = [
   { icon: LayoutDashboard, label: "Dashboard", id: "dashboard" },
@@ -34,6 +35,7 @@ const sidebarLinks = [
   { icon: ShoppingCart, label: "Orders", id: "orders" },
   { icon: MessageSquare, label: "Contact Leads", id: "contact-leads" },
   { icon: Newspaper, label: "Newsletter", id: "newsletter" },
+  { icon: Tag, label: "Coupons", id: "coupons" },
   { icon: Settings, label: "Settings", id: "settings" },
 ];
 
@@ -362,6 +364,7 @@ const AdminDashboard = () => {
           {activeTab === "users" && <AdminUserManagement />}
           {activeTab === "contact-leads" && <AdminContactLeads />}
           {activeTab === "newsletter" && <AdminNewsletter />}
+          {activeTab === "coupons" && <AdminCoupons />}
         </main>
       </div>
     </div>
