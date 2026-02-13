@@ -5,12 +5,12 @@ import ScrollReveal from "@/components/ui/ScrollReveal";
 import { Link } from "react-router-dom";
 
 const categories = [
-  { icon: Palette, label: "categories.graphics_design", color: "text-coral-pink", bg: "bg-coral-pink/10", filterValue: "Graphics Design" },
-  { icon: Video, label: "categories.video_editing", color: "text-violet-brand", bg: "bg-violet-brand/10", filterValue: "Video Editing" },
-  { icon: Megaphone, label: "categories.digital_marketing", color: "text-blue-500", bg: "bg-blue-100", filterValue: "Digital Marketing" },
+  { icon: Palette, label: "categories.graphics_design", color: "text-coral-pink", bg: "bg-coral-pink/10", filterValue: "Design" },
+  { icon: Video, label: "categories.video_editing", color: "text-violet-brand", bg: "bg-violet-brand/10", filterValue: "Video" },
+  { icon: Megaphone, label: "categories.digital_marketing", color: "text-blue-500", bg: "bg-blue-100", filterValue: "Marketing" },
   { icon: Search, label: "categories.seo", color: "text-emerald-accent", bg: "bg-emerald-accent/10", filterValue: "SEO" },
-  { icon: Code, label: "categories.web_dev", color: "text-amber-cta", bg: "bg-amber-cta/10", filterValue: "Website Development" },
-  { icon: ShoppingCart, label: "categories.dropshipping", color: "text-cyan-500", bg: "bg-cyan-100", filterValue: "Dropshipping" },
+  { icon: Code, label: "categories.web_dev", color: "text-amber-cta", bg: "bg-amber-cta/10", filterValue: "Development" },
+  { icon: ShoppingCart, label: "categories.dropshipping", color: "text-cyan-500", bg: "bg-cyan-100", filterValue: "Business" },
 ];
 
 const CategorySection = () => {
