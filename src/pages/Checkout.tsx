@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronRight, CreditCard, ShieldCheck, Copy, Phone, MapPin, Truck, Eye, EyeOff } from "lucide-react";
+import { ChevronRight, CreditCard, ShieldCheck, Copy, Phone, MapPin, Truck, Eye, EyeOff, Tag, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface CourseData {
@@ -49,6 +49,12 @@ const Checkout = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isBangladesh, setIsBangladesh] = useState(false);
 
+  // Coupon state
+  const [couponCode, setCouponCode] = useState("");
+  const [couponApplying, setCouponApplying] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount_type: string; discount_value: number } | null>(null);
+  const [couponError, setCouponError] = useState("");
+
   useEffect(() => {
     if (!slug) { setCourseLoading(false); return; }
     const fetchCourse = async () => {
@@ -72,6 +78,20 @@ const Checkout = () => {
       .catch(() => {});
   }, []);
 
+  // Calculate effective price
+  const coursePrice = course
+    ? (course.has_discount && course.discount_price ? course.discount_price : (course.price || 0))
+    : 0;
+
+  // Calculate coupon discount
+  const couponDiscount = appliedCoupon
+    ? appliedCoupon.discount_type === "percentage"
+      ? Math.round(coursePrice * appliedCoupon.discount_value / 100)
+      : Math.min(appliedCoupon.discount_value, coursePrice)
+    : 0;
+
+  const finalPrice = Math.max(coursePrice - couponDiscount, 0);
+
   const isBdManual = ["bkash_manual", "nagad_manual", "rocket_manual"].includes(paymentMethod);
   const isCod = paymentMethod === "cod";
   const selectedBdMethod = bdManualMethods.find((m) => m.id === paymentMethod);
@@ -81,19 +101,64 @@ const Checkout = () => {
     toast({ title: "কপি হয়েছে!", description: `${number} কপি করা হয়েছে` });
   };
 
+  const applyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setCouponApplying(true);
+    setCouponError("");
+    try {
+      const { data, error } = await supabase
+        .from("coupons")
+        .select("*")
+        .eq("code", couponCode.trim().toUpperCase())
+        .eq("active", true)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) { setCouponError("কুপন কোড সঠিক নয়"); return; }
+
+      // Check expiry
+      if (data.valid_until && new Date(data.valid_until) < new Date()) {
+        setCouponError("এই কুপনের মেয়াদ শেষ হয়ে গেছে"); return;
+      }
+      // Check max uses
+      if (data.max_uses && data.times_used >= data.max_uses) {
+        setCouponError("এই কুপন সর্বোচ্চ ব্যবহার সীমায় পৌঁছেছে"); return;
+      }
+      // Check min order
+      if (data.min_order_amount && coursePrice < data.min_order_amount) {
+        setCouponError(`সর্বনিম্ন অর্ডার ${currency}${data.min_order_amount} হতে হবে`); return;
+      }
+
+      setAppliedCoupon({
+        code: data.code,
+        discount_type: data.discount_type,
+        discount_value: Number(data.discount_value),
+      });
+      toast({ title: "কুপন প্রয়োগ হয়েছে!", description: `${data.code} সফলভাবে যুক্ত হয়েছে` });
+    } catch (err: any) {
+      setCouponError(err.message || "কুপন যাচাই করতে সমস্যা হয়েছে");
+    } finally {
+      setCouponApplying(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+    setCouponError("");
+  };
+
   const handlePayment = async () => {
     setError("");
     setLoading(true);
 
     try {
-      // Validate BD manual fields
       if (isBdManual && (!senderPhone || !trxId)) {
         setError("পেমেন্ট নম্বর ও TrxID দিন");
         setLoading(false);
         return;
       }
 
-      // Validate form for non-logged-in users
       if (!user && (!email || !password || !fullName || !phone || !address)) {
         setError("সকল ফিল্ড পূরণ করুন");
         setLoading(false);
@@ -101,14 +166,12 @@ const Checkout = () => {
       }
 
       if (!course || !slug) throw new Error("Course not found");
-      const coursePrice = course.has_discount && course.discount_price ? course.discount_price : (course.price || 0);
 
-      // Call edge function - it handles EVERYTHING (user creation + order + payment)
       const { data, error: fnErr } = await supabase.functions.invoke("process-payment", {
         body: {
           course_slug: slug,
           payment_method: paymentMethod,
-          amount: course.price,
+          amount: finalPrice,
           user_id: user?.id || undefined,
           course_title: course.title,
           full_name: fullName || user?.user_metadata?.full_name || "Customer",
@@ -118,13 +181,14 @@ const Checkout = () => {
           address: address || undefined,
           sender_phone: isBdManual ? senderPhone : undefined,
           trx_id: isBdManual ? trxId : undefined,
+          coupon_code: appliedCoupon?.code || undefined,
+          coupon_discount: couponDiscount || undefined,
         },
       });
 
       if (fnErr) throw fnErr;
       if (data?.error) throw new Error(data.error);
 
-      // Auto-login if new user was created by the edge function
       if (data?.user_email && data?.user_password && !user) {
         await supabase.auth.signInWithPassword({
           email: data.user_email,
@@ -133,14 +197,12 @@ const Checkout = () => {
       }
 
       if (data?.redirect_url) {
-        // Store credentials in localStorage so thank-you page can show them after redirect chain
         if (data?.user_email) {
           localStorage.setItem('checkout_credentials', JSON.stringify({
             email: data.user_email,
             password: data.user_password
           }));
         }
-        // Redirect the current page to payment gateway (works on published site, not in iframe preview)
         window.location.href = data.redirect_url;
         return;
       } else if (data?.success || isCod) {
@@ -311,7 +373,7 @@ const Checkout = () => {
                             <Copy className="h-4 w-4 text-primary" />
                           </button>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-2">উপরের নম্বরে {currency}{course.price} টাকা Send Money করুন</p>
+                        <p className="text-xs text-muted-foreground mt-2">উপরের নম্বরে {currency}{finalPrice} টাকা Send Money করুন</p>
                       </div>
                       <Input
                         placeholder="যে নম্বর থেকে পাঠিয়েছেন *"
@@ -341,7 +403,7 @@ const Checkout = () => {
                   disabled={loading}
                   className="w-full bg-accent text-accent-foreground hover:bg-accent/90 text-lg font-bold py-6"
                 >
-                  {loading ? "Processing..." : isCod ? "অর্ডার করুন" : `Pay ${currency}${course.price}`}
+                  {loading ? "Processing..." : isCod ? "অর্ডার করুন" : `Pay ${currency}${finalPrice}`}
                 </Button>
 
                 <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
@@ -361,15 +423,56 @@ const Checkout = () => {
                   <div className="border-t border-border pt-4 space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Course Price</span>
-                      <span className="font-medium text-foreground">{currency}{course.price}</span>
+                      <span className="font-medium text-foreground">{currency}{coursePrice}</span>
                     </div>
+                    {course.has_discount && course.discount_price && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Original Price</span>
+                        <span className="font-medium text-muted-foreground line-through">{currency}{course.price}</span>
+                      </div>
+                    )}
+
+                    {/* Coupon Section */}
+                    {!appliedCoupon ? (
+                      <div className="pt-2">
+                        <div className="flex gap-2">
+                          <div className="relative flex-1">
+                            <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              placeholder="কুপন কোড"
+                              value={couponCode}
+                              onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponError(""); }}
+                              className="pl-10 text-sm"
+                            />
+                          </div>
+                          <Button size="sm" onClick={applyCoupon} disabled={couponApplying || !couponCode.trim()} variant="outline">
+                            {couponApplying ? "..." : "Apply"}
+                          </Button>
+                        </div>
+                        {couponError && <p className="text-xs text-destructive mt-1">{couponError}</p>}
+                      </div>
+                    ) : (
+                      <div className="flex justify-between items-center text-sm bg-emerald-500/10 rounded-lg p-2">
+                        <div className="flex items-center gap-2">
+                          <Tag className="h-4 w-4 text-emerald-600" />
+                          <span className="font-medium text-emerald-600">{appliedCoupon.code}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-emerald-600">-{currency}{couponDiscount}</span>
+                          <button onClick={removeCoupon} className="text-muted-foreground hover:text-destructive">
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Tax</span>
                       <span className="font-medium text-foreground">{currency}0.00</span>
                     </div>
                     <div className="border-t border-border pt-2 flex justify-between">
                       <span className="font-bold text-foreground">Total</span>
-                      <span className="font-extrabold text-primary text-xl">{currency}{course.price}</span>
+                      <span className="font-extrabold text-primary text-xl">{currency}{finalPrice}</span>
                     </div>
                   </div>
                 </div>
