@@ -51,12 +51,15 @@ const Courses = () => {
   const filterPrices = getFilterPrices(language);
   const [searchParams] = useSearchParams();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [searchText, setSearchText] = useState("");
 
   useEffect(() => {
     const cat = searchParams.get("category");
     if (cat && filterCategories.includes(cat)) {
       setSelectedCategories([cat]);
     }
+    const s = searchParams.get("search");
+    if (s) setSearchText(s);
   }, [searchParams]);
 
   const toggleCategory = (cat: string) => {
@@ -65,9 +68,11 @@ const Courses = () => {
     );
   };
 
-  const filteredCourses = selectedCategories.length === 0
-    ? courses
-    : courses.filter((c) => selectedCategories.includes(c.category));
+  const filteredCourses = courses.filter((c) => {
+    const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(c.category);
+    const matchesSearch = !searchText || c.title.toLowerCase().includes(searchText.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   return (
     <div className="min-h-screen flex flex-col">
