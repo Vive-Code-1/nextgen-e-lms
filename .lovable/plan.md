@@ -1,61 +1,100 @@
 
-# Fix Card Heights and Category Filtering
 
-## Issue 1: Homepage Course Cards Have Unequal Heights
+# Contact Form Leads, Newsletter Subscribers, and Layout Fix
 
-The "ভাইব কোডিং মাস্টারিং কোর্স" card appears shorter because the SpotlightCard wrapper and inner Card don't stretch to fill equal grid height.
+## Overview
+Four changes: (1) fix contact info card layout, (2) save contact form submissions to DB, (3) save newsletter emails to DB, (4) show both in admin dashboard.
 
-### File: `src/components/ui/SpotlightCard.tsx`
-- Add `h-full` to the root div className
+## 1. Info Card Layout Fix
 
-### File: `src/components/home/PopularCourses.tsx`
-- Add `h-full` to the Card component (line 52)
-- Make CardContent use `flex flex-col flex-1` so the price/button row stays pinned to the bottom
-- Add `flex flex-col h-full` to Card wrapper
-- Add `flex-1` spacer before the price row so cards with shorter titles still align
+**File: `src/pages/Contact.tsx`**
 
-## Issue 2: Category Filtering Broken for "Website Development"
+Change each info card from vertical (icon above text) to horizontal (icon on left, text on right):
 
-**Root cause**: The database has inconsistent category values. The "ভাইব কোডিং মাস্টারিং কোর্স" has category `"Website Development"` while other dev courses have `"Development"`. This causes:
-- Two "Website Development" entries in the sidebar filter (one is actually "Development" displayed as "Website Development" via `categoryDisplayNames`, the other is the literal "Website Development" value)
-- Clicking the homepage "Website Development" category card links to `?category=Development`, which doesn't match courses with category `"Website Development"`
-
-### Fix approach: Normalize filtering by grouping equivalent categories
-
-### File: `src/pages/Courses.tsx`
-
-1. Add a reverse mapping to normalize equivalent DB values:
-```typescript
-const categoryAliases: Record<string, string> = {
-  "Website Development": "Development",
-};
+```text
+Current:        Target:
+  [icon]        [icon]  Title
+  Title                 line1
+  line1                 line2
+  line2
 ```
 
-2. Normalize categories when building the sidebar filter list -- merge "Website Development" into "Development" so only one checkbox appears
+- Change card from `text-center` to `flex items-start gap-4 text-left`
+- Remove `mx-auto` from icon container, keep it as a fixed-size circle on the left
+- Title and lines go in a div on the right
 
-3. Update the filter logic (line 74-78) to check both the selected category and its aliases:
-```typescript
-const matchCat = selectedCategories.length === 0 || 
-  selectedCategories.some(sel => {
-    const aliases = [sel, ...Object.entries(categoryAliases)
-      .filter(([_, v]) => v === sel).map(([k]) => k)];
-    if (categoryAliases[sel]) aliases.push(categoryAliases[sel]);
-    return aliases.includes(c.category || "");
-  });
+## 2. Database: Two New Tables
+
+**Migration SQL:**
+
+```sql
+-- Contact form leads
+CREATE TABLE public.contact_leads (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  email text NOT NULL,
+  phone text,
+  subject text,
+  message text NOT NULL,
+  is_read boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.contact_leads ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Admin manage contact_leads" ON public.contact_leads FOR ALL USING (has_role(auth.uid(), 'admin'));
+CREATE POLICY "Anyone insert contact_leads" ON public.contact_leads FOR INSERT WITH CHECK (true);
+
+-- Newsletter subscribers
+CREATE TABLE public.newsletter_subscribers (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  email text NOT NULL UNIQUE,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.newsletter_subscribers ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Admin manage newsletter" ON public.newsletter_subscribers FOR ALL USING (has_role(auth.uid(), 'admin'));
+CREATE POLICY "Anyone insert newsletter" ON public.newsletter_subscribers FOR INSERT WITH CHECK (true);
 ```
 
-4. Deduplicate sidebar categories by normalizing before creating the Set (line 121)
+## 3. Contact Form Submission
 
-### Alternative (simpler): Update the course's category in the database
-- Change "Website Development" to "Development" for the ভাইব কোডিং কোর্স to match the pattern
+**File: `src/pages/Contact.tsx`**
+- Add state for form fields (name, email, phone, subject, message)
+- On submit, insert into `contact_leads` table via Supabase client
+- Show toast on success/error
+- Clear form after successful submission
 
-I will use both approaches: fix the DB value AND add normalization in code to prevent future mismatches.
+## 4. Newsletter Subscription
 
-## Technical Summary
+**File: `src/components/Footer.tsx`**
+- Add state for newsletter email
+- On send button click, insert into `newsletter_subscribers` table
+- Show toast on success (or duplicate error message)
+- Clear input after success
 
-| Change | File | Type |
-|--------|------|------|
-| Add `h-full` to SpotlightCard | SpotlightCard.tsx | CSS |
-| Equal-height card layout with flex | PopularCourses.tsx | CSS |
-| Normalize category values in filter | Courses.tsx | Logic |
-| Fix DB category value | Data update | SQL |
+## 5. Admin Dashboard: Two New Sections
+
+**File: `src/pages/AdminDashboard.tsx`**
+- Add two sidebar links: "Contact Leads" (with `MessageSquare` icon) and "Newsletter" (with `Newspaper` icon)
+- Render `AdminContactLeads` and `AdminNewsletter` components based on activeTab
+
+**New File: `src/components/admin/AdminContactLeads.tsx`**
+- Fetch all rows from `contact_leads` ordered by `created_at` desc
+- Display in a table: Name, Email, Phone, Subject, Message (truncated), Date, Read status
+- Click to expand/view full message
+- Mark as read toggle
+
+**New File: `src/components/admin/AdminNewsletter.tsx`**
+- Fetch all rows from `newsletter_subscribers` ordered by `created_at` desc
+- Display in a table: Email, Subscribed Date
+- Delete button to remove subscribers
+
+## Files to Create/Modify
+
+| File | Action |
+|------|--------|
+| Migration (new tables) | Create |
+| `src/pages/Contact.tsx` | Modify (layout + form logic) |
+| `src/components/Footer.tsx` | Modify (newsletter logic) |
+| `src/components/admin/AdminContactLeads.tsx` | Create |
+| `src/components/admin/AdminNewsletter.tsx` | Create |
+| `src/pages/AdminDashboard.tsx` | Modify (add 2 sidebar tabs) |
+
