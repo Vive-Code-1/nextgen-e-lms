@@ -55,11 +55,9 @@ const Courses = () => {
 
   useEffect(() => {
     const cat = searchParams.get("category");
-    if (cat && filterCategories.includes(cat)) {
-      setSelectedCategories([cat]);
-    }
+    setSelectedCategories(cat && filterCategories.includes(cat) ? [cat] : []);
     const s = searchParams.get("search");
-    if (s) setSearchText(s);
+    setSearchText(s || "");
   }, [searchParams]);
 
   const toggleCategory = (cat: string) => {
