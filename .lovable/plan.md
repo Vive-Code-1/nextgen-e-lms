@@ -1,100 +1,99 @@
 
 
-# Contact Form Leads, Newsletter Subscribers, and Layout Fix
+# Fix Checkout Pricing and Add Coupon Management
 
-## Overview
-Four changes: (1) fix contact info card layout, (2) save contact form submissions to DB, (3) save newsletter emails to DB, (4) show both in admin dashboard.
+## Issue 1: Checkout Shows Original Price Instead of Discount Price
 
-## 1. Info Card Layout Fix
+**Root cause**: The checkout page uses `course.price` (10000) everywhere instead of calculating the effective price. Even though `coursePrice` is computed on line 104, it's never used in the display or payment body.
 
-**File: `src/pages/Contact.tsx`**
+**Affected lines in `src/pages/Checkout.tsx`:**
+- Line 111: `amount: course.price` -- sends original price to payment function
+- Line 344: Pay button shows `course.price`
+- Line 364: Order summary shows `course.price`
+- Line 372: Total shows `course.price`
 
-Change each info card from vertical (icon above text) to horizontal (icon on left, text on right):
-
-```text
-Current:        Target:
-  [icon]        [icon]  Title
-  Title                 line1
-  line1                 line2
-  line2
+**Fix**: Compute `effectivePrice` once and use it everywhere:
+```typescript
+const effectivePrice = course.has_discount && course.discount_price 
+  ? course.discount_price 
+  : (course.price || 0);
 ```
+Replace all `course.price` references in the display and payment body with `effectivePrice`.
 
-- Change card from `text-center` to `flex items-start gap-4 text-left`
-- Remove `mx-auto` from icon container, keep it as a fixed-size circle on the left
-- Title and lines go in a div on the right
+---
 
-## 2. Database: Two New Tables
+## Issue 2: Coupon Management System
 
-**Migration SQL:**
+### Database: New `coupons` table
 
 ```sql
--- Contact form leads
-CREATE TABLE public.contact_leads (
+CREATE TABLE public.coupons (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  name text NOT NULL,
-  email text NOT NULL,
-  phone text,
-  subject text,
-  message text NOT NULL,
-  is_read boolean NOT NULL DEFAULT false,
+  code text NOT NULL UNIQUE,
+  discount_type text NOT NULL DEFAULT 'percentage', -- 'percentage' or 'fixed'
+  discount_value numeric NOT NULL DEFAULT 0,
+  min_order_amount numeric DEFAULT 0,
+  max_uses integer, -- NULL = unlimited
+  times_used integer NOT NULL DEFAULT 0,
+  valid_from timestamptz DEFAULT now(),
+  valid_until timestamptz,
+  active boolean NOT NULL DEFAULT true,
   created_at timestamptz NOT NULL DEFAULT now()
 );
-ALTER TABLE public.contact_leads ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Admin manage contact_leads" ON public.contact_leads FOR ALL USING (has_role(auth.uid(), 'admin'));
-CREATE POLICY "Anyone insert contact_leads" ON public.contact_leads FOR INSERT WITH CHECK (true);
-
--- Newsletter subscribers
-CREATE TABLE public.newsletter_subscribers (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  email text NOT NULL UNIQUE,
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-ALTER TABLE public.newsletter_subscribers ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Admin manage newsletter" ON public.newsletter_subscribers FOR ALL USING (has_role(auth.uid(), 'admin'));
-CREATE POLICY "Anyone insert newsletter" ON public.newsletter_subscribers FOR INSERT WITH CHECK (true);
 ```
 
-## 3. Contact Form Submission
+RLS: Admin full access, anyone can SELECT active coupons (needed for validation on checkout).
 
-**File: `src/pages/Contact.tsx`**
-- Add state for form fields (name, email, phone, subject, message)
-- On submit, insert into `contact_leads` table via Supabase client
-- Show toast on success/error
-- Clear form after successful submission
+### Admin Panel: Coupon Management
 
-## 4. Newsletter Subscription
+**New file: `src/components/admin/AdminCoupons.tsx`**
 
-**File: `src/components/Footer.tsx`**
-- Add state for newsletter email
-- On send button click, insert into `newsletter_subscribers` table
-- Show toast on success (or duplicate error message)
-- Clear input after success
-
-## 5. Admin Dashboard: Two New Sections
+Features:
+- Table listing all coupons (Code, Type, Value, Uses, Valid Until, Status)
+- "Add Coupon" button opens a dialog/form with fields:
+  - Code (text)
+  - Discount Type (percentage / fixed)
+  - Discount Value (number)
+  - Min Order Amount (number)
+  - Max Uses (number, optional)
+  - Valid From / Valid Until (date pickers)
+  - Active toggle
+- Edit button to modify existing coupons
+- Delete button to remove coupons
 
 **File: `src/pages/AdminDashboard.tsx`**
-- Add two sidebar links: "Contact Leads" (with `MessageSquare` icon) and "Newsletter" (with `Newspaper` icon)
-- Render `AdminContactLeads` and `AdminNewsletter` components based on activeTab
+- Add sidebar link: `{ icon: Tag, label: "Coupons", id: "coupons" }`
+- Add rendering for `AdminCoupons` component
 
-**New File: `src/components/admin/AdminContactLeads.tsx`**
-- Fetch all rows from `contact_leads` ordered by `created_at` desc
-- Display in a table: Name, Email, Phone, Subject, Message (truncated), Date, Read status
-- Click to expand/view full message
-- Mark as read toggle
+### Checkout Page: Coupon Field
 
-**New File: `src/components/admin/AdminNewsletter.tsx`**
-- Fetch all rows from `newsletter_subscribers` ordered by `created_at` desc
-- Display in a table: Email, Subscribed Date
-- Delete button to remove subscribers
+**File: `src/pages/Checkout.tsx`**
+
+Add a coupon input section in the Order Summary sidebar:
+- Input field + "Apply" button
+- On apply: query `coupons` table to validate code (active, not expired, usage not exceeded, min order met)
+- If valid: show discount breakdown (original price, coupon discount, new total)
+- If invalid: show error message
+- Update the `effectivePrice` to subtract coupon discount
+- Send `coupon_code` and `coupon_discount` in the payment body
+
+### Price Display Logic
+
+```text
+Order Summary:
+  Course Price:     $999   (after course discount)
+  Coupon (CODE10):  -$100  (if coupon applied)
+  Tax:              $0.00
+  ──────────────
+  Total:            $899
+```
 
 ## Files to Create/Modify
 
 | File | Action |
 |------|--------|
-| Migration (new tables) | Create |
-| `src/pages/Contact.tsx` | Modify (layout + form logic) |
-| `src/components/Footer.tsx` | Modify (newsletter logic) |
-| `src/components/admin/AdminContactLeads.tsx` | Create |
-| `src/components/admin/AdminNewsletter.tsx` | Create |
-| `src/pages/AdminDashboard.tsx` | Modify (add 2 sidebar tabs) |
+| Migration (coupons table) | Create |
+| `src/pages/Checkout.tsx` | Fix price display + add coupon field |
+| `src/components/admin/AdminCoupons.tsx` | Create (CRUD for coupons) |
+| `src/pages/AdminDashboard.tsx` | Add Coupons tab |
 
