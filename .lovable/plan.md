@@ -1,61 +1,56 @@
 
+# Fix Three Issues: Mobile Category Dropdown, Broken Section Titles, Instructor Image Upload
 
-# Fix Horizontal Overflow in Mobile Hero Section
+## Issue 1: Show Category Dropdown on Mobile (Compact)
 
-## Problem
-The hero section content overflows horizontally on mobile, causing a horizontal scrollbar. The search bar with its category dropdown and button is too wide for small screens.
-
-## Changes
+The category dropdown was hidden on mobile (`hidden sm:flex`) to prevent overflow. We'll bring it back in a compact form that fits within the search bar.
 
 ### File: `src/components/home/HeroSection.tsx`
 
-1. **Section overflow**: Add `overflow-x-hidden` to the section (currently only has `overflow-hidden` which should work, but we'll be explicit)
+- Change the category dropdown container from `hidden sm:flex` back to `flex`
+- Make the category text very compact on mobile: show only a short truncated label (max 3-4 chars) using `max-w-[50px] sm:max-w-none overflow-hidden text-ellipsis`
+- Reduce padding on mobile: `px-1 sm:px-2`
 
-2. **Content container**: Change `px-6` to `px-4` on mobile to give more room for content:
-   - Line 49: `px-6 md:px-4` becomes `px-4`
+## Issue 2: Fix Section Titles Breaking on Mobile
 
-3. **Search bar wrapper**: Constrain width more aggressively on mobile:
-   - Line 67: Change `max-w-xl` to `max-w-full sm:max-w-xl` so it never exceeds parent width
+The `ScrollFloat` component renders each character as an `inline-block` span, which prevents normal word wrapping. On narrow screens, long words like "Categories" break mid-word. The fix is to reduce font size on mobile for these sections so text fits, and also apply `word-break: break-word` as fallback.
 
-4. **Search bar internal layout**: The category dropdown with `whitespace-nowrap` is preventing shrinking. Fix:
-   - Line 80: Hide the category section on very small screens using `hidden sm:flex` -- OR make the category text truncatable
-   - Better approach: On mobile, hide category text and show only the chevron icon, keeping the row compact
-   - Line 84: Change `whitespace-nowrap` to `whitespace-nowrap max-w-[60px] sm:max-w-none overflow-hidden text-ellipsis`
+### Files to modify:
 
-5. **Search bar button**: Already compact at `h-8 w-8`. No change needed.
+**`src/components/home/CategorySection.tsx`**
+- Change title font from `text-3xl md:text-4xl` to `text-2xl md:text-4xl` on both h2 and ScrollFloat textClassName
 
-6. **Stats container**: Change `max-w-xl` to `max-w-full sm:max-w-xl`:
-   - Line 111: ensures stats never exceed parent width
+**`src/components/home/FeaturedInstructors.tsx`**
+- Change title font from `text-3xl md:text-4xl` to `text-2xl md:text-4xl` on both h2 and ScrollFloat textClassName
 
-### Specific Line Changes
+**`src/components/home/TestimonialCarousel.tsx`**
+- Change title font from `text-3xl md:text-4xl` to `text-2xl md:text-4xl` on both h2 and ScrollFloat textClassName
 
-**Line 49** - Container padding:
-```
-Before: px-6 md:px-4
-After:  px-4
-```
+## Issue 3: Instructor Image Upload in Admin Panel
 
-**Line 67** - Search bar wrapper:
-```
-Before: w-full max-w-xl mx-auto md:mx-0
-After:  w-full max-w-full sm:max-w-xl mx-auto md:mx-0
-```
+Currently the courses table only has `instructor_name` -- no `instructor_image` column. We need to:
 
-**Line 80** - Category dropdown container:
-```
-Before: flex items-center border-l border-border px-2 sm:px-3
-After:  hidden sm:flex items-center border-l border-border px-2 sm:px-3
-```
-This hides the category section on mobile (< 640px), which is the main cause of overflow. The search input + button alone fit comfortably.
+### Database Migration
+- Add `instructor_image text` column to the `courses` table
 
-**Line 111** - Stats wrapper:
-```
-Before: w-full max-w-xl mx-auto md:mx-0
-After:  w-full max-w-full sm:max-w-xl mx-auto md:mx-0
-```
+### File: `src/components/admin/CourseWizard.tsx`
+- Add state: `const [instructorImage, setInstructorImage] = useState(course?.instructor_image || "")`
+- Add an image upload field next to the Instructor Name input (upload to `course-thumbnails` bucket with path `instructor-images/[timestamp]-[filename]`)
+- Include `instructor_image` in the save payload
 
-## Files to Modify
+### File: `src/pages/Courses.tsx`
+- Fetch `instructor_image` from the courses query
+- In the course card, if `instructor_image` exists, show the image instead of the letter avatar fallback
 
-| File | Changes |
-|------|---------|
-| `src/components/home/HeroSection.tsx` | Fix container padding, hide category on mobile, constrain max-widths |
+### File: `src/integrations/supabase/types.ts`
+- Will be auto-updated after migration
+
+## Technical Details
+
+| Change | File(s) | Type |
+|--------|---------|------|
+| Compact mobile category dropdown | HeroSection.tsx | CSS |
+| Smaller section titles on mobile | CategorySection, FeaturedInstructors, TestimonialCarousel | CSS |
+| Add `instructor_image` column | Migration | SQL |
+| Instructor image upload UI | CourseWizard.tsx | React |
+| Display instructor image on cards | Courses.tsx | React |
