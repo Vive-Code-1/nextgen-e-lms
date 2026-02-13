@@ -3,8 +3,9 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   GraduationCap, LayoutDashboard, Bell, BookOpen, ClipboardList,
-  Star, User, LogOut
+  Star, User, LogOut, Heart, FileText, ShoppingBag, Menu, X
 } from "lucide-react";
+import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
 import DashboardHome from "@/components/dashboard/DashboardHome";
 import MyCourses from "@/components/dashboard/MyCourses";
 import LessonPlayer from "@/components/dashboard/LessonPlayer";
@@ -12,11 +13,17 @@ import Announcements from "@/components/dashboard/Announcements";
 import Assignments from "@/components/dashboard/Assignments";
 import Reviews from "@/components/dashboard/Reviews";
 import Profile from "@/components/dashboard/Profile";
+import Wishlist from "@/components/dashboard/Wishlist";
+import QuizAttempts from "@/components/dashboard/QuizAttempts";
+import PurchaseHistory from "@/components/dashboard/PurchaseHistory";
 
 const sidebarLinks = [
   { icon: LayoutDashboard, label: "Dashboard", id: "dashboard" },
-  { icon: Bell, label: "Announcements", id: "announcements" },
   { icon: BookOpen, label: "My Courses", id: "courses" },
+  { icon: Heart, label: "Wishlist", id: "wishlist" },
+  { icon: FileText, label: "Quiz Attempts", id: "quiz-attempts" },
+  { icon: ShoppingBag, label: "Purchase History", id: "purchases" },
+  { icon: Bell, label: "Announcements", id: "announcements" },
   { icon: ClipboardList, label: "Assignments", id: "assignments" },
   { icon: Star, label: "Reviews", id: "reviews" },
   { icon: User, label: "Profile", id: "profile" },
@@ -27,6 +34,7 @@ const StudentDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [activeCourseId, setActiveCourseId] = useState<string | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !user) navigate("/auth");
@@ -40,27 +48,35 @@ const StudentDashboard = () => {
     setActiveTab("lesson-player");
   };
 
+  const handleNavigate = (tab: string) => {
+    setActiveTab(tab);
+    setMobileOpen(false);
+  };
+
   const renderContent = () => {
     if (activeTab === "lesson-player" && activeCourseId) {
       return <LessonPlayer courseId={activeCourseId} onBack={() => setActiveTab("courses")} />;
     }
     switch (activeTab) {
-      case "dashboard": return <DashboardHome onNavigate={setActiveTab} />;
+      case "dashboard": return <DashboardHome onNavigate={handleNavigate} />;
       case "courses": return <MyCourses onOpenCourse={openCourse} />;
+      case "wishlist": return <Wishlist />;
+      case "quiz-attempts": return <QuizAttempts />;
+      case "purchases": return <PurchaseHistory />;
       case "announcements": return <Announcements />;
       case "assignments": return <Assignments />;
       case "reviews": return <Reviews />;
       case "profile": return <Profile />;
-      default: return <DashboardHome onNavigate={setActiveTab} />;
+      default: return <DashboardHome onNavigate={handleNavigate} />;
     }
   };
 
   return (
     <div className="min-h-screen flex bg-background">
-      {/* Sidebar */}
-      <aside className="w-64 bg-card border-r border-border hidden lg:flex flex-col">
-        <div className="p-6 border-b border-border">
-          <Link to="/" className="flex items-center gap-2 text-foreground font-bold text-lg">
+      {/* Desktop Sidebar */}
+      <aside className="w-64 bg-[hsl(244,47%,20%)] hidden lg:flex flex-col shrink-0">
+        <div className="p-6 border-b border-white/10">
+          <Link to="/" className="flex items-center gap-2 text-white font-bold text-lg">
             <GraduationCap className="h-7 w-7 text-accent" />
             NextGen LMS
           </Link>
@@ -73,7 +89,7 @@ const StudentDashboard = () => {
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                 activeTab === id
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  : "text-white/70 hover:bg-white/10 hover:text-white"
               }`}
             >
               <Icon className="h-4 w-4" />
@@ -81,10 +97,10 @@ const StudentDashboard = () => {
             </button>
           ))}
         </nav>
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-white/10">
           <button
             onClick={() => { signOut(); navigate("/"); }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-red-300 hover:bg-white/10 transition-colors"
           >
             <LogOut className="h-4 w-4" />
             Logout
@@ -92,26 +108,45 @@ const StudentDashboard = () => {
         </div>
       </aside>
 
-      {/* Mobile nav */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border flex justify-around py-2 z-50">
-        {sidebarLinks.slice(0, 5).map(({ icon: Icon, label, id }) => (
-          <button
-            key={id}
-            onClick={() => setActiveTab(id)}
-            className={`flex flex-col items-center gap-0.5 px-2 py-1 text-xs ${
-              activeTab === id ? "text-primary" : "text-muted-foreground"
-            }`}
-          >
-            <Icon className="h-5 w-5" />
-            {label}
-          </button>
-        ))}
-      </div>
+      {/* Mobile sidebar overlay */}
+      {mobileOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 flex">
+          <div className="w-64 bg-[hsl(244,47%,20%)] flex flex-col">
+            <div className="p-4 flex justify-between items-center border-b border-white/10">
+              <span className="text-white font-bold">NextGen LMS</span>
+              <button onClick={() => setMobileOpen(false)} className="text-white"><X className="h-5 w-5" /></button>
+            </div>
+            <nav className="flex-1 p-4 space-y-1">
+              {sidebarLinks.map(({ icon: Icon, label, id }) => (
+                <button key={id} onClick={() => handleNavigate(id)}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                    activeTab === id ? "bg-primary text-primary-foreground" : "text-white/70 hover:bg-white/10"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />{label}
+                </button>
+              ))}
+            </nav>
+          </div>
+          <div className="flex-1 bg-black/50" onClick={() => setMobileOpen(false)} />
+        </div>
+      )}
 
-      {/* Main */}
-      <main className="flex-1 p-6 lg:p-8 overflow-auto pb-20 lg:pb-8">
-        {renderContent()}
-      </main>
+      {/* Main content */}
+      <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
+        {/* Mobile header */}
+        <div className="lg:hidden flex items-center justify-between p-4 bg-[hsl(244,47%,20%)] text-white">
+          <button onClick={() => setMobileOpen(true)}><Menu className="h-6 w-6" /></button>
+          <span className="font-bold">NextGen LMS</span>
+          <div className="w-6" />
+        </div>
+
+        <DashboardTopBar activeTab={activeTab} sidebarLinks={sidebarLinks} onNavigate={handleNavigate} />
+
+        <main className="flex-1 p-6 lg:p-8 overflow-auto bg-background">
+          {renderContent()}
+        </main>
+      </div>
     </div>
   );
 };
