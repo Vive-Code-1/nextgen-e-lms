@@ -46,7 +46,7 @@ const HeroSection = () => {
       {/* Dark Overlay */}
       <div className="absolute inset-0 bg-black/50" />
 
-      <div className="relative z-10 max-w-[80vw] mx-auto px-4 pt-28 pb-8 md:pt-32 md:pb-12 flex-1 flex items-center">
+      <div className="relative z-10 w-full max-w-[80vw] mx-auto px-5 md:px-4 pt-28 pb-8 md:pt-32 md:pb-12 flex-1 flex items-center">
         <div className="grid md:grid-cols-2 gap-12 items-center w-full">
           {/* Text */}
           <div className="space-y-6">
@@ -77,7 +77,7 @@ const HeroSection = () => {
                      className="ml-3 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none border-none"
                    />
                 </div>
-                <div className="hidden sm:flex items-center border-l border-border px-3">
+                <div className="flex items-center border-l border-border px-3">
                   <div className="relative" ref={dropdownRef}>
                     <button
                       onClick={() => setCategoryOpen(!categoryOpen)}
