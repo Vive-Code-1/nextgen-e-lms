@@ -19,7 +19,6 @@ const AdminReviews = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
 
-  // Form state
   const [studentName, setStudentName] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("");
   const [rating, setRating] = useState(5);
@@ -89,18 +88,15 @@ const AdminReviews = () => {
     setEditingReviewId(null);
   };
 
-  const openAddDialog = () => {
-    resetForm();
-    setDialogOpen(true);
-  };
+  const openAddDialog = () => { resetForm(); setDialogOpen(true); };
 
   const openEditDialog = (r: any) => {
     setEditingReviewId(r.id);
-    setStudentName(r.profile?.full_name || "");
+    setStudentName((r as any).student_name || r.profile?.full_name || "");
     setSelectedCourse(r.course_id);
     setRating(r.rating);
     setComment(r.comment || "");
-    setImageUrl(r.profile?.avatar_url || "");
+    setImageUrl((r as any).student_image || r.profile?.avatar_url || "");
     setDialogOpen(true);
   };
 
@@ -109,60 +105,43 @@ const AdminReviews = () => {
     setSaving(true);
 
     if (editingReviewId) {
-      // Update existing review
       const { error } = await supabase.from("reviews").update({
         course_id: selectedCourse,
         rating,
         comment,
-      }).eq("id", editingReviewId);
-
-      // Update profile name/avatar
-      const review = reviews.find(r => r.id === editingReviewId);
-      if (review) {
-        const updateData: any = {};
-        if (studentName) updateData.full_name = studentName;
-        if (imageUrl) updateData.avatar_url = imageUrl;
-        if (Object.keys(updateData).length > 0) {
-          await supabase.from("profiles").update(updateData).eq("id", review.user_id);
-        }
-      }
+        student_name: studentName || null,
+        student_image: imageUrl || null,
+      } as any).eq("id", editingReviewId);
 
       if (error) {
         toast({ title: "Error", description: error.message, variant: "destructive" });
       } else {
         toast({ title: "Review updated!" });
-        setDialogOpen(false);
-        resetForm();
-        fetchReviews();
+        setDialogOpen(false); resetForm(); fetchReviews();
       }
     } else {
-      // Update profile name/avatar if provided
-      if (studentName || imageUrl) {
-        const updateData: any = {};
-        if (studentName) updateData.full_name = studentName;
-        if (imageUrl) updateData.avatar_url = imageUrl;
-        await supabase.from("profiles").update(updateData).eq("id", user.id);
-      }
-
       const { error } = await supabase.from("reviews").insert({
         user_id: user.id,
         course_id: selectedCourse,
         rating,
         comment,
         approved: true,
-      });
+        student_name: studentName || null,
+        student_image: imageUrl || null,
+      } as any);
 
       if (error) {
         toast({ title: "Error", description: error.message, variant: "destructive" });
       } else {
         toast({ title: "Review added!" });
-        setDialogOpen(false);
-        resetForm();
-        fetchReviews();
+        setDialogOpen(false); resetForm(); fetchReviews();
       }
     }
     setSaving(false);
   };
+
+  const displayName = (r: any) => (r as any).student_name || r.profile?.full_name || r.profile?.email || "Unknown";
+  const displayAvatar = (r: any) => (r as any).student_image || r.profile?.avatar_url || "";
 
   if (loading) return <p className="text-muted-foreground">Loading...</p>;
 
@@ -177,49 +156,53 @@ const AdminReviews = () => {
         <p className="text-muted-foreground text-sm">No reviews yet.</p>
       ) : (
         <div className="space-y-3">
-          {reviews.map((r) => (
-            <div key={r.id} className="bg-card border border-border rounded-2xl p-5">
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex items-center gap-3">
-                  {r.profile?.avatar_url ? (
-                    <img src={r.profile.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover" />
-                  ) : (
-                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-sm font-bold text-muted-foreground">
-                      {(r.profile?.full_name || "?")[0]?.toUpperCase()}
+          {reviews.map((r) => {
+            const avatar = displayAvatar(r);
+            const name = displayName(r);
+            return (
+              <div key={r.id} className="bg-card border border-border rounded-2xl p-5">
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    {avatar ? (
+                      <img src={avatar} alt="" className="h-10 w-10 rounded-full object-cover" />
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-sm font-bold text-muted-foreground">
+                        {name[0]?.toUpperCase()}
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-semibold text-foreground text-sm">{name}</p>
+                      <p className="text-xs text-muted-foreground">{r.courses?.title || "Unknown course"}</p>
                     </div>
-                  )}
-                  <div>
-                    <p className="font-semibold text-foreground text-sm">{r.profile?.full_name || r.profile?.email || "Unknown"}</p>
-                    <p className="text-xs text-muted-foreground">{r.courses?.title || "Unknown course"}</p>
                   </div>
+                  <span className={`text-xs px-2 py-1 rounded-full ${r.approved ? "bg-emerald-500/10 text-emerald-500" : "bg-accent/10 text-accent"}`}>
+                    {r.approved ? "Approved" : "Pending"}
+                  </span>
                 </div>
-                <span className={`text-xs px-2 py-1 rounded-full ${r.approved ? "bg-emerald-500/10 text-emerald-500" : "bg-accent/10 text-accent"}`}>
-                  {r.approved ? "Approved" : "Pending"}
-                </span>
-              </div>
-              <div className="flex gap-1 mb-2">
-                {[1,2,3,4,5].map((s) => (
-                  <Star key={s} className={`h-4 w-4 ${s <= r.rating ? "text-accent fill-accent" : "text-muted-foreground"}`} />
-                ))}
-              </div>
-              <p className="text-sm text-muted-foreground mb-3">{r.comment}</p>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => openEditDialog(r)}>
-                  <Pencil className="h-3.5 w-3.5 mr-1" />Edit
-                </Button>
-                {!r.approved && (
-                  <Button size="sm" variant="outline" onClick={() => updateStatus(r.id, true)} className="text-emerald-600">
-                    <CheckCircle className="h-3.5 w-3.5 mr-1" />Approve
+                <div className="flex gap-1 mb-2">
+                  {[1,2,3,4,5].map((s) => (
+                    <Star key={s} className={`h-4 w-4 ${s <= r.rating ? "text-accent fill-accent" : "text-muted-foreground"}`} />
+                  ))}
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">{r.comment}</p>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={() => openEditDialog(r)}>
+                    <Pencil className="h-3.5 w-3.5 mr-1" />Edit
                   </Button>
-                )}
-                {r.approved && (
-                  <Button size="sm" variant="outline" onClick={() => updateStatus(r.id, false)} className="text-destructive">
-                    <XCircle className="h-3.5 w-3.5 mr-1" />Reject
-                  </Button>
-                )}
+                  {!r.approved && (
+                    <Button size="sm" variant="outline" onClick={() => updateStatus(r.id, true)} className="text-emerald-600">
+                      <CheckCircle className="h-3.5 w-3.5 mr-1" />Approve
+                    </Button>
+                  )}
+                  {r.approved && (
+                    <Button size="sm" variant="outline" onClick={() => updateStatus(r.id, false)} className="text-destructive">
+                      <XCircle className="h-3.5 w-3.5 mr-1" />Reject
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
