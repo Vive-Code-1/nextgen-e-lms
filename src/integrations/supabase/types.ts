@@ -176,6 +176,7 @@ export type Database = {
           has_discount: boolean
           id: string
           image_url: string | null
+          instructor_image: string | null
           instructor_name: string | null
           is_featured: boolean
           is_free: boolean
@@ -203,6 +204,7 @@ export type Database = {
           has_discount?: boolean
           id?: string
           image_url?: string | null
+          instructor_image?: string | null
           instructor_name?: string | null
           is_featured?: boolean
           is_free?: boolean
@@ -230,6 +232,7 @@ export type Database = {
           has_discount?: boolean
           id?: string
           image_url?: string | null
+          instructor_image?: string | null
           instructor_name?: string | null
           is_featured?: boolean
           is_free?: boolean

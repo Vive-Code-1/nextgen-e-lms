@@ -77,13 +77,13 @@ const HeroSection = () => {
                      className="ml-2 sm:ml-3 flex-1 min-w-0 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none border-none"
                    />
                 </div>
-                <div className="hidden sm:flex items-center border-l border-border px-2 sm:px-3">
+                <div className="flex items-center border-l border-border px-1 sm:px-3">
                   <div className="relative" ref={dropdownRef}>
                     <button
                       onClick={() => setCategoryOpen(!categoryOpen)}
-                      className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors py-2 px-1 whitespace-nowrap"
+                      className="flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm text-muted-foreground hover:text-foreground transition-colors py-2 px-0.5 sm:px-1 max-w-[60px] sm:max-w-none"
                     >
-                      {selectedCategory || t("hero.category")}
+                      <span className="truncate">{selectedCategory || t("hero.category")}</span>
                       <ChevronDown className="h-4 w-4" />
                     </button>
                     {categoryOpen && (

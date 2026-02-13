@@ -66,8 +66,8 @@ const TestimonialCarousel = () => {
   return (
     <section className="py-16 md:py-20 bg-background overflow-hidden">
       <div className="max-w-[80vw] mx-auto px-4 mb-12 text-center">
-        <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">
-          <ScrollFloat textClassName="text-3xl md:text-4xl font-extrabold text-foreground">
+        <h2 className="text-2xl md:text-4xl font-extrabold text-foreground mb-3">
+          <ScrollFloat textClassName="text-2xl md:text-4xl font-extrabold text-foreground">
             {t("testimonials.title")}
           </ScrollFloat>
         </h2>

@@ -34,6 +34,7 @@ interface Course {
   is_free: boolean;
   level: string;
   instructor_name: string | null;
+  instructor_image: string | null;
   duration: string | null;
 }
 
@@ -58,7 +59,7 @@ const Courses = () => {
     const fetchCourses = async () => {
       const { data } = await supabase
         .from("courses")
-        .select("id, title, slug, category, image_url, price, original_price, discount_price, has_discount, is_free, level, instructor_name, duration")
+        .select("id, title, slug, category, image_url, price, original_price, discount_price, has_discount, is_free, level, instructor_name, instructor_image, duration")
         .eq("is_public", true)
         .order("created_at", { ascending: false });
       setCourses(data || []);
@@ -165,9 +166,13 @@ const Courses = () => {
                         <div className="p-5 space-y-3">
                           {course.instructor_name && (
                             <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground">
-                                {course.instructor_name[0]?.toUpperCase()}
-                              </div>
+                              {course.instructor_image ? (
+                                <img src={course.instructor_image} alt={course.instructor_name || ""} className="w-6 h-6 rounded-full object-cover" />
+                              ) : (
+                                <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground">
+                                  {course.instructor_name[0]?.toUpperCase()}
+                                </div>
+                              )}
                               <span className="text-xs text-muted-foreground">{course.instructor_name}</span>
                             </div>
                           )}
