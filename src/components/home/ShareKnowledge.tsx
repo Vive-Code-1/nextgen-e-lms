@@ -7,10 +7,13 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-const faqKeys = [
+const leftFaqs = [
   { q: "faq.1.q", a: "faq.1.a" },
   { q: "faq.2.q", a: "faq.2.a" },
   { q: "faq.3.q", a: "faq.3.a" },
+];
+
+const rightFaqs = [
   { q: "faq.4.q", a: "faq.4.a" },
   { q: "faq.5.q", a: "faq.5.a" },
   { q: "faq.6.q", a: "faq.6.a" },
@@ -18,6 +21,25 @@ const faqKeys = [
 
 const ShareKnowledge = () => {
   const { t } = useLanguage();
+
+  const renderAccordion = (faqs: typeof leftFaqs, prefix: string) => (
+    <Accordion type="single" collapsible className="space-y-3">
+      {faqs.map((faq, i) => (
+        <AccordionItem
+          key={i}
+          value={`${prefix}-${i}`}
+          className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-6 data-[state=open]:bg-white/15"
+        >
+          <AccordionTrigger className="text-white hover:no-underline text-left font-semibold">
+            {t(faq.q)}
+          </AccordionTrigger>
+          <AccordionContent className="text-white/80 leading-relaxed">
+            {t(faq.a)}
+          </AccordionContent>
+        </AccordionItem>
+      ))}
+    </Accordion>
+  );
 
   return (
     <section className="py-16 md:py-20 gradient-section">
@@ -32,23 +54,9 @@ const ShareKnowledge = () => {
             {t("faq.subtitle")}
           </p>
         </div>
-        <div className="max-w-3xl mx-auto">
-          <Accordion type="single" collapsible className="space-y-3">
-            {faqKeys.map((faq, i) => (
-              <AccordionItem
-                key={i}
-                value={`faq-${i}`}
-                className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-6 data-[state=open]:bg-white/15"
-              >
-                <AccordionTrigger className="text-white hover:no-underline text-left font-semibold">
-                  {t(faq.q)}
-                </AccordionTrigger>
-                <AccordionContent className="text-white/80 leading-relaxed">
-                  {t(faq.a)}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+        <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+          {renderAccordion(leftFaqs, "left")}
+          {renderAccordion(rightFaqs, "right")}
         </div>
       </div>
     </section>

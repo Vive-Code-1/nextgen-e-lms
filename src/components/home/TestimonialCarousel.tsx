@@ -1,8 +1,5 @@
 import { Star } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import useEmblaCarousel from "embla-carousel-react";
-import Autoplay from "embla-carousel-autoplay";
-import { useCallback, useEffect, useRef } from "react";
 import ScrollFloat from "@/components/ui/ScrollFloat";
 
 const testimonials = [
@@ -52,35 +49,8 @@ const testimonials = [
 
 const TestimonialCarousel = () => {
   const { t } = useLanguage();
-  const autoplayRef = useRef(
-    Autoplay({ delay: 0, stopOnInteraction: false, stopOnMouseEnter: false })
-  );
 
-  const [emblaRef, emblaApi] = useEmblaCarousel(
-    {
-      loop: true,
-      align: "start",
-      dragFree: true,
-      containScroll: false,
-      skipSnaps: true,
-    },
-    [autoplayRef.current]
-  );
-
-  const applySpeed = useCallback(() => {
-    if (!emblaApi) return;
-    const engine = (emblaApi as any).internalEngine();
-    if (engine?.scrollBody) {
-      engine.scrollBody.useBaseFriction = () => 0.99;
-      engine.scrollBody.useFriction = () => 0.99;
-    }
-  }, [emblaApi]);
-
-  useEffect(() => {
-    if (!emblaApi) return;
-    applySpeed();
-    emblaApi.on("reInit", applySpeed);
-  }, [emblaApi, applySpeed]);
+  const allItems = [...testimonials, ...testimonials];
 
   return (
     <section className="py-16 md:py-20 bg-background overflow-hidden">
@@ -101,12 +71,18 @@ const TestimonialCarousel = () => {
         {/* Right blur */}
         <div className="absolute right-0 top-0 bottom-0 w-24 md:w-40 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
 
-        <div ref={emblaRef} className="overflow-hidden">
-          <div className="flex">
-            {[...testimonials, ...testimonials].map((item, i) => (
+        <div className="overflow-hidden">
+          <div
+            className="flex gap-6 hover:[animation-play-state:paused]"
+            style={{
+              animation: "testimonial-scroll 35s linear infinite",
+              width: "max-content",
+            }}
+          >
+            {allItems.map((item, i) => (
               <div
                 key={i}
-                className="flex-shrink-0 w-[320px] md:w-[380px] px-3"
+                className="flex-shrink-0 w-[320px] md:w-[380px]"
               >
                 <div className="bg-card border border-border rounded-2xl p-6 h-full shadow-sm hover:shadow-md transition-shadow duration-300">
                   <div className="flex items-center gap-1 mb-4">
@@ -146,6 +122,13 @@ const TestimonialCarousel = () => {
           </div>
         </div>
       </div>
+
+      <style>{`
+        @keyframes testimonial-scroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+      `}</style>
     </section>
   );
 };
