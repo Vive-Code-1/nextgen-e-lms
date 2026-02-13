@@ -35,14 +35,12 @@ const MyCourses = ({ onOpenCourse }: MyCoursesProps) => {
       if (!enrollments) { setLoading(false); return; }
 
       const courseIds = enrollments.map((e: any) => e.course_id).filter(Boolean);
-      
-      // Get lesson counts
+
       const { data: lessons } = await supabase
         .from("lessons")
         .select("id, course_id")
         .in("course_id", courseIds);
 
-      // Get progress
       const lessonIds = lessons?.map((l: any) => l.id) || [];
       const { data: progress } = lessonIds.length > 0
         ? await supabase
@@ -93,11 +91,23 @@ const MyCourses = ({ onOpenCourse }: MyCoursesProps) => {
       <div className="grid gap-4 md:grid-cols-2">
         {courses.map((c) => {
           const pct = c.totalLessons > 0 ? Math.round((c.completedLessons / c.totalLessons) * 100) : 0;
+          const isCompleted = pct >= 100;
+          const isStarted = pct > 0;
+
           return (
             <div key={c.id} className="bg-card border border-border rounded-2xl overflow-hidden flex flex-col">
-              {c.image_url && (
-                <img src={c.image_url} alt={c.title} className="h-40 w-full object-cover" />
-              )}
+              <div className="relative">
+                {c.image_url && (
+                  <img src={c.image_url} alt={c.title} className="h-40 w-full object-cover" />
+                )}
+                <span className={`absolute top-3 right-3 px-2 py-1 rounded-full text-xs font-medium ${
+                  isCompleted
+                    ? "bg-emerald-500 text-white"
+                    : "bg-primary text-primary-foreground"
+                }`}>
+                  {isCompleted ? "Completed" : "Active"}
+                </span>
+              </div>
               <div className="p-5 flex-1 flex flex-col">
                 <h3 className="font-bold text-foreground mb-1">{c.title}</h3>
                 {c.instructor_name && (
@@ -109,9 +119,18 @@ const MyCourses = ({ onOpenCourse }: MyCoursesProps) => {
                     <span>{pct}%</span>
                   </div>
                   <Progress value={pct} className="h-2 mb-3" />
-                  <Button size="sm" className="w-full" onClick={() => onOpenCourse(c.course_id)}>
+                  <Button
+                    size="sm"
+                    className={`w-full ${
+                      isCompleted
+                        ? ""
+                        : "bg-accent text-accent-foreground hover:bg-accent/90"
+                    }`}
+                    variant={isCompleted ? "secondary" : "default"}
+                    onClick={() => onOpenCourse(c.course_id)}
+                  >
                     <PlayCircle className="h-4 w-4 mr-2" />
-                    Continue Learning
+                    {isCompleted ? "Review Course" : isStarted ? "Continue Learning" : "Start Learning"}
                   </Button>
                 </div>
               </div>
