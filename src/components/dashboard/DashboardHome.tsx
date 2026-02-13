@@ -13,7 +13,7 @@ interface ResumeInfo {
   courseId: string;
   courseTitle: string;
   courseImage: string | null;
-  lessonTitle: string;
+  lastLessonTitle: string;
   progress: number;
 }
 
@@ -22,13 +22,12 @@ const DashboardHome = ({ onNavigate }: DashboardHomeProps) => {
   const [enrollmentCount, setEnrollmentCount] = useState(0);
   const [activeCount, setActiveCount] = useState(0);
   const [completedCount, setCompletedCount] = useState(0);
-  const [resumeInfo, setResumeInfo] = useState<ResumeInfo | null>(null);
+  const [resumeList, setResumeList] = useState<ResumeInfo[]>([]);
 
   useEffect(() => {
     if (!user) return;
 
     const fetchStats = async () => {
-      // Get enrollments
       const { data: enrollments } = await supabase
         .from("enrollments")
         .select("course_id")
@@ -42,16 +41,16 @@ const DashboardHome = ({ onNavigate }: DashboardHomeProps) => {
       // Get all lessons for enrolled courses
       const { data: lessons } = await supabase
         .from("lessons")
-        .select("id, course_id")
+        .select("id, course_id, title")
         .in("course_id", courseIds);
 
       const lessonIds = (lessons || []).map((l: any) => l.id);
 
-      // Get progress
+      // Get completed lessons
       const { data: progress } = lessonIds.length > 0
         ? await supabase
             .from("lesson_progress")
-            .select("lesson_id, completed")
+            .select("lesson_id, completed, completed_at")
             .eq("user_id", user.id)
             .in("lesson_id", lessonIds)
             .eq("completed", true)
@@ -59,42 +58,58 @@ const DashboardHome = ({ onNavigate }: DashboardHomeProps) => {
 
       const completedSet = new Set((progress || []).map((p: any) => p.lesson_id));
 
-      // Calculate per-course completion
+      // Get course details
+      const { data: courses } = await supabase
+        .from("courses")
+        .select("id, title, image_url")
+        .in("id", courseIds);
+
+      const courseMap = new Map((courses || []).map((c: any) => [c.id, c]));
+
+      // Build per-course stats and resume list
       let active = 0, completed = 0;
+      const resumeItems: ResumeInfo[] = [];
+
+      // Get latest progress per course for sorting
+      const progressByLesson = new Map((progress || []).map((p: any) => [p.lesson_id, p.completed_at]));
+
       courseIds.forEach((cid: string) => {
         const courseLessons = (lessons || []).filter((l: any) => l.course_id === cid);
         if (courseLessons.length === 0) { active++; return; }
         const done = courseLessons.filter((l: any) => completedSet.has(l.id)).length;
+        const pct = Math.round((done / courseLessons.length) * 100);
+
         if (done >= courseLessons.length) completed++;
         else active++;
+
+        // Find latest completed lesson in this course
+        let latestTime = "";
+        let latestLesson = "";
+        courseLessons.forEach((l: any) => {
+          const t = progressByLesson.get(l.id);
+          if (t && t > latestTime) { latestTime = t; latestLesson = l.title; }
+        });
+
+        if (done > 0 && pct < 100) {
+          const course = courseMap.get(cid);
+          if (course) {
+            resumeItems.push({
+              courseId: cid,
+              courseTitle: course.title,
+              courseImage: course.image_url,
+              lastLessonTitle: latestLesson || courseLessons[0]?.title || "",
+              progress: pct,
+            });
+          }
+        }
       });
+
+      // Sort by most recently accessed
+      resumeItems.sort((a, b) => b.progress - a.progress);
+
       setActiveCount(active);
       setCompletedCount(completed);
-
-      // Pick up where you left off - find most recent lesson_progress
-      const { data: recentProgress } = await supabase
-        .from("lesson_progress")
-        .select("lesson_id, completed_at, lessons(id, title, course_id, courses(id, title, image_url))")
-        .eq("user_id", user.id)
-        .order("completed_at", { ascending: false })
-        .limit(1);
-
-      if (recentProgress && recentProgress.length > 0) {
-        const rp = recentProgress[0] as any;
-        const course = rp.lessons?.courses;
-        if (course) {
-          const courseLessons = (lessons || []).filter((l: any) => l.course_id === course.id);
-          const doneCount = courseLessons.filter((l: any) => completedSet.has(l.id)).length;
-          const pct = courseLessons.length > 0 ? Math.round((doneCount / courseLessons.length) * 100) : 0;
-          setResumeInfo({
-            courseId: course.id,
-            courseTitle: course.title,
-            courseImage: course.image_url,
-            lessonTitle: rp.lessons?.title || "",
-            progress: pct,
-          });
-        }
-      }
+      setResumeList(resumeItems);
     };
 
     fetchStats();
@@ -129,28 +144,32 @@ const DashboardHome = ({ onNavigate }: DashboardHomeProps) => {
       </div>
 
       {/* Pick up where you left off */}
-      {resumeInfo && (
-        <div className="bg-card border border-border rounded-2xl overflow-hidden mb-8">
-          <div className="flex flex-col sm:flex-row">
-            {resumeInfo.courseImage && (
-              <img src={resumeInfo.courseImage} alt="" className="h-32 sm:h-auto sm:w-48 object-cover" />
-            )}
-            <div className="p-5 flex-1 flex flex-col justify-center">
-              <p className="text-xs text-muted-foreground mb-1">Pick Up Where You Left Off</p>
-              <h3 className="font-bold text-foreground mb-1">{resumeInfo.courseTitle}</h3>
-              <p className="text-xs text-muted-foreground mb-3">Last: {resumeInfo.lessonTitle}</p>
-              <div className="flex items-center gap-3">
-                <Progress value={resumeInfo.progress} className="h-2 flex-1" />
-                <span className="text-xs text-muted-foreground">{resumeInfo.progress}%</span>
+      {resumeList.length > 0 && (
+        <div className="mb-8">
+          <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wide font-semibold">Pick Up Where You Left Off</p>
+          <div className="grid gap-4 md:grid-cols-2">
+            {resumeList.map((item) => (
+              <div key={item.courseId} className="bg-card border border-border rounded-2xl overflow-hidden flex flex-col sm:flex-row">
+                {item.courseImage && (
+                  <img src={item.courseImage} alt="" className="h-32 sm:h-auto sm:w-40 object-cover" />
+                )}
+                <div className="p-5 flex-1 flex flex-col justify-center">
+                  <h3 className="font-bold text-foreground mb-1 text-sm">{item.courseTitle}</h3>
+                  <p className="text-xs text-muted-foreground mb-3">Last: {item.lastLessonTitle}</p>
+                  <div className="flex items-center gap-3">
+                    <Progress value={item.progress} className="h-2 flex-1" />
+                    <span className="text-xs text-muted-foreground">{item.progress}%</span>
+                  </div>
+                  <Button
+                    size="sm"
+                    className="mt-3 w-fit bg-accent text-accent-foreground hover:bg-accent/90"
+                    onClick={() => onNavigate("courses")}
+                  >
+                    <PlayCircle className="h-4 w-4 mr-2" /> Resume
+                  </Button>
+                </div>
               </div>
-              <Button
-                size="sm"
-                className="mt-3 w-fit bg-accent text-accent-foreground hover:bg-accent/90"
-                onClick={() => onNavigate("courses")}
-              >
-                <PlayCircle className="h-4 w-4 mr-2" /> Resume
-              </Button>
-            </div>
+            ))}
           </div>
         </div>
       )}
