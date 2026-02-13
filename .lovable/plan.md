@@ -1,72 +1,44 @@
 
 
-# Fix Mobile Hero Padding, Search Category, Carousel Speeds
+# Fix Mobile Hero - Center Align All Content
 
-## 4 Issues to Fix
+## Problem
 
-### 1. Mobile Hero Banner - Left Padding Too Large
+On mobile, the hero content is pushed to the right and overflows. The `max-w-[80vw]` constraint combined with left-aligned text causes unbalanced layout. Text, search bar, and stats cards are all clipped on the right side.
 
-The hero content container uses `max-w-[80vw] mx-auto px-4`. On mobile, `80vw` constrains the width too much and causes content to appear pushed right with excessive left space.
+## Solution
 
-**Fix in `HeroSection.tsx`**: Change the container class to use full width on mobile and `80vw` only on larger screens:
-- `max-w-[80vw]` becomes `w-full md:max-w-[80vw]`
-- Add `px-6 md:px-4` for balanced mobile padding
+Make the hero section fully responsive on mobile with centered content and proper padding.
 
-### 2. Search Bar Category Dropdown Hidden on Mobile
+### File: `src/components/home/HeroSection.tsx`
 
-Line 80: `<div className="hidden sm:flex ...">` hides the category selector on mobile screens.
+**Container (line 49):** Remove `max-w-[80vw]` on mobile, use full width with generous padding:
+- Change to `w-full md:max-w-[80vw] mx-auto px-6 md:px-4`
 
-**Fix in `HeroSection.tsx`**: Change `hidden sm:flex` to `flex` so the category dropdown is always visible, even on mobile.
+**Text alignment (line 52):** Center text on mobile, left-align on desktop:
+- Change `space-y-6` to `space-y-6 text-center md:text-left items-center md:items-start flex flex-col`
 
-### 3. Testimonial Carousel Too Fast
+**Headline (line 53):** Center on mobile
+- Already inherits `text-center md:text-left` from parent
 
-Currently `animation: "testimonial-scroll 35s linear infinite"` -- 35 seconds is too fast for reading.
+**Subheadline (line 58-64):** Center on mobile
+- Add `mx-auto md:mx-0` to constrain width and center
 
-**Fix in `TestimonialCarousel.tsx`**: Increase duration from `35s` to `60s` so cards scroll slower and users can read them.
+**Search bar container (line 68):** Center on mobile
+- Add `mx-auto md:mx-0` to the `max-w-xl` wrapper
 
-### 4. Trusted By Marquee Too Slow on Mobile
+**Stats container (line 111):** Center on mobile
+- Add `mx-auto md:mx-0`
 
-Currently `animation: marquee 30s linear infinite` in CSS.
+**Search bar overflow fix:** The search bar with category + button overflows on small screens. Make the search bar stack better by reducing internal padding on mobile and allowing the input to shrink.
 
-**Fix in `TrustedBy.tsx`**: Use inline style with responsive duration -- faster on mobile (15s) vs desktop (30s). Use a media query or conditional class.
+### File: `src/components/home/StatsSection.tsx`
 
----
+No changes needed -- the grid already handles mobile with `grid-cols-2`.
 
 ## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/components/home/HeroSection.tsx` | Fix mobile padding (line 49), show category on mobile (line 80) |
-| `src/components/home/TestimonialCarousel.tsx` | Slow down scroll from 35s to 60s (line 81) |
-| `src/components/home/TrustedBy.tsx` | Speed up mobile marquee from 30s to 15s |
-| `src/index.css` | Add mobile-specific marquee speed |
-
-## Technical Details
-
-### HeroSection.tsx Changes
-
-```text
-Line 49: "max-w-[80vw] mx-auto px-4" -> "w-full max-w-[80vw] mx-auto px-5 md:px-4"
-Line 80: "hidden sm:flex" -> "flex"
-```
-
-### TestimonialCarousel.tsx Changes
-
-```text
-Line 81: animation duration "35s" -> "60s"
-```
-
-### TrustedBy / index.css Changes
-
-Add a mobile-specific faster marquee:
-```text
-.animate-marquee {
-  animation: marquee 30s linear infinite;
-}
-@media (max-width: 768px) {
-  .animate-marquee {
-    animation: marquee 15s linear infinite;
-  }
-}
-```
+| `src/components/home/HeroSection.tsx` | Center-align mobile content, fix container width, prevent overflow |
 
