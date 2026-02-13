@@ -1,44 +1,37 @@
 
 
-# Fix Mobile Hero - Center Align All Content
+# Fix Mobile Hero: Smaller Text, Compact Cards, Proper Fit
 
 ## Problem
 
-On mobile, the hero content is pushed to the right and overflows. The `max-w-[80vw]` constraint combined with left-aligned text causes unbalanced layout. Text, search bar, and stats cards are all clipped on the right side.
+On mobile, the hero content overflows the screen width. The headline text is too large (text-4xl), stats cards are clipped on the right, and the search bar doesn't fit within the viewport. The user wants all content to fit within the red-marked area (the visible screen).
 
-## Solution
-
-Make the hero section fully responsive on mobile with centered content and proper padding.
+## Changes
 
 ### File: `src/components/home/HeroSection.tsx`
 
-**Container (line 49):** Remove `max-w-[80vw]` on mobile, use full width with generous padding:
-- Change to `w-full md:max-w-[80vw] mx-auto px-6 md:px-4`
-
-**Text alignment (line 52):** Center text on mobile, left-align on desktop:
-- Change `space-y-6` to `space-y-6 text-center md:text-left items-center md:items-start flex flex-col`
-
-**Headline (line 53):** Center on mobile
-- Already inherits `text-center md:text-left` from parent
-
-**Subheadline (line 58-64):** Center on mobile
-- Add `mx-auto md:mx-0` to constrain width and center
-
-**Search bar container (line 68):** Center on mobile
-- Add `mx-auto md:mx-0` to the `max-w-xl` wrapper
-
-**Stats container (line 111):** Center on mobile
-- Add `mx-auto md:mx-0`
-
-**Search bar overflow fix:** The search bar with category + button overflows on small screens. Make the search bar stack better by reducing internal padding on mobile and allowing the input to shrink.
+1. **Reduce headline font size on mobile**: `text-4xl` to `text-2xl` (keep `md:text-5xl lg:text-6xl`)
+2. **Reduce subheadline font size on mobile**: `text-lg` to `text-base` in both containerClassName and textClassName
+3. **Reduce search bar size on mobile**: Smaller padding (`py-2` instead of `py-3`), smaller search icon (`h-4 w-4`), smaller submit button (`h-8 w-8`)
+4. **Add `overflow-hidden`** to the main container to prevent any horizontal scroll
+5. **Reduce spacing**: `space-y-6` to `space-y-4 md:space-y-6`, stats `mt-8` to `mt-4 md:mt-8`
 
 ### File: `src/components/home/StatsSection.tsx`
 
-No changes needed -- the grid already handles mobile with `grid-cols-2`.
+1. **Smaller stat cards on mobile**: Reduce padding from `p-2.5` to `p-2`, icon container from `p-1.5` to `p-1`, icon size from `h-4 w-4` to `h-3 w-3`
+2. **Smaller stat text on mobile**: Value text from `text-base` to `text-sm md:text-base`, label from `text-[10px]` to `text-[9px] sm:text-[10px]`
+3. **Tighter grid gap**: `gap-2` to `gap-1.5 sm:gap-2`
 
-## Files to Modify
+## Summary of Size Reductions
 
-| File | Changes |
-|------|---------|
-| `src/components/home/HeroSection.tsx` | Center-align mobile content, fix container width, prevent overflow |
+| Element | Before (mobile) | After (mobile) |
+|---------|-----------------|----------------|
+| Headline | text-4xl | text-2xl |
+| Subheadline | text-lg | text-base |
+| Search bar padding | py-3 | py-2 |
+| Search button | h-10 w-10 | h-8 w-8 |
+| Stat card padding | p-2.5 | p-2 |
+| Stat icon | h-4 w-4 | h-3 w-3 |
+| Stat value | text-base | text-sm |
+| Vertical spacing | space-y-6 | space-y-4 |
 
