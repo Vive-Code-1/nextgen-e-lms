@@ -1,163 +1,120 @@
 
-# NextGen LMS - Complete Dashboard System Upgrade (Tutor LMS Pro Style)
 
-This is a large-scale upgrade to both the Student and Admin dashboards, making them fully dynamic with Supabase and adding new features. The work is organized into logical phases.
+# Advanced Order Management System
 
----
-
-## Phase 1: Fix Config + New Database Tables
-
-### Restore Edge Function Config
-The `supabase/config.toml` lost its edge function settings. Restore `verify_jwt = false` for `process-payment` and `payment-callback`.
-
-### New Database Tables (SQL Migration)
-
-| Table | Purpose |
-|-------|---------|
-| `wishlist` | Student course wishlist (user_id, course_id) |
-| `quiz_questions` | Questions for quizzes within lessons |
-| `quiz_attempts` | Student quiz attempt results |
-
-```text
-wishlist:        id, user_id (FK auth.users), course_id (FK courses), created_at
-quiz_questions:  id, lesson_id (FK lessons), question, options (jsonb), correct_answer, sort_order
-quiz_attempts:   id, user_id, lesson_id, score, total, passed, answers (jsonb), created_at
-```
-
-All tables get RLS policies following existing patterns.
+## Overview
+Transform the basic orders table into a full-featured order management system with bulk selection, soft delete (trash), manual order creation, status filters, and smart auto-approval logic for gateway payments.
 
 ---
 
-## Phase 2: Shared Layout Upgrade (Both Dashboards)
+## Database Changes
 
-### Deep Indigo Sidebar
-- Sidebar background: `bg-[#1E1B4B]` with white text
-- Active link: Vivid Violet `bg-[#7C3AED]` pill
-- Hover state: `hover:bg-white/10`
+### Add `deleted_at` column to `orders` table
+A new nullable `timestamp` column enables soft delete (trash) instead of permanent deletion. Orders with `deleted_at IS NOT NULL` are "trashed."
 
-### Sticky Top Bar
-- Full-width sticky header above main content
-- Contains: "Welcome, [Name]" greeting, Notification Bell icon, Profile Avatar dropdown (with links to Profile, Settings, Logout)
-
-### Breadcrumb Navigation
-- Show current section path: Dashboard > My Courses, Dashboard > Assignments, etc.
-
-### Mobile Responsiveness
-- Sidebar collapses to bottom tab bar on mobile (existing pattern retained)
-- Top bar adapts to smaller screens
+### Update RLS
+Add admin UPDATE and DELETE policies so admins can soft-delete and modify orders.
 
 ---
 
-## Phase 3: Student Dashboard Enhancements
+## New Component: `AdminOrderManagement.tsx`
 
-### A. Dashboard Home (Enhanced)
-- **Accurate Stats**: Query enrollments + lesson_progress to compute Active vs Completed course counts dynamically
-- **"Pick Up Where You Left Off"**: Query the most recently accessed lesson (latest lesson_progress entry) and show course card + "Resume" button
+Replaces the inline orders table in `AdminDashboard.tsx` with a dedicated, feature-rich component.
 
-### B. Enrolled Courses (Enhanced)
-- Add status labels: "Active" (progress < 100%), "Completed" (100%)
-- Golden Amber CTA: "Start Learning" (0%) or "Continue" (>0%)
-- Grid view with progress bars (already exists, enhanced)
+### Features
 
-### C. Wishlist (New Tab)
-- Show wishlist courses from new `wishlist` table
-- "Remove" and "Enroll Now" buttons
-- Link course cards to `/courses/:slug`
+**1. Status Tabs & Filters**
+- Tabs: All | Pending | Completed | Trash
+- Trash tab shows soft-deleted orders with "Restore" and "Permanent Delete" options
 
-### D. Quiz Attempts (New Tab)
-- Table: Course Name, Quiz Title, Total Marks, Earned Marks, Result (Pass/Fail badge), Date
-- "View Details" expands to show per-question breakdown
+**2. Bulk Selection**
+- Header checkbox to select/deselect all visible orders
+- Per-row checkboxes
+- Bulk action bar appears when items are selected:
+  - "Approve Selected" (for pending manual/COD orders)
+  - "Move to Trash"
+  - "Delete Permanently" (only in Trash tab)
 
-### E. Purchase History (New Tab)
-- Query `orders` table for current user
-- Table: Order ID (short), Course Name (join), Date, Amount, Status badge, "Download Invoice" button (generates simple receipt)
+**3. Smart Action Column**
+- **Auto-gateway payments** (PayPal, Stripe, UddoktaPay): Status is auto-set to "completed" by the payment callback. No approve button shown -- just a green "Completed" badge.
+- **Manual/COD payments** (bkash_manual, nagad_manual, rocket_manual, cod): Show "Approve" button when status is "pending". Admin clicks to mark completed and enroll student.
 
-### F. Reviews (Enhanced)
-- Add Edit and Delete functionality for user's own reviews
+**4. Manual Order Creation**
+- "Add Order" button opens a dialog with fields:
+  - Customer: Select existing user (searchable dropdown from profiles) or enter new email
+  - Course: Select from courses list
+  - Amount, Payment Method, Status (pending/completed)
+  - Notes (sender_phone, trx_id)
+- On submit: inserts into `orders` table. If status is "completed", also creates enrollment.
 
-### G. Settings/Profile (Enhanced)
-- Add Bio field to profile
-- Existing avatar upload, name, phone, password change kept
+**5. Enhanced Table Columns**
+| Column | Source |
+|--------|--------|
+| Checkbox | Bulk select |
+| Order ID | Short ID |
+| Customer | Join profiles (name + email) |
+| Course | Join courses (title) |
+| Amount | With currency |
+| Payment Method | Badge style |
+| Status | Color-coded badge |
+| Date | Formatted |
+| Action | Smart approve / trash / restore |
 
----
-
-## Phase 4: Admin Dashboard Enhancements
-
-### A. Admin Overview (Enhanced)
-- **Analytics Cards**: Total Revenue, Total Enrollments, Total Instructors (from user_roles where role = 'instructor'), Total Students
-- **Monthly Earnings Chart**: Bar chart using Recharts, query orders grouped by month
-- **Recent Activity**: Show latest user signups from profiles table (ordered by created_at desc, limit 10)
-
-### B. Course Manager (New Tab - replaces basic courses display)
-- **Course List Table**: Thumbnail, Title, Instructor, Price, Category, Actions (Edit/Delete)
-- **Course Builder Dialog**: 
-  - Info Tab: Title, Slug, Description, Image URL, Instructor Name, Category
-  - Curriculum Tab: Accordion of existing lessons for this course, add/edit/delete lessons inline (absorbs current AdminLessons functionality)
-  - Settings Tab: Price, Original Price, Duration
-
-### C. User Management (New Tab)
-- **Students Tab**: Table of all users with role = 'student' - Name, Email, Enrolled Courses count, Join Date
-- **Instructors Tab**: Table of users with role = 'instructor' - Name, Email, Courses assigned
-
-### D. Orders Management (Enhanced)
-- Add course name join to orders table display
-- Add user name/email join
-- Filter by status (All/Pending/Completed)
-- Existing approve functionality kept
-
-### E. Settings (Enhanced)
-- Keep existing payment settings
-- Add Commission Allocation setting (admin_share / instructor_share percentage stored in site_settings)
+**6. Trash (Soft Delete)**
+- "Move to Trash" sets `deleted_at = now()`
+- Trash tab filters `deleted_at IS NOT NULL`
+- "Restore" clears `deleted_at`
+- "Delete Permanently" removes the row
 
 ---
 
-## Phase 5: File Structure
+## Edge Function Update: `process-payment/index.ts`
 
-### New Files
+No change needed -- gateway callbacks (UddoktaPay, Stripe, PayPal) already set `payment_status: "completed"` automatically. Manual/COD orders already set `payment_status: "pending"`. The logic is already correct; the admin UI just needs to reflect this properly.
+
+---
+
+## Files to Create
+
 | File | Purpose |
 |------|---------|
-| `src/components/dashboard/DashboardTopBar.tsx` | Shared sticky top bar |
-| `src/components/dashboard/Wishlist.tsx` | Student wishlist tab |
-| `src/components/dashboard/QuizAttempts.tsx` | Student quiz attempts tab |
-| `src/components/dashboard/PurchaseHistory.tsx` | Student purchase history |
-| `src/components/admin/AdminCourseManager.tsx` | Course builder with tabs |
-| `src/components/admin/AdminUserManagement.tsx` | Students/Instructors lists |
-| `src/components/admin/AdminAnalyticsChart.tsx` | Monthly earnings bar chart |
+| `src/components/admin/AdminOrderManagement.tsx` | Full order management component |
 
-### Modified Files
-| File | Changes |
-|------|---------|
-| `supabase/config.toml` | Restore edge function configs |
-| `src/pages/StudentDashboard.tsx` | Deep indigo sidebar, top bar, new tabs (Wishlist, Quiz Attempts, Purchase History), breadcrumbs |
-| `src/pages/AdminDashboard.tsx` | Deep indigo sidebar, top bar, new tabs (Course Manager, User Management), Recharts analytics, breadcrumbs |
-| `src/components/dashboard/DashboardHome.tsx` | "Pick Up Where You Left Off" section, accurate active/completed stats |
-| `src/components/dashboard/MyCourses.tsx` | Active/Completed status labels, Golden Amber CTAs |
-| `src/components/dashboard/Reviews.tsx` | Add Edit/Delete for own reviews |
+## Files to Modify
 
-### SQL Migration
-One migration file for `wishlist`, `quiz_questions`, and `quiz_attempts` tables with RLS.
+| File | Change |
+|------|--------|
+| `src/pages/AdminDashboard.tsx` | Replace inline orders rendering with `AdminOrderManagement` component |
+| SQL Migration | Add `deleted_at` column to `orders`, add admin UPDATE/DELETE RLS policies |
+| `src/integrations/supabase/types.ts` | Add `deleted_at` to orders type |
 
 ---
 
-## Design Tokens Applied Throughout
+## Technical Details
 
-| Element | Color/Style |
-|---------|-------------|
-| Sidebar background | Deep Indigo `#1E1B4B` |
-| Sidebar text | White |
-| Active sidebar link | Vivid Violet `#7C3AED` rounded pill |
-| Primary buttons | Vivid Violet `#7C3AED` |
-| CTA buttons (Start Learning, Enroll) | Golden Amber `#FBBF24` |
-| Success states | Emerald `#10B981` |
-| Main content background | Light Violet `#F5F3FF` |
-| Cards | White with subtle border |
+### Smart Auto-Status Logic (in UI)
+```text
+const isManualMethod = ["bkash_manual", "nagad_manual", "rocket_manual", "cod"].includes(order.payment_method);
 
----
+If order.payment_status === "pending" AND isManualMethod --> Show "Approve" button
+If order.payment_status === "completed" --> Show green "Completed" badge (no action)
+If order.payment_status === "pending" AND !isManualMethod --> Show yellow "Processing" badge (waiting for gateway callback)
+```
 
-## Important Notes
+### Bulk Operations
+```text
+Selected order IDs stored in state as Set<string>
+Bulk approve: UPDATE orders SET payment_status = 'completed' WHERE id IN (...) + create enrollments
+Bulk trash: UPDATE orders SET deleted_at = now() WHERE id IN (...)
+Bulk restore: UPDATE orders SET deleted_at = null WHERE id IN (...)
+Bulk delete: DELETE FROM orders WHERE id IN (...)
+```
 
-- All data is fetched dynamically from Supabase - no hardcoded/mock data
-- Existing features (Lesson Player, Assignments, Announcements) are preserved and enhanced
-- RLS policies follow existing security patterns (users see own data, admins see all)
-- Recharts is already installed for the admin analytics chart
-- The Courses page currently uses hardcoded data - this plan focuses on dashboards only; the Courses page can be made dynamic separately
+### Manual Order Dialog Fields
+- User search: query `profiles` table with ILIKE on full_name or email
+- Course select: query `courses` table
+- Amount: auto-fills from selected course price, editable
+- Payment method: dropdown (all methods)
+- Status: pending or completed
+- Optional: sender_phone, trx_id
+
