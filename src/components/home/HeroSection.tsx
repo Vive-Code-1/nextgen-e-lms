@@ -49,16 +49,16 @@ const HeroSection = () => {
       <div className="relative z-10 w-full md:max-w-[80vw] mx-auto px-6 md:px-4 pt-28 pb-8 md:pt-32 md:pb-12 flex-1 flex items-center">
         <div className="grid md:grid-cols-2 gap-12 items-center w-full">
           {/* Text */}
-          <div className="space-y-6 flex flex-col items-center md:items-start text-center md:text-left">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight text-white animate-fade-in-up">
+          <div className="space-y-4 md:space-y-6 flex flex-col items-center md:items-start text-center md:text-left">
+            <h1 className="text-2xl md:text-5xl lg:text-6xl font-extrabold leading-tight text-white animate-fade-in-up">
               {t("hero.headline_1")}
               <span className="text-coral-pink">{t("hero.headline_highlight")}</span>
               {t("hero.headline_2")}
             </h1>
             <ScrollReveal
               baseRotation={0}
-              containerClassName="text-lg text-white/70 max-w-lg animate-fade-in-up-delay-1 mx-auto md:mx-0"
-              textClassName="text-lg text-white/70"
+              containerClassName="text-base md:text-lg text-white/70 max-w-lg animate-fade-in-up-delay-1 mx-auto md:mx-0"
+              textClassName="text-base md:text-lg text-white/70"
             >
               {t("hero.subheadline")}
             </ScrollReveal>
@@ -66,8 +66,8 @@ const HeroSection = () => {
             {/* Search Bar */}
             <div className="animate-fade-in-up-delay-2 relative z-50 w-full max-w-xl mx-auto md:mx-0">
               <div className="flex items-center bg-white rounded-full shadow-lg relative">
-                <div className="flex items-center flex-1 min-w-0 px-3 sm:px-4 py-3">
-                   <Search className="h-5 w-5 text-muted-foreground shrink-0" />
+                <div className="flex items-center flex-1 min-w-0 px-3 sm:px-4 py-2 sm:py-3">
+                   <Search className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground shrink-0" />
                    <input
                      type="text"
                      placeholder={t("hero.search_placeholder")}
@@ -101,14 +101,14 @@ const HeroSection = () => {
                     )}
                   </div>
                 </div>
-                <button onClick={handleSearch} className="m-1.5 h-10 w-10 rounded-full bg-coral-pink flex items-center justify-center shrink-0 hover:opacity-90 transition-opacity">
-                  <ArrowRight className="h-5 w-5 text-white" />
+                <button onClick={handleSearch} className="m-1 sm:m-1.5 h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-coral-pink flex items-center justify-center shrink-0 hover:opacity-90 transition-opacity">
+                  <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </button>
               </div>
             </div>
 
             {/* Stats Cards below search bar */}
-            <div className="mt-8 w-full max-w-xl mx-auto md:mx-0">
+            <div className="mt-4 md:mt-8 w-full max-w-xl mx-auto md:mx-0">
               <StatsSection embedded />
             </div>
           </div>

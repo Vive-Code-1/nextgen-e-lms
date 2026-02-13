@@ -13,13 +13,13 @@ const StatCard = ({ icon: Icon, value, label, color, bg, suffix }: { icon: any; 
   const { t } = useLanguage();
   const { count, ref } = useCountUp(value);
   return (
-    <div ref={ref} className="flex items-center gap-2 bg-white/10 backdrop-blur-xl shadow-lg border border-white/20 rounded-xl p-2.5">
-      <div className={`rounded-full ${bg} p-1.5 shrink-0`}>
-        <Icon className={`h-4 w-4 ${color}`} />
+    <div ref={ref} className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-xl shadow-lg border border-white/20 rounded-xl p-1.5 sm:p-2.5">
+      <div className={`rounded-full ${bg} p-1 sm:p-1.5 shrink-0`}>
+        <Icon className={`h-3 w-3 sm:h-4 sm:w-4 ${color}`} />
       </div>
       <div>
-        <span className="text-base md:text-lg font-extrabold text-white">{count}{suffix}</span>
-        <p className="text-[10px] text-white/70 leading-tight">{t(label)}</p>
+        <span className="text-sm sm:text-base md:text-lg font-extrabold text-white">{count}{suffix}</span>
+        <p className="text-[9px] sm:text-[10px] text-white/70 leading-tight">{t(label)}</p>
       </div>
     </div>
   );
@@ -28,7 +28,7 @@ const StatCard = ({ icon: Icon, value, label, color, bg, suffix }: { icon: any; 
 const StatsSection = ({ embedded = false }: { embedded?: boolean }) => {
   if (embedded) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2">
         {stats.map((stat) => (
           <StatCard key={stat.label} {...stat} />
         ))}
