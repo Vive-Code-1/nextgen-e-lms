@@ -1,57 +1,60 @@
 
 
-# Fix Reviews Name Bug and Make Courses Dynamic
+# Lesson Player Redesign, YouTube Fix, and Announcements Upgrade
 
-## Issue 1: Review Names All Change to Same Name
+## Issue 1: Lesson Player - Progress Bar and Curriculum Sections
 
-**Root Cause**: When admin adds a review via "Add New Review", line 140-144 updates `profiles.full_name` for `user.id` (the admin's own profile). Since all admin-created reviews use `user_id = admin's ID`, every review shows the admin's profile name -- changing one changes all.
+Redesign `LessonPlayer.tsx` to match the reference (image-66):
 
-**Fix**: Add `student_name` and `student_image` columns to the `reviews` table. Store per-review name/image there instead of modifying the `profiles` table. Display these fields in the review cards and testimonial carousel.
+- **Top section**: Show course title, completion percentage with a progress bar, and "Last activity" date
+- **Sidebar**: Group lessons by `topic` field as collapsible accordion sections (Section 1: "Html Introduction", Section 2: "Your First Webpage", etc.)
+  - Each section is expandable/collapsible
+  - Lessons inside show completion icon (green circle = done, empty circle = not done) and duration if available
+  - Clicking a lesson opens it in the video player
+- **Progress calculation**: `completedLessons / totalLessons * 100` -- updates dynamically when "Mark Complete" is clicked
+- **Also update the `enrollments.progress` field** in Supabase when marking complete, so progress persists
 
-### Database Migration
+## Issue 2: Curriculum Grouped by Topic
 
-```text
-ALTER TABLE reviews ADD COLUMN student_name text;
-ALTER TABLE reviews ADD COLUMN student_image text;
-```
+Lessons have a `topic` field in the DB. Group lessons by topic in the sidebar:
+- Query returns lessons ordered by `sort_order`
+- Group them by `topic` into sections
+- Each section is a collapsible accordion panel
+- The active lesson's section auto-expands
 
-### Changes to AdminReviews.tsx
-- On "Add New Review": save `student_name` and `student_image` directly into the `reviews` row instead of updating `profiles`
-- On "Edit Review": update the review's own `student_name`/`student_image` columns
-- Display: show `r.student_name` first, fall back to `r.profile?.full_name`
-- Same for avatar: show `r.student_image` first, fall back to `r.profile?.avatar_url`
+## Issue 3: YouTube Video Not Playing + Download Protection
 
-### Changes to TestimonialCarousel.tsx
-- When mapping dynamic reviews, use `r.student_name || profile.full_name` and `r.student_image || profile.avatar_url`
+**Root Cause**: The `video_url` stored in DB is a regular YouTube URL like `https://youtu.be/k6IAmFU8HOE?si=...` or `https://www.youtube.com/watch?v=LHIHpx5C9yo`. The iframe `src` needs the embed format: `https://www.youtube.com/embed/VIDEO_ID`.
 
----
+**Fix**: Add a `getEmbedUrl(url)` helper function that:
+- Extracts the video ID from `youtu.be/ID`, `youtube.com/watch?v=ID`, or already-embedded URLs
+- Returns `https://www.youtube.com/embed/VIDEO_ID?rel=0&modestbranding=1`
 
-## Issue 2: Courses Not Showing on Frontend
+**Download Protection**: Add `controlsList="nodownload"` and prevent right-click context menu on the video container. For YouTube embeds specifically, the embed URL will not show download options by default.
 
-**Root Cause**: Both `PopularCourses.tsx` (homepage) and `Courses.tsx` (courses page) use entirely **hardcoded static arrays**. The `CourseDetails.tsx` page also uses a hardcoded `courseData` object. None of them fetch from the `courses` table in Supabase.
+## Issue 4: Student Announcements - Beautiful Card Grid Design
 
-### Changes to PopularCourses.tsx (Homepage)
-- Remove the hardcoded `courses` array
-- Fetch courses from Supabase: `supabase.from("courses").select("*").eq("is_public", true).order("created_at", { ascending: false }).limit(8)`
-- Render course cards dynamically with real data (title, image_url, price, category, slug, is_free)
-- Link each card to `/courses/{slug}`
+Redesign `Announcements.tsx` to match the reference (image-69):
 
-### Changes to Courses.tsx (Courses Page)
-- Remove the hardcoded `courses` array and `courseImages`
-- Fetch all public courses from Supabase on mount
-- Apply category/search filters on the fetched data
-- Render course cards with real DB fields (title, image_url, price, original_price, category, level, slug, instructor_name, duration, is_free)
-- Category sidebar filters work against the DB `category` field
-- Search filters against `title`
+- **Header**: Icon + "Announcements" title + subtitle text
+- **Pinned/Latest announcement**: Highlighted card at the top (larger, with a "New" badge and days ago indicator)
+- **All announcements grid**: 3-column responsive card grid below
+- Each card shows:
+  - Announcement icon (orange/red circle)
+  - Number badge (#1, #2, etc.)
+  - Title in bold
+  - Content preview (truncated with "..." and "Read More" link)
+  - Date at bottom
+  - Left border accent color
+- Clicking "Read More" expands the full content in a dialog or inline
 
-### Changes to CourseDetails.tsx (Course Detail Page)
-- Remove all hardcoded `courseData`, `extraCourses`, `allCourses`
-- Fetch course by slug: `supabase.from("courses").select("*").eq("slug", slug).single()`
-- Fetch lessons grouped by topic for curriculum section
-- Fetch course FAQs for FAQ section
-- Fetch approved reviews for the reviews count
-- Render all sections dynamically (description, what_will_learn, requirements, curriculum, FAQs, pricing)
-- Handle free courses (show "Free" instead of price, "Enroll Free" button)
+## Issue 5: Admin Announcements - Edit and Delete
+
+Update `AdminAnnouncements.tsx`:
+- Add an **Edit** button (pencil icon) alongside the existing Delete button
+- Clicking Edit populates the title/content form with the announcement's data
+- Track `editingId` state to switch between "Post" and "Update" modes
+- On save in edit mode, use `supabase.from("announcements").update(...)` instead of insert
 
 ---
 
@@ -59,40 +62,31 @@ ALTER TABLE reviews ADD COLUMN student_image text;
 
 | File | Changes |
 |------|---------|
-| SQL Migration | Add `student_name` and `student_image` columns to `reviews` |
-| `src/integrations/supabase/types.ts` | Update types for new review columns |
-| `src/components/admin/AdminReviews.tsx` | Store name/image per review, not on profile |
-| `src/components/home/TestimonialCarousel.tsx` | Use `student_name`/`student_image` fields |
-| `src/components/home/PopularCourses.tsx` | Fetch courses from Supabase dynamically |
-| `src/pages/Courses.tsx` | Fetch courses from Supabase, dynamic filtering |
-| `src/pages/CourseDetails.tsx` | Fetch single course + lessons + FAQs + reviews from Supabase |
+| `src/components/dashboard/LessonPlayer.tsx` | Full redesign: progress bar, topic-grouped accordion sidebar, YouTube embed fix, download protection |
+| `src/components/dashboard/Announcements.tsx` | Redesign to beautiful card grid with pinned announcement, numbering, read more |
+| `src/components/admin/AdminAnnouncements.tsx` | Add edit functionality with editingId state |
 
----
+## Technical Details
 
-## Technical Notes
-
-### Review Display Priority
+### YouTube Embed URL Converter
 ```text
-Name: review.student_name > profile.full_name > "Student"
-Image: review.student_image > profile.avatar_url > initials fallback
+Input: https://youtu.be/k6IAmFU8HOE?si=xyz
+       https://www.youtube.com/watch?v=LHIHpx5C9yo
+       https://youtube.com/embed/k6IAmFU8HOE
+Output: https://www.youtube.com/embed/k6IAmFU8HOE?rel=0&modestbranding=1
 ```
 
-### Course Card Data Mapping
+### Progress Calculation
 ```text
-DB field -> UI element
-title -> Card title
-image_url -> Card image (fallback to placeholder)
-category -> Category badge
-price / discount_price -> Price display
-is_free -> "Free" badge
-slug -> Link to /courses/{slug}
-instructor_name -> Instructor name
-duration -> Duration label
-level -> Level label
+progress = Math.round((completedCount / totalLessons) * 100)
+Update enrollments.progress via supabase after each toggle
 ```
 
-### Free Course Handling
-- If `is_free = true`: show "Free" instead of price
-- Course details page: show "Enroll Free" button that creates enrollment directly
-- Courses page: "Free" filter option works against `is_free` column
+### Lesson Grouping Logic
+```text
+lessons grouped by topic field:
+  topic "Html Introduction" -> [lesson1, lesson2, lesson3]
+  topic "Your First Webpage" -> [lesson4, lesson5]
+  null/empty topic -> "General" fallback
+```
 
