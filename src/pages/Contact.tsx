@@ -35,7 +35,7 @@ const Contact = () => {
         {/* Contact Section */}
         <section className="py-16 bg-muted/50">
           <div className="max-w-[80vw] mx-auto px-4">
-            <div className="grid md:grid-cols-2 gap-12 items-start">
+            <div className="grid md:grid-cols-2 gap-12 items-stretch">
               <div className="space-y-4">
                 {infoCards.map((card, i) =>
                   <div key={i} className="bg-card border border-border rounded-2xl p-4 text-center hover:shadow-lg transition-shadow">
@@ -48,17 +48,17 @@ const Contact = () => {
                   </div>
                 )}
               </div>
-              <div className="bg-card border border-border rounded-2xl p-8">
-                <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+              <div className="bg-card border border-border rounded-2xl p-8 flex flex-col">
+                <form className="space-y-4 flex flex-col flex-1" onSubmit={(e) => e.preventDefault()}>
                   <div className="grid grid-cols-2 gap-4">
-                    <Input placeholder={t("contact.name_placeholder")} className="bg-background" />
-                    <Input placeholder={t("contact.email_placeholder")} type="email" className="bg-background" />
+                    <Input placeholder={t("contact.name_placeholder")} className="h-12 bg-background" />
+                    <Input placeholder={t("contact.email_placeholder")} type="email" className="h-12 bg-background" />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <Input placeholder={t("contact.phone_placeholder")} type="tel" className="bg-background" />
-                    <Input placeholder={t("contact.subject_placeholder")} className="bg-background" />
+                    <Input placeholder={t("contact.phone_placeholder")} type="tel" className="h-12 bg-background" />
+                    <Input placeholder={t("contact.subject_placeholder")} className="h-12 bg-background" />
                   </div>
-                  <Textarea placeholder={t("contact.message_placeholder")} rows={5} className="bg-background" />
+                  <Textarea placeholder={t("contact.message_placeholder")} rows={7} className="bg-background flex-1" />
                   <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold">
                     {t("contact.send_button")}
                   </Button>
