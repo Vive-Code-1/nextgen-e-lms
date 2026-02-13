@@ -11,6 +11,7 @@ interface Assignment {
   title: string;
   description: string | null;
   due_date: string | null;
+  total_marks: number;
   course_title: string;
   submission?: {
     id: string;
@@ -31,8 +32,7 @@ const Assignments = () => {
 
   useEffect(() => {
     if (!user) return;
-    const fetch = async () => {
-      // Get enrolled course ids
+    const fetchData = async () => {
       const { data: enrollments } = await supabase
         .from("enrollments")
         .select("course_id")
@@ -44,6 +44,7 @@ const Assignments = () => {
         .from("assignments")
         .select("*, courses(title)")
         .in("course_id", courseIds)
+        .eq("status", "published")
         .order("created_at", { ascending: false });
 
       const assignmentIds = assignmentData?.map((a: any) => a.id) || [];
@@ -63,13 +64,14 @@ const Assignments = () => {
           title: a.title,
           description: a.description,
           due_date: a.due_date,
+          total_marks: a.total_marks || 0,
           course_title: a.courses?.title || "",
           submission: subMap.get(a.id),
         }))
       );
       setLoading(false);
     };
-    fetch();
+    fetchData();
   }, [user]);
 
   const handleSubmit = async (assignmentId: string) => {
@@ -85,7 +87,6 @@ const Assignments = () => {
       toast({ title: "Submitted!", description: "Your assignment has been submitted." });
       setSubmitting(null);
       setSubmissionText("");
-      // Refresh
       const { data } = await supabase
         .from("assignment_submissions")
         .select("*")
@@ -104,6 +105,12 @@ const Assignments = () => {
     return <Clock className="h-4 w-4 text-accent" />;
   };
 
+  const statusLabel = (status: string) => {
+    if (status === "approved") return "Approved";
+    if (status === "rejected") return "Rejected";
+    return "Pending";
+  };
+
   if (loading) return <p className="text-muted-foreground">Loading...</p>;
 
   return (
@@ -115,44 +122,44 @@ const Assignments = () => {
           <p className="text-muted-foreground">No assignments yet.</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {assignments.map((a) => (
-            <div key={a.id} className="bg-card border border-border rounded-2xl p-5">
-              <div className="flex items-start justify-between mb-2">
-                <div>
-                  <h3 className="font-bold text-foreground">{a.title}</h3>
-                  <p className="text-xs text-muted-foreground">{a.course_title}</p>
+            <div key={a.id} className="bg-card border border-border rounded-2xl p-5 flex flex-col justify-between h-full">
+              <div>
+                <h3 className="font-bold text-foreground text-sm mb-1">{a.title}</h3>
+                <p className="text-xs text-primary font-medium mb-2">{a.course_title}</p>
+                {a.description && <p className="text-xs text-muted-foreground mb-3 line-clamp-3">{a.description}</p>}
+                <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
+                  {a.due_date && <span>Due: {new Date(a.due_date).toLocaleDateString()}</span>}
+                  {a.total_marks > 0 && <span>Marks: {a.total_marks}</span>}
                 </div>
-                {a.due_date && (
-                  <span className="text-xs text-muted-foreground">Due: {new Date(a.due_date).toLocaleDateString()}</span>
-                )}
               </div>
-              {a.description && <p className="text-sm text-muted-foreground mb-3">{a.description}</p>}
 
               {a.submission ? (
-                <div className="bg-muted rounded-xl p-4 space-y-2">
+                <div className="bg-muted rounded-xl p-3 space-y-1">
                   <div className="flex items-center gap-2">
                     {statusIcon(a.submission.status)}
-                    <span className="text-sm font-medium text-foreground capitalize">{a.submission.status}</span>
+                    <span className="text-xs font-medium text-foreground">{statusLabel(a.submission.status)}</span>
                     {a.submission.marks !== null && (
-                      <span className="ml-auto text-sm font-bold text-primary">Marks: {a.submission.marks}</span>
+                      <span className="ml-auto text-xs font-bold text-primary">{a.submission.marks}/{a.total_marks || "—"}</span>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground">Your submission: {a.submission.content}</p>
                   {a.submission.feedback && (
-                    <p className="text-xs text-foreground">Feedback: {a.submission.feedback}</p>
+                    <p className="text-xs text-muted-foreground">Feedback: {a.submission.feedback}</p>
                   )}
                 </div>
               ) : submitting === a.id ? (
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <Textarea
-                    placeholder="Enter your submission (text or link)..."
+                    placeholder="Enter your submission..."
                     value={submissionText}
                     onChange={(e) => setSubmissionText(e.target.value)}
+                    rows={2}
+                    className="text-xs"
                   />
                   <div className="flex gap-2">
-                    <Button size="sm" onClick={() => handleSubmit(a.id)}>
-                      <Send className="h-4 w-4 mr-1" /> Submit
+                    <Button size="sm" onClick={() => handleSubmit(a.id)} className="flex-1">
+                      <Send className="h-3.5 w-3.5 mr-1" /> Submit
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => { setSubmitting(null); setSubmissionText(""); }}>
                       Cancel
@@ -160,7 +167,7 @@ const Assignments = () => {
                   </div>
                 </div>
               ) : (
-                <Button size="sm" variant="outline" onClick={() => setSubmitting(a.id)}>
+                <Button size="sm" variant="outline" onClick={() => setSubmitting(a.id)} className="w-full mt-2">
                   Submit Assignment
                 </Button>
               )}

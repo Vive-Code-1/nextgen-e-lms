@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Star, CheckCircle, XCircle, Plus, Upload, X } from "lucide-react";
+import { Star, CheckCircle, XCircle, Plus, Upload, X, Pencil } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const AdminReviews = () => {
@@ -17,8 +17,9 @@ const AdminReviews = () => {
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
 
-  // New review form
+  // Form state
   const [studentName, setStudentName] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("");
   const [rating, setRating] = useState(5);
@@ -34,7 +35,6 @@ const AdminReviews = () => {
       .order("created_at", { ascending: false });
 
     if (data) {
-      // Fetch profile info separately for each review
       const userIds = [...new Set(data.map(r => r.user_id))];
       const { data: profiles } = await supabase
         .from("profiles")
@@ -69,9 +69,10 @@ const AdminReviews = () => {
       toast({ title: "File too large", description: "Max 2MB", variant: "destructive" });
       return;
     }
+    if (!user) return;
     setUploading(true);
     const ext = file.name.split(".").pop();
-    const path = `review-${Date.now()}.${ext}`;
+    const path = `${user.id}/review-${Date.now()}.${ext}`;
     const { error } = await supabase.storage.from("avatars").upload(path, file);
     if (error) {
       toast({ title: "Upload failed", description: error.message, variant: "destructive" });
@@ -83,33 +84,82 @@ const AdminReviews = () => {
     setUploading(false);
   };
 
+  const resetForm = () => {
+    setStudentName(""); setSelectedCourse(""); setRating(5); setComment(""); setImageUrl("");
+    setEditingReviewId(null);
+  };
+
+  const openAddDialog = () => {
+    resetForm();
+    setDialogOpen(true);
+  };
+
+  const openEditDialog = (r: any) => {
+    setEditingReviewId(r.id);
+    setStudentName(r.profile?.full_name || "");
+    setSelectedCourse(r.course_id);
+    setRating(r.rating);
+    setComment(r.comment || "");
+    setImageUrl(r.profile?.avatar_url || "");
+    setDialogOpen(true);
+  };
+
   const submitReview = async () => {
     if (!selectedCourse || !comment.trim() || !user) return;
     setSaving(true);
 
-    // Update profile name/avatar if provided
-    if (studentName || imageUrl) {
-      const updateData: any = {};
-      if (studentName) updateData.full_name = studentName;
-      if (imageUrl) updateData.avatar_url = imageUrl;
-      await supabase.from("profiles").update(updateData).eq("id", user.id);
-    }
+    if (editingReviewId) {
+      // Update existing review
+      const { error } = await supabase.from("reviews").update({
+        course_id: selectedCourse,
+        rating,
+        comment,
+      }).eq("id", editingReviewId);
 
-    const { error } = await supabase.from("reviews").insert({
-      user_id: user.id,
-      course_id: selectedCourse,
-      rating,
-      comment,
-      approved: true,
-    });
+      // Update profile name/avatar
+      const review = reviews.find(r => r.id === editingReviewId);
+      if (review) {
+        const updateData: any = {};
+        if (studentName) updateData.full_name = studentName;
+        if (imageUrl) updateData.avatar_url = imageUrl;
+        if (Object.keys(updateData).length > 0) {
+          await supabase.from("profiles").update(updateData).eq("id", review.user_id);
+        }
+      }
 
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      if (error) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Review updated!" });
+        setDialogOpen(false);
+        resetForm();
+        fetchReviews();
+      }
     } else {
-      toast({ title: "Review added!" });
-      setDialogOpen(false);
-      setStudentName(""); setSelectedCourse(""); setRating(5); setComment(""); setImageUrl("");
-      fetchReviews();
+      // Update profile name/avatar if provided
+      if (studentName || imageUrl) {
+        const updateData: any = {};
+        if (studentName) updateData.full_name = studentName;
+        if (imageUrl) updateData.avatar_url = imageUrl;
+        await supabase.from("profiles").update(updateData).eq("id", user.id);
+      }
+
+      const { error } = await supabase.from("reviews").insert({
+        user_id: user.id,
+        course_id: selectedCourse,
+        rating,
+        comment,
+        approved: true,
+      });
+
+      if (error) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Review added!" });
+        setDialogOpen(false);
+        resetForm();
+        fetchReviews();
+      }
     }
     setSaving(false);
   };
@@ -120,7 +170,7 @@ const AdminReviews = () => {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-bold text-foreground">Reviews Management</h2>
-        <Button onClick={() => setDialogOpen(true)}><Plus className="h-4 w-4 mr-2" />Add New Review</Button>
+        <Button onClick={openAddDialog}><Plus className="h-4 w-4 mr-2" />Add New Review</Button>
       </div>
 
       {reviews.length === 0 ? (
@@ -154,6 +204,9 @@ const AdminReviews = () => {
               </div>
               <p className="text-sm text-muted-foreground mb-3">{r.comment}</p>
               <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={() => openEditDialog(r)}>
+                  <Pencil className="h-3.5 w-3.5 mr-1" />Edit
+                </Button>
                 {!r.approved && (
                   <Button size="sm" variant="outline" onClick={() => updateStatus(r.id, true)} className="text-emerald-600">
                     <CheckCircle className="h-3.5 w-3.5 mr-1" />Approve
@@ -170,10 +223,10 @@ const AdminReviews = () => {
         </div>
       )}
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Add New Review</DialogTitle>
+            <DialogTitle>{editingReviewId ? "Edit Review" : "Add New Review"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -189,8 +242,8 @@ const AdminReviews = () => {
                     <button onClick={() => setImageUrl("")} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-0.5"><X className="h-3 w-3" /></button>
                   </div>
                 ) : (
-                  <label className="cursor-pointer">
-                    <Button variant="outline" size="sm" asChild><span><Upload className="h-4 w-4 mr-1" />Upload</span></Button>
+                  <label className="cursor-pointer inline-flex items-center gap-1 border border-input rounded-md px-3 py-1.5 text-sm hover:bg-muted transition-colors">
+                    <Upload className="h-4 w-4" />Upload
                     <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} />
                   </label>
                 )}
@@ -221,7 +274,7 @@ const AdminReviews = () => {
               <Textarea value={comment} onChange={(e) => setComment(e.target.value)} rows={3} placeholder="Write the review..." />
             </div>
             <Button onClick={submitReview} disabled={saving || !selectedCourse || !comment.trim()} className="w-full">
-              {saving ? "Saving..." : "Add Review"}
+              {saving ? "Saving..." : editingReviewId ? "Update Review" : "Add Review"}
             </Button>
           </div>
         </DialogContent>
