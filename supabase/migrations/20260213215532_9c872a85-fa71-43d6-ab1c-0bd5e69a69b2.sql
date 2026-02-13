@@ -1,0 +1,1 @@
+UPDATE courses SET is_public = true WHERE id = '6af9e862-de34-4e51-81c4-765c3ba34f41';
