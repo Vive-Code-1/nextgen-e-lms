@@ -523,6 +523,8 @@ export type Database = {
           created_at: string
           id: string
           rating: number
+          student_image: string | null
+          student_name: string | null
           user_id: string
         }
         Insert: {
@@ -532,6 +534,8 @@ export type Database = {
           created_at?: string
           id?: string
           rating: number
+          student_image?: string | null
+          student_name?: string | null
           user_id: string
         }
         Update: {
@@ -541,6 +545,8 @@ export type Database = {
           created_at?: string
           id?: string
           rating?: number
+          student_image?: string | null
+          student_name?: string | null
           user_id?: string
         }
         Relationships: [

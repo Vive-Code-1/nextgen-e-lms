@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,110 +9,62 @@ import ScrollFloat from "@/components/ui/ScrollFloat";
 import ScrollRevealText from "@/components/ui/ScrollReveal";
 import { Link } from "react-router-dom";
 import SpotlightCard from "@/components/ui/SpotlightCard";
+import { supabase } from "@/integrations/supabase/client";
 
 const spotlightColors: Record<string, string> = {
-  "categories.graphics_design": "rgba(124, 58, 237, 0.15)",
-  "categories.video_editing": "rgba(255, 70, 103, 0.15)",
-  "categories.digital_marketing": "rgba(251, 191, 36, 0.15)",
-  "categories.seo": "rgba(16, 185, 129, 0.15)",
-  "categories.web_dev": "rgba(30, 27, 75, 0.15)",
-  "categories.dropshipping": "rgba(6, 182, 212, 0.15)",
+  "Graphics Design": "rgba(124, 58, 237, 0.15)",
+  "Video Editing": "rgba(255, 70, 103, 0.15)",
+  "Digital Marketing": "rgba(251, 191, 36, 0.15)",
+  "SEO": "rgba(16, 185, 129, 0.15)",
+  "Website Development": "rgba(30, 27, 75, 0.15)",
+  "Dropshipping": "rgba(6, 182, 212, 0.15)",
 };
 
-const courses = [
-  {
-    titleKey: "courses.graphics_design_course",
-    catKey: "categories.graphics_design",
-    image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=400&h=250&fit=crop",
-    rating: 4.8,
-    price: "49.99",
-  },
-  {
-    titleKey: "courses.video_editing_course",
-    catKey: "categories.video_editing",
-    image: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400&h=250&fit=crop",
-    rating: 4.7,
-    price: "44.99",
-  },
-  {
-    titleKey: "courses.digital_marketing_course",
-    catKey: "categories.digital_marketing",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=250&fit=crop",
-    rating: 4.9,
-    price: "59.99",
-  },
-  {
-    titleKey: "courses.seo_course",
-    catKey: "categories.seo",
-    image: "https://images.unsplash.com/photo-1562577309-4932fdd64cd1?w=400&h=250&fit=crop",
-    rating: 4.6,
-    price: "39.99",
-  },
-  {
-    titleKey: "courses.web_dev_course",
-    catKey: "categories.web_dev",
-    image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=250&fit=crop",
-    rating: 4.8,
-    price: "54.99",
-  },
-  {
-    titleKey: "courses.dropshipping_course",
-    catKey: "categories.dropshipping",
-    image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=250&fit=crop",
-    rating: 4.5,
-    price: "34.99",
-  },
-  {
-    titleKey: "courses.adv_graphics_course",
-    catKey: "categories.graphics_design",
-    image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=250&fit=crop",
-    rating: 4.7,
-    price: "54.99",
-  },
-  {
-    titleKey: "courses.fullstack_course",
-    catKey: "categories.web_dev",
-    image: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=250&fit=crop",
-    rating: 4.9,
-    price: "64.99",
-  },
-];
+interface Course {
+  id: string;
+  title: string;
+  slug: string;
+  category: string | null;
+  image_url: string | null;
+  price: number | null;
+  discount_price: number | null;
+  has_discount: boolean;
+  is_free: boolean;
+  level: string;
+}
 
-const CourseCard = ({ course }: { course: (typeof courses)[0] }) => {
-  const { t, language } = useLanguage();
+const CourseCard = ({ course }: { course: Course }) => {
+  const { language } = useLanguage();
   const currency = language === 'en' ? '$' : '৳';
-  const slug = t(course.titleKey).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+  const displayPrice = () => {
+    if (course.is_free) return <span className="text-lg font-bold text-accent">Free</span>;
+    const price = course.has_discount && course.discount_price ? course.discount_price : course.price;
+    return <span className="text-lg font-bold text-accent">{currency}{price}</span>;
+  };
+
   return (
     <Card className="group overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-2 bg-card">
       <div className="overflow-hidden">
         <img
-          src={course.image}
-          alt={t(course.titleKey)}
+          src={course.image_url || "/placeholder.svg"}
+          alt={course.title}
           className="h-48 w-full object-cover transition-transform duration-300 group-hover:scale-105"
           loading="lazy"
         />
       </div>
       <CardContent className="p-5 space-y-3">
-        <Badge className="bg-accent/10 text-accent border-0 hover:bg-accent/20 text-xs font-medium">
-          {t(course.catKey)}
-        </Badge>
-        <h3 className="font-semibold text-base text-primary leading-snug">
-          {t(course.titleKey)}
-        </h3>
-        <div className="flex items-center gap-1">
-          {[...Array(5)].map((_, i) => (
-            <Star
-              key={i}
-              className={`h-4 w-4 ${i < Math.floor(course.rating) ? "fill-yellow-400 text-yellow-400" : "text-muted"}`}
-            />
-          ))}
-          <span className="text-xs text-muted-foreground ml-1">{course.rating}</span>
-        </div>
+        {course.category && (
+          <Badge className="bg-accent/10 text-accent border-0 hover:bg-accent/20 text-xs font-medium">
+            {course.category}
+          </Badge>
+        )}
+        <h3 className="font-semibold text-base text-primary leading-snug line-clamp-2">{course.title}</h3>
         <div className="flex items-center justify-between pt-1">
-          <span className="text-lg font-bold text-accent">{currency}{course.price}</span>
-          <Link to={`/courses/${slug}`}>
+          {displayPrice()}
+          <Link to={`/courses/${course.slug}`}>
             <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 transition-all duration-200 hover:scale-105">
-              {t("courses.enroll")}
+              Enroll Now
             </Button>
           </Link>
         </div>
@@ -123,6 +76,22 @@ const CourseCard = ({ course }: { course: (typeof courses)[0] }) => {
 const PopularCourses = () => {
   const { t } = useLanguage();
   const { ref, isVisible } = useScrollReveal();
+  const [courses, setCourses] = useState<Course[]>([]);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      const { data } = await supabase
+        .from("courses")
+        .select("id, title, slug, category, image_url, price, discount_price, has_discount, is_free, level")
+        .eq("is_public", true)
+        .order("created_at", { ascending: false })
+        .limit(8);
+      setCourses(data || []);
+    };
+    fetchCourses();
+  }, []);
+
+  if (courses.length === 0) return null;
 
   return (
     <section className="py-16 md:py-20 bg-background">
@@ -133,34 +102,20 @@ const PopularCourses = () => {
               {t("courses.title")}
             </ScrollFloat>
           </h2>
-          <ScrollRevealText
-            baseRotation={0}
-            containerClassName="text-muted-foreground max-w-2xl mx-auto"
-            textClassName="text-muted-foreground"
-          >
+          <ScrollRevealText baseRotation={0} containerClassName="text-muted-foreground max-w-2xl mx-auto" textClassName="text-muted-foreground">
             {t("courses.subtitle")}
           </ScrollRevealText>
         </div>
-        <div
-          className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 transition-all duration-700 ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-          }`}
-        >
+        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
           {courses.map((course) => (
-            <SpotlightCard
-              key={course.titleKey}
-              spotlightColor={spotlightColors[course.catKey] || "rgba(124, 58, 237, 0.15)"}
-              className="bg-card"
-            >
+            <SpotlightCard key={course.id} spotlightColor={spotlightColors[course.category || ""] || "rgba(124, 58, 237, 0.15)"} className="bg-card">
               <CourseCard course={course} />
             </SpotlightCard>
           ))}
         </div>
         <div className="text-center mt-10">
           <Link to="/courses">
-            <Button variant="outline" size="lg" className="px-8 font-semibold">
-              {t("courses.view_all")}
-            </Button>
+            <Button variant="outline" size="lg" className="px-8 font-semibold">{t("courses.view_all")}</Button>
           </Link>
         </div>
       </div>
