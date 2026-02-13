@@ -10,16 +10,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { ChevronRight, CreditCard, ShieldCheck, Copy, Phone, MapPin, Truck, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-const coursePrices: Record<string, { title: string; price: number; image: string }> = {
-  "complete-graphics-design-masterclass": { title: "Complete Graphics Design Masterclass", price: 49.99, image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=400&h=250&fit=crop" },
-  "professional-video-editing-with-premiere-pro": { title: "Professional Video Editing with Premiere Pro", price: 44.99, image: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400&h=250&fit=crop" },
-  "digital-marketing-social-media-strategy": { title: "Digital Marketing & Social Media Strategy", price: 59.99, image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=250&fit=crop" },
-  "seo-mastery-rank-1-on-google": { title: "SEO Mastery: Rank #1 on Google", price: 39.99, image: "https://images.unsplash.com/photo-1562577309-4932fdd64cd1?w=400&h=250&fit=crop" },
-  "full-stack-web-development-bootcamp": { title: "Full-Stack Web Development Bootcamp", price: 54.99, image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=250&fit=crop" },
-  "dropshipping-business-from-scratch": { title: "Dropshipping Business from Scratch", price: 34.99, image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=250&fit=crop" },
-  "advanced-graphics-design-portfolio": { title: "Advanced Graphics Design Portfolio", price: 54.99, image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=250&fit=crop" },
-  "full-stack-javascript-development": { title: "Full Stack JavaScript Development", price: 64.99, image: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=250&fit=crop" },
-};
+interface CourseData {
+  title: string;
+  price: number | null;
+  discount_price: number | null;
+  has_discount: boolean;
+  is_free: boolean;
+  image_url: string | null;
+}
 
 const bdManualMethods = [
   { id: "bkash_manual", label: "বিকাশ", number: "01332052874", color: "#E2136E" },
@@ -35,7 +33,8 @@ const Checkout = () => {
   const { toast } = useToast();
   const currency = language === "en" ? "$" : "৳";
 
-  const course = slug ? coursePrices[slug] : null;
+  const [course, setCourse] = useState<CourseData | null>(null);
+  const [courseLoading, setCourseLoading] = useState(true);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -49,6 +48,20 @@ const Checkout = () => {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isBangladesh, setIsBangladesh] = useState(false);
+
+  useEffect(() => {
+    if (!slug) { setCourseLoading(false); return; }
+    const fetchCourse = async () => {
+      const { data } = await supabase
+        .from("courses")
+        .select("title, price, discount_price, has_discount, is_free, image_url")
+        .eq("slug", slug)
+        .maybeSingle();
+      setCourse(data);
+      setCourseLoading(false);
+    };
+    fetchCourse();
+  }, [slug]);
 
   useEffect(() => {
     fetch("https://ipapi.co/json/")
@@ -88,6 +101,7 @@ const Checkout = () => {
       }
 
       if (!course || !slug) throw new Error("Course not found");
+      const coursePrice = course.has_discount && course.discount_price ? course.discount_price : (course.price || 0);
 
       // Call edge function - it handles EVERYTHING (user creation + order + payment)
       const { data, error: fnErr } = await supabase.functions.invoke("process-payment", {
@@ -142,6 +156,18 @@ const Checkout = () => {
       setLoading(false);
     }
   };
+
+  if (courseLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center py-28">
+          <p className="text-muted-foreground">Loading...</p>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!course) {
     return (
@@ -329,7 +355,7 @@ const Checkout = () => {
                 <div className="bg-card border border-border rounded-2xl p-6 sticky top-24 space-y-4">
                   <h2 className="text-xl font-bold text-foreground">Order Summary</h2>
                   <div className="rounded-xl overflow-hidden border border-border">
-                    <img src={course.image} alt={course.title} className="w-full h-40 object-cover" />
+                    <img src={course.image_url || "/placeholder.svg"} alt={course.title} className="w-full h-40 object-cover" />
                   </div>
                   <h3 className="font-semibold text-foreground">{course.title}</h3>
                   <div className="border-t border-border pt-4 space-y-2">
