@@ -46,7 +46,7 @@ const HeroSection = () => {
       {/* Dark Overlay */}
       <div className="absolute inset-0 bg-black/50" />
 
-      <div className="relative z-10 w-full md:max-w-[80vw] mx-auto px-6 md:px-4 pt-20 pb-4 md:pt-32 md:pb-12 flex-1 flex items-center">
+      <div className="relative z-10 w-full md:max-w-[80vw] mx-auto px-4 pt-20 pb-4 md:pt-32 md:pb-12 flex-1 flex items-center">
         <div className="grid md:grid-cols-2 gap-6 md:gap-12 items-center w-full">
           {/* Text */}
           <div className="space-y-3 md:space-y-6 flex flex-col items-center md:items-start text-center md:text-left">
@@ -64,7 +64,7 @@ const HeroSection = () => {
             </ScrollReveal>
 
             {/* Search Bar */}
-            <div className="animate-fade-in-up-delay-2 relative z-50 w-full max-w-xl mx-auto md:mx-0">
+            <div className="animate-fade-in-up-delay-2 relative z-50 w-full max-w-full sm:max-w-xl mx-auto md:mx-0">
               <div className="flex items-center bg-white rounded-full shadow-lg relative">
                 <div className="flex items-center flex-1 min-w-0 px-3 sm:px-4 py-2 sm:py-3">
                    <Search className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground shrink-0" />
@@ -77,7 +77,7 @@ const HeroSection = () => {
                      className="ml-2 sm:ml-3 flex-1 min-w-0 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none border-none"
                    />
                 </div>
-                <div className="flex items-center border-l border-border px-2 sm:px-3">
+                <div className="hidden sm:flex items-center border-l border-border px-2 sm:px-3">
                   <div className="relative" ref={dropdownRef}>
                     <button
                       onClick={() => setCategoryOpen(!categoryOpen)}
@@ -108,7 +108,7 @@ const HeroSection = () => {
             </div>
 
             {/* Stats Cards below search bar */}
-            <div className="mt-2 md:mt-8 w-full max-w-xl mx-auto md:mx-0">
+            <div className="mt-2 md:mt-8 w-full max-w-full sm:max-w-xl mx-auto md:mx-0">
               <StatsSection embedded />
             </div>
           </div>
