@@ -6,7 +6,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Star, Clock, Users, BookOpen, Play, Heart, Share2, ChevronRight, Award, Monitor, FileText, Download, Smartphone } from "lucide-react";
+import { Star, Clock, Users, BookOpen, Play, Share2, ChevronRight, Award, Monitor, FileText, Download, Smartphone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -267,10 +267,7 @@ const CourseDetails = () => {
                 <div className="bg-card border border-border rounded-2xl p-6 sticky top-24 space-y-5">
                   {displayPrice()}
 
-                  <div className="flex gap-2">
-                    <Button variant="outline" className="flex-1 gap-2"><Heart className="h-4 w-4" />Wishlist</Button>
-                    <Button variant="outline" className="flex-1 gap-2"><Share2 className="h-4 w-4" />Share</Button>
-                  </div>
+                   <Button variant="outline" className="w-full gap-2"><Share2 className="h-4 w-4" />Share</Button>
 
                   {course.is_free ? (
                     <Button onClick={handleFreeEnroll} disabled={enrolling || !user} className="w-full bg-accent text-accent-foreground hover:bg-accent/90 text-lg font-bold py-6">

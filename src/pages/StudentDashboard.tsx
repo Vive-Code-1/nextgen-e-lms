@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   GraduationCap, LayoutDashboard, Bell, BookOpen, ClipboardList,
-  Star, User, LogOut, Heart, FileText, ShoppingBag, Menu, X
+  Star, User, LogOut, ShoppingBag, Menu, X
 } from "lucide-react";
 import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
 import DashboardHome from "@/components/dashboard/DashboardHome";
@@ -13,15 +13,11 @@ import Announcements from "@/components/dashboard/Announcements";
 import Assignments from "@/components/dashboard/Assignments";
 import Reviews from "@/components/dashboard/Reviews";
 import Profile from "@/components/dashboard/Profile";
-import Wishlist from "@/components/dashboard/Wishlist";
-import QuizAttempts from "@/components/dashboard/QuizAttempts";
 import PurchaseHistory from "@/components/dashboard/PurchaseHistory";
 
 const sidebarLinks = [
   { icon: LayoutDashboard, label: "Dashboard", id: "dashboard" },
   { icon: BookOpen, label: "My Courses", id: "courses" },
-  { icon: Heart, label: "Wishlist", id: "wishlist" },
-  { icon: FileText, label: "Quiz Attempts", id: "quiz-attempts" },
   { icon: ShoppingBag, label: "Purchase History", id: "purchases" },
   { icon: Bell, label: "Announcements", id: "announcements" },
   { icon: ClipboardList, label: "Assignments", id: "assignments" },
@@ -60,8 +56,6 @@ const StudentDashboard = () => {
     switch (activeTab) {
       case "dashboard": return <DashboardHome onNavigate={handleNavigate} />;
       case "courses": return <MyCourses onOpenCourse={openCourse} />;
-      case "wishlist": return <Wishlist />;
-      case "quiz-attempts": return <QuizAttempts />;
       case "purchases": return <PurchaseHistory />;
       case "announcements": return <Announcements />;
       case "assignments": return <Assignments />;
