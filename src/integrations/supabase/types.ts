@@ -117,45 +117,125 @@ export type Database = {
           },
         ]
       }
+      course_faqs: {
+        Row: {
+          answer: string
+          course_id: string
+          created_at: string
+          id: string
+          is_enabled: boolean
+          question: string
+          sort_order: number
+        }
+        Insert: {
+          answer: string
+          course_id: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          question: string
+          sort_order?: number
+        }
+        Update: {
+          answer?: string
+          course_id?: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          question?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_faqs_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       courses: {
         Row: {
           category: string | null
           created_at: string | null
           description: string | null
+          discount_price: number | null
           duration: string | null
+          expiry_months: number | null
+          expiry_period: string
+          has_discount: boolean
           id: string
           image_url: string | null
           instructor_name: string | null
+          is_featured: boolean
+          is_free: boolean
+          is_public: boolean
+          language: string
+          level: string
+          max_students: number
           original_price: number | null
           price: number | null
+          requirements: Json
+          short_description: string | null
           slug: string
           title: string
+          video_url: string | null
+          what_will_learn: Json
         }
         Insert: {
           category?: string | null
           created_at?: string | null
           description?: string | null
+          discount_price?: number | null
           duration?: string | null
+          expiry_months?: number | null
+          expiry_period?: string
+          has_discount?: boolean
           id?: string
           image_url?: string | null
           instructor_name?: string | null
+          is_featured?: boolean
+          is_free?: boolean
+          is_public?: boolean
+          language?: string
+          level?: string
+          max_students?: number
           original_price?: number | null
           price?: number | null
+          requirements?: Json
+          short_description?: string | null
           slug: string
           title: string
+          video_url?: string | null
+          what_will_learn?: Json
         }
         Update: {
           category?: string | null
           created_at?: string | null
           description?: string | null
+          discount_price?: number | null
           duration?: string | null
+          expiry_months?: number | null
+          expiry_period?: string
+          has_discount?: boolean
           id?: string
           image_url?: string | null
           instructor_name?: string | null
+          is_featured?: boolean
+          is_free?: boolean
+          is_public?: boolean
+          language?: string
+          level?: string
+          max_students?: number
           original_price?: number | null
           price?: number | null
+          requirements?: Json
+          short_description?: string | null
           slug?: string
           title?: string
+          video_url?: string | null
+          what_will_learn?: Json
         }
         Relationships: []
       }
@@ -231,6 +311,7 @@ export type Database = {
           notes: string | null
           sort_order: number
           title: string
+          topic: string | null
           video_url: string | null
         }
         Insert: {
@@ -240,6 +321,7 @@ export type Database = {
           notes?: string | null
           sort_order?: number
           title: string
+          topic?: string | null
           video_url?: string | null
         }
         Update: {
@@ -249,6 +331,7 @@ export type Database = {
           notes?: string | null
           sort_order?: number
           title?: string
+          topic?: string | null
           video_url?: string | null
         }
         Relationships: [
