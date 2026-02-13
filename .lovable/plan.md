@@ -1,69 +1,54 @@
 
+# Fix Reviews, Assignments & Dynamic Testimonials
 
-# Fix 5 Admin Dashboard Issues
+## Issue 1: Image Upload Fails with RLS Error in Add New Review
 
-## Issue 1: Add FAQ Button Not Working
+**Root Cause**: The `avatars` storage bucket RLS policy requires uploads to be in `{user_id}/` folder (e.g., `abc123/review-1234.jpg`), but the code uploads to `review-${Date.now()}.${ext}` at the root level.
 
-**Root Cause**: In `CourseWizard.tsx` line 555, the FAQ form visibility condition is:
-```
-(editingFaqId !== null || faqForm.question || (!editingFaqId && faqs.length === 0))
-```
-When clicking "Add FAQ", `editingFaqId` is set to `null` and `faqForm.question` is cleared to `""`. If FAQs already exist (`faqs.length > 0`), all three conditions are false, so the form never appears.
+**Fix in `AdminReviews.tsx`**:
+- Change upload path from `review-${Date.now()}.${ext}` to `${user.id}/review-${Date.now()}.${ext}`
+- This matches the RLS policy: `(auth.uid())::text = (storage.foldername(name))[1]`
 
-**Fix**: Add a `showFaqForm` boolean state. Set it to `true` when "Add FAQ" is clicked, `false` when saving or canceling. Use this state to control form visibility instead of the current fragile condition.
+## Issue 2: Add Edit Button to Reviews
 
----
+**Changes in `AdminReviews.tsx`**:
+- Add an "Edit" button (pencil icon) to each review card
+- When clicked, open the same dialog pre-filled with the review's data (name, course, rating, comment, image)
+- Track `editingReviewId` state to differentiate between add and edit modes
+- On save in edit mode, use `supabase.from("reviews").update(...)` instead of insert
+- Also update the profile name/avatar if changed
 
-## Issue 2: "Title is Required" Error on Update Course
+## Issue 3: Dynamic Reviews on Home Page Testimonials
 
-**Root Cause**: In `CourseWizard.tsx`, the `saveCourse` function (line 170) checks `!title.trim()`. The title state is populated via a `useEffect` that depends on `[course]`. However, the issue is that when `AdminCourseManager` passes the course object, the component may re-render and reset state before the effect fires. Additionally, the toast message is misleading when it could be the slug that's empty.
+**Changes in `TestimonialCarousel.tsx`**:
+- Fetch approved reviews from Supabase on mount
+- Combine the static demo testimonials with dynamic DB reviews
+- Each dynamic review shows: profile avatar, profile name, course title, rating, and comment
+- Both static and dynamic reviews scroll together in the same infinite carousel
 
-**Fix**: 
-- Populate initial state values directly from the `course` prop using default values in `useState` calls or by initializing in the same render cycle (using a lazy initializer or checking `course` directly).
-- Use a ref or initialization flag to ensure data is loaded on first render.
-- Improve the validation error message to be specific about which field is missing.
+## Issue 4: Admin Assignments - Redesign to Match Reference
 
----
+**Database Migration**: Add columns to `assignments` table:
+- `total_marks` (integer, default 0)
+- `instructions` (text, nullable)
+- `status` (text, default 'published' -- values: published, draft)
 
-## Issue 3: Remove Lessons Management Tab
+**Rewrite `AdminAssignments.tsx`** to match the reference screenshots:
+- Header with "Assignments" title and "Add Assignment" button (green pill)
+- Status filter dropdown and search bar
+- Table layout with columns: Assignment Name (with course subtitle), Total Marks, Total Submissions count, Status (Published/Draft badge), Edit and Delete actions
+- "Add Assignment" opens a dialog with: Course (dropdown), Assignment Title, Description, Instructions, Last Date (date picker), Status (Published/Draft dropdown)
+- Edit button opens the same dialog pre-filled
+- Delete button removes the assignment
 
-**Changes**:
-- Remove `AdminLessons` import and the `{ icon: ClipboardList, label: "Lessons", id: "lessons" }` entry from `sidebarLinks` in `AdminDashboard.tsx`.
-- Remove the `{activeTab === "lessons" && <AdminLessons />}` render line.
-- The `AdminLessons.tsx` file can be deleted since lessons are now managed inside the CourseWizard's Curriculum step.
+## Issue 5: Student Assignments - Card-Based Design
 
----
-
-## Issue 4: Reviews Management - Show Reviews + Approve/Add New
-
-**Root Cause**: The `AdminReviews` component fetches reviews with a join on `profiles:user_id(full_name, email)`. This join syntax may fail silently, returning empty results. Also, the reviews RLS policy shows "Read approved reviews" uses `((approved = true) OR (auth.uid() = user_id))` -- but the admin has a separate ALL policy that should override this.
-
-**Fix - AdminReviews.tsx** (complete rewrite):
-- Fix the query to properly join profiles and courses
-- Show all reviews (pending + approved) with Approve/Reject buttons
-- Add "Add New Review" dialog with:
-  - Student name (text input)
-  - Student image URL or upload (to avatars bucket)
-  - Course selection (dropdown from courses table)
-  - Rating (star picker)
-  - Comment (textarea)
-  - Auto-set `approved: true` for admin-created reviews
-- Reviews created here will dynamically appear on home page testimonials and course detail pages
-
----
-
-## Issue 5: User Management - Card Layout for Students
-
-**Changes to `AdminUserManagement.tsx`**:
-- Replace the students table with a responsive **card grid** layout (3 columns on desktop, 2 on tablet, 1 on mobile)
-- Each card shows:
-  - Avatar image (from `profiles.avatar_url`, fallback to initials)
-  - Full name
-  - Email
-  - Join date
-  - Enrolled courses count
-- Add a search bar to filter students by name/email
-- Keep instructors tab as a table (simpler data)
+**Rewrite `src/components/dashboard/Assignments.tsx`**:
+- Currently shows assignments in a list; the reference image shows a 4-column card grid
+- Each card shows: assignment title, course name, description, and submission status
+- Cards with no content appear as empty placeholders (matching the reference with bordered empty cards)
+- Only show cards for assignments that exist (no empty placeholder cards)
+- Clean card design with: title bold at top, course name in accent color below, description text, and "Submit Assignment" button at bottom
 
 ---
 
@@ -71,17 +56,19 @@ When clicking "Add FAQ", `editingFaqId` is set to `null` and `faqForm.question` 
 
 | File | Changes |
 |------|---------|
-| `src/components/admin/CourseWizard.tsx` | Fix FAQ form visibility with `showFaqForm` state; fix title initialization for edit mode |
-| `src/pages/AdminDashboard.tsx` | Remove Lessons sidebar link and tab rendering |
-| `src/components/admin/AdminReviews.tsx` | Full rewrite: fix query, add approve/reject, add "Add New Review" dialog |
-| `src/components/admin/AdminUserManagement.tsx` | Replace students table with card grid + search |
+| `src/components/admin/AdminReviews.tsx` | Fix upload path, add edit functionality |
+| `src/components/home/TestimonialCarousel.tsx` | Fetch and merge dynamic approved reviews from DB |
+| `src/components/admin/AdminAssignments.tsx` | Full redesign: table layout, dialog form, status/search filters, edit/delete |
+| `src/components/dashboard/Assignments.tsx` | Redesign to responsive card grid layout |
+| SQL Migration | Add `total_marks`, `instructions`, `status` columns to `assignments` table |
+| `src/integrations/supabase/types.ts` | Update types for new assignment columns |
 
-## Files to Delete
+## Database Migration Details
 
-| File | Reason |
-|------|--------|
-| `src/components/admin/AdminLessons.tsx` | Lessons now managed inside CourseWizard Curriculum step |
+```text
+ALTER TABLE assignments ADD COLUMN total_marks integer NOT NULL DEFAULT 0;
+ALTER TABLE assignments ADD COLUMN instructions text;
+ALTER TABLE assignments ADD COLUMN status text NOT NULL DEFAULT 'published';
+```
 
-## No Database Changes Required
-All tables (`reviews`, `profiles`, `courses`, `course_faqs`) already have the needed columns and RLS policies.
-
+No new RLS policies needed -- existing admin ALL policy covers these columns.
