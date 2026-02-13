@@ -28,7 +28,7 @@ const SpotlightCard = ({
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={cn("relative overflow-hidden rounded-xl", className)}
+      className={cn("relative overflow-hidden rounded-xl h-full", className)}
     >
       {/* Spotlight overlay */}
       <div
