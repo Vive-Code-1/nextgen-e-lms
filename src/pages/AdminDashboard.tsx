@@ -19,6 +19,7 @@ import AdminAssignments from "@/components/admin/AdminAssignments";
 import AdminAnalyticsChart from "@/components/admin/AdminAnalyticsChart";
 import AdminCourseManager from "@/components/admin/AdminCourseManager";
 import AdminUserManagement from "@/components/admin/AdminUserManagement";
+import AdminOrderManagement from "@/components/admin/AdminOrderManagement";
 
 const sidebarLinks = [
   { icon: LayoutDashboard, label: "Dashboard", id: "dashboard" },
@@ -310,12 +311,7 @@ const AdminDashboard = () => {
           )}
 
           {activeTab === "course-manager" && <AdminCourseManager />}
-          {activeTab === "orders" && (
-            <div className="bg-card border border-border rounded-2xl p-6">
-              <h2 className="text-lg font-bold text-foreground mb-4">All Orders</h2>
-              {recentOrders.length === 0 ? <p className="text-muted-foreground text-sm">No orders yet.</p> : renderOrdersTable(recentOrders, true)}
-            </div>
-          )}
+          {activeTab === "orders" && <AdminOrderManagement />}
 
           {activeTab === "settings" && (
             <div className="space-y-6">

@@ -267,6 +267,7 @@ export type Database = {
           course_id: string | null
           created_at: string | null
           currency: string | null
+          deleted_at: string | null
           id: string
           payment_method: string | null
           payment_status: string | null
@@ -280,6 +281,7 @@ export type Database = {
           course_id?: string | null
           created_at?: string | null
           currency?: string | null
+          deleted_at?: string | null
           id?: string
           payment_method?: string | null
           payment_status?: string | null
@@ -293,6 +295,7 @@ export type Database = {
           course_id?: string | null
           created_at?: string | null
           currency?: string | null
+          deleted_at?: string | null
           id?: string
           payment_method?: string | null
           payment_status?: string | null
