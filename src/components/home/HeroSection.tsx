@@ -46,10 +46,10 @@ const HeroSection = () => {
       {/* Dark Overlay */}
       <div className="absolute inset-0 bg-black/50" />
 
-      <div className="relative z-10 w-full max-w-[80vw] mx-auto px-5 md:px-4 pt-28 pb-8 md:pt-32 md:pb-12 flex-1 flex items-center">
+      <div className="relative z-10 w-full md:max-w-[80vw] mx-auto px-6 md:px-4 pt-28 pb-8 md:pt-32 md:pb-12 flex-1 flex items-center">
         <div className="grid md:grid-cols-2 gap-12 items-center w-full">
           {/* Text */}
-          <div className="space-y-6">
+          <div className="space-y-6 flex flex-col items-center md:items-start text-center md:text-left">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight text-white animate-fade-in-up">
               {t("hero.headline_1")}
               <span className="text-coral-pink">{t("hero.headline_highlight")}</span>
@@ -57,16 +57,16 @@ const HeroSection = () => {
             </h1>
             <ScrollReveal
               baseRotation={0}
-              containerClassName="text-lg text-white/70 max-w-lg animate-fade-in-up-delay-1"
+              containerClassName="text-lg text-white/70 max-w-lg animate-fade-in-up-delay-1 mx-auto md:mx-0"
               textClassName="text-lg text-white/70"
             >
               {t("hero.subheadline")}
             </ScrollReveal>
 
             {/* Search Bar */}
-            <div className="animate-fade-in-up-delay-2 relative z-50">
-              <div className="flex items-center bg-white rounded-full shadow-lg max-w-xl relative">
-                <div className="flex items-center flex-1 px-4 py-3">
+            <div className="animate-fade-in-up-delay-2 relative z-50 w-full max-w-xl mx-auto md:mx-0">
+              <div className="flex items-center bg-white rounded-full shadow-lg relative">
+                <div className="flex items-center flex-1 min-w-0 px-3 sm:px-4 py-3">
                    <Search className="h-5 w-5 text-muted-foreground shrink-0" />
                    <input
                      type="text"
@@ -74,14 +74,14 @@ const HeroSection = () => {
                      value={searchText}
                      onChange={(e) => setSearchText(e.target.value)}
                      onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                     className="ml-3 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none border-none"
+                     className="ml-2 sm:ml-3 flex-1 min-w-0 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none border-none"
                    />
                 </div>
-                <div className="flex items-center border-l border-border px-3">
+                <div className="flex items-center border-l border-border px-2 sm:px-3">
                   <div className="relative" ref={dropdownRef}>
                     <button
                       onClick={() => setCategoryOpen(!categoryOpen)}
-                      className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors py-2 px-1"
+                      className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors py-2 px-1 whitespace-nowrap"
                     >
                       {selectedCategory || t("hero.category")}
                       <ChevronDown className="h-4 w-4" />
@@ -108,7 +108,7 @@ const HeroSection = () => {
             </div>
 
             {/* Stats Cards below search bar */}
-            <div className="mt-8 max-w-xl">
+            <div className="mt-8 w-full max-w-xl mx-auto md:mx-0">
               <StatsSection embedded />
             </div>
           </div>
