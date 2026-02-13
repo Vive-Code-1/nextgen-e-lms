@@ -64,7 +64,7 @@ const HeroSection = () => {
             </ScrollReveal>
 
             {/* Search Bar */}
-            <div className="animate-fade-in-up-delay-2">
+            <div className="animate-fade-in-up-delay-2 relative z-50">
               <div className="flex items-center bg-white rounded-full shadow-lg max-w-xl relative">
                 <div className="flex items-center flex-1 px-4 py-3">
                    <Search className="h-5 w-5 text-muted-foreground shrink-0" />
