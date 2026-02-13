@@ -20,8 +20,8 @@ const CategorySection = () => {
     <section className="py-16">
       <div className="max-w-[80vw] mx-auto px-4">
         <div className="text-center mb-10">
-          <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">
-            <ScrollFloat textClassName="text-3xl md:text-4xl font-extrabold text-foreground">
+          <h2 className="text-2xl md:text-4xl font-extrabold text-foreground mb-3">
+            <ScrollFloat textClassName="text-2xl md:text-4xl font-extrabold text-foreground">
               {t("categories.title")}
             </ScrollFloat>
           </h2>

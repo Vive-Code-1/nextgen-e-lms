@@ -81,6 +81,8 @@ const CourseWizard = ({ course, onClose, onSaved }: CourseWizardProps) => {
   const [expiryPeriod, setExpiryPeriod] = useState(course?.expiry_period || "lifetime");
   const [expiryMonths, setExpiryMonths] = useState(course?.expiry_months?.toString() || "");
   const [instructorName, setInstructorName] = useState(course?.instructor_name || "");
+  const [instructorImage, setInstructorImage] = useState(course?.instructor_image || "");
+  const [uploadingInstructorImg, setUploadingInstructorImg] = useState(false);
 
   const isEditMode = !!course;
   const courseId = course?.id;
@@ -158,7 +160,7 @@ const CourseWizard = ({ course, onClose, onSaved }: CourseWizardProps) => {
     setSaving(true);
     const payload: any = {
       title, slug, category: category || null, description: description || null,
-      image_url: imageUrl || null, instructor_name: instructorName || null,
+      image_url: imageUrl || null, instructor_name: instructorName || null, instructor_image: instructorImage || null,
       price: isFree ? 0 : (price ? Number(price) : 0),
       original_price: price ? Number(price) : 0,
       level, language, max_students: maxStudents, is_public: isPublic,
@@ -358,6 +360,42 @@ const CourseWizard = ({ course, onClose, onSaved }: CourseWizardProps) => {
           <div>
             <Label>Instructor Name</Label>
             <Input value={instructorName} onChange={(e) => setInstructorName(e.target.value)} />
+          </div>
+          <div>
+            <Label>Instructor Image</Label>
+            <div className="mt-2 flex items-center gap-4">
+              {instructorImage ? (
+                <div className="relative">
+                  <img src={instructorImage} alt="Instructor" className="w-16 h-16 rounded-full object-cover border border-border" />
+                  <Button size="icon" variant="ghost" className="absolute -top-2 -right-2 h-6 w-6" onClick={() => setInstructorImage("")}>
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-xs">No Image</div>
+              )}
+              <label className="cursor-pointer">
+                <Button variant="outline" size="sm" asChild disabled={uploadingInstructorImg}><span>{uploadingInstructorImg ? "Uploading..." : "Upload"}</span></Button>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const f = e.target.files?.[0];
+                    if (!f) return;
+                    if (f.size > 2 * 1024 * 1024) { toast({ title: "File too large", description: "Max 2MB", variant: "destructive" }); return; }
+                    setUploadingInstructorImg(true);
+                    const ext = f.name.split(".").pop();
+                    const path = `instructor-images/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+                    const { error } = await supabase.storage.from("course-thumbnails").upload(path, f);
+                    if (error) { toast({ title: "Upload failed", description: error.message, variant: "destructive" }); setUploadingInstructorImg(false); return; }
+                    const { data: urlData } = supabase.storage.from("course-thumbnails").getPublicUrl(path);
+                    setInstructorImage(urlData.publicUrl);
+                    setUploadingInstructorImg(false);
+                  }}
+                />
+              </label>
+            </div>
           </div>
           <div className="flex justify-end">
             <Button onClick={() => setStep(2)} disabled={!canNext(1)}>Next</Button>
