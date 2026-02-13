@@ -32,32 +32,21 @@ const Contact = () => {
           </div>
         </section>
 
-        {/* Info Cards */}
-        <section className="py-16">
-          <div className="max-w-[80vw] mx-auto px-4">
-            <div className="grid md:grid-cols-3 gap-6">
-              {infoCards.map((card, i) =>
-              <div key={i} className="bg-card border border-border rounded-2xl p-6 text-center hover:shadow-lg transition-shadow">
-                  <div className={`rounded-full ${card.bg} p-4 w-fit mx-auto mb-4`}>
-                    <card.icon className={`h-7 w-7 ${card.color}`} />
-                  </div>
-                  <h3 className="text-lg font-bold text-foreground mb-2">{card.title}</h3>
-                  <p className="text-sm text-muted-foreground">{card.line1}</p>
-                  <p className="text-sm text-muted-foreground">{card.line2}</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-
-        {/* Contact Form */}
+        {/* Contact Section */}
         <section className="py-16 bg-muted/50">
           <div className="max-w-[80vw] mx-auto px-4">
             <div className="grid md:grid-cols-2 gap-12 items-start">
               <div className="space-y-6">
-                <h2 className="text-3xl md:text-4xl font-extrabold text-foreground">{t("contact.form_title")}</h2>
-                <p className="text-muted-foreground leading-relaxed">{t("contact.form_desc")}</p>
-                
+                {infoCards.map((card, i) =>
+                  <div key={i} className="bg-card border border-border rounded-2xl p-6 text-center hover:shadow-lg transition-shadow">
+                    <div className={`rounded-full ${card.bg} p-4 w-fit mx-auto mb-4`}>
+                      <card.icon className={`h-7 w-7 ${card.color}`} />
+                    </div>
+                    <h3 className="text-lg font-bold text-foreground mb-2">{card.title}</h3>
+                    <p className="text-sm text-muted-foreground">{card.line1}</p>
+                    <p className="text-sm text-muted-foreground">{card.line2}</p>
+                  </div>
+                )}
               </div>
               <div className="bg-card border border-border rounded-2xl p-8">
                 <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
