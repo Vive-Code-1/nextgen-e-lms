@@ -1,29 +1,55 @@
-import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ScrollFloat from "@/components/ui/ScrollFloat";
-import ScrollReveal from "@/components/ui/ScrollReveal";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+
+const faqKeys = [
+  { q: "faq.1.q", a: "faq.1.a" },
+  { q: "faq.2.q", a: "faq.2.a" },
+  { q: "faq.3.q", a: "faq.3.a" },
+  { q: "faq.4.q", a: "faq.4.a" },
+  { q: "faq.5.q", a: "faq.5.a" },
+  { q: "faq.6.q", a: "faq.6.a" },
+];
 
 const ShareKnowledge = () => {
   const { t } = useLanguage();
 
   return (
     <section className="py-16 md:py-20 gradient-section">
-      <div className="max-w-[80vw] mx-auto px-4 text-center space-y-6">
-        <h2 className="text-3xl md:text-4xl font-extrabold text-white">
-          <ScrollFloat textClassName="text-3xl md:text-4xl font-extrabold text-white">
-            {t("share.title")}
-          </ScrollFloat>
-        </h2>
-        <ScrollReveal
-          baseRotation={0}
-          containerClassName="text-white/70 max-w-2xl mx-auto"
-          textClassName="text-white/70"
-        >
-          {t("share.desc")}
-        </ScrollReveal>
-        <Button className="bg-accent text-accent-foreground hover:bg-accent/90 px-8 py-3 text-lg font-semibold">
-          {t("share.cta")}
-        </Button>
+      <div className="max-w-[80vw] mx-auto px-4">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-3">
+            <ScrollFloat textClassName="text-3xl md:text-4xl font-extrabold text-white">
+              {t("faq.title")}
+            </ScrollFloat>
+          </h2>
+          <p className="text-white/70 max-w-2xl mx-auto">
+            {t("faq.subtitle")}
+          </p>
+        </div>
+        <div className="max-w-3xl mx-auto">
+          <Accordion type="single" collapsible className="space-y-3">
+            {faqKeys.map((faq, i) => (
+              <AccordionItem
+                key={i}
+                value={`faq-${i}`}
+                className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-6 data-[state=open]:bg-white/15"
+              >
+                <AccordionTrigger className="text-white hover:no-underline text-left font-semibold">
+                  {t(faq.q)}
+                </AccordionTrigger>
+                <AccordionContent className="text-white/80 leading-relaxed">
+                  {t(faq.a)}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
       </div>
     </section>
   );

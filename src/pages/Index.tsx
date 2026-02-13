@@ -4,6 +4,7 @@ import CategorySection from "@/components/home/CategorySection";
 import PopularCourses from "@/components/home/PopularCourses";
 import MasterSkills from "@/components/home/MasterSkills";
 import FeaturedInstructors from "@/components/home/FeaturedInstructors";
+import TestimonialCarousel from "@/components/home/TestimonialCarousel";
 import TrustedBy from "@/components/home/TrustedBy";
 import WhyChooseUs from "@/components/home/WhyChooseUs";
 import ShareKnowledge from "@/components/home/ShareKnowledge";
@@ -19,6 +20,7 @@ const Index = () => {
         <PopularCourses />
         <MasterSkills />
         <FeaturedInstructors />
+        <TestimonialCarousel />
         <TrustedBy />
         <WhyChooseUs />
         <ShareKnowledge />

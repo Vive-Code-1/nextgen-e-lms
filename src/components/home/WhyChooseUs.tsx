@@ -3,11 +3,27 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import ScrollFloat from "@/components/ui/ScrollFloat";
 import ScrollRevealText from "@/components/ui/ScrollReveal";
+import SpotlightCard from "@/components/ui/SpotlightCard";
 
 const features = [
-  { icon: Award, titleKey: "why.cert.title", descKey: "why.cert.desc" },
-  { icon: Headphones, titleKey: "why.support.title", descKey: "why.support.desc" },
-  { icon: Users, titleKey: "why.mentors.title", descKey: "why.mentors.desc" },
+  {
+    icon: Award,
+    titleKey: "why.cert.title",
+    descKey: "why.cert.desc",
+    spotlightColor: "rgba(124, 58, 237, 0.2)",
+  },
+  {
+    icon: Headphones,
+    titleKey: "why.support.title",
+    descKey: "why.support.desc",
+    spotlightColor: "rgba(251, 191, 36, 0.2)",
+  },
+  {
+    icon: Users,
+    titleKey: "why.mentors.title",
+    descKey: "why.mentors.desc",
+    spotlightColor: "rgba(16, 185, 129, 0.2)",
+  },
 ];
 
 const WhyChooseUs = () => {
@@ -37,16 +53,23 @@ const WhyChooseUs = () => {
           }`}
         >
           {features.map((f) => (
-            <div
+            <SpotlightCard
               key={f.titleKey}
-              className="flex flex-col items-center text-center p-8 rounded-xl bg-card shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+              spotlightColor={f.spotlightColor}
+              className="bg-card shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
             >
-              <div className="rounded-full bg-accent/10 p-4 mb-5">
-                <f.icon className="h-8 w-8 text-accent" />
+              <div className="flex flex-col items-center text-center p-8">
+                <div className="rounded-full bg-accent/10 p-4 mb-5">
+                  <f.icon className="h-8 w-8 text-accent" />
+                </div>
+                <h3 className="text-lg font-semibold text-primary mb-2">
+                  {t(f.titleKey)}
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {t(f.descKey)}
+                </p>
               </div>
-              <h3 className="text-lg font-semibold text-primary mb-2">{t(f.titleKey)}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{t(f.descKey)}</p>
-            </div>
+            </SpotlightCard>
           ))}
         </div>
       </div>
