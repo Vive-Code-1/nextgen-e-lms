@@ -7,6 +7,16 @@ import { useScrollReveal } from "@/hooks/useScrollReveal";
 import ScrollFloat from "@/components/ui/ScrollFloat";
 import ScrollRevealText from "@/components/ui/ScrollReveal";
 import { Link } from "react-router-dom";
+import SpotlightCard from "@/components/ui/SpotlightCard";
+
+const spotlightColors: Record<string, string> = {
+  "categories.graphics_design": "rgba(124, 58, 237, 0.15)",
+  "categories.video_editing": "rgba(255, 70, 103, 0.15)",
+  "categories.digital_marketing": "rgba(251, 191, 36, 0.15)",
+  "categories.seo": "rgba(16, 185, 129, 0.15)",
+  "categories.web_dev": "rgba(30, 27, 75, 0.15)",
+  "categories.dropshipping": "rgba(6, 182, 212, 0.15)",
+};
 
 const courses = [
   {
@@ -137,7 +147,13 @@ const PopularCourses = () => {
           }`}
         >
           {courses.map((course) => (
-            <CourseCard key={course.titleKey} course={course} />
+            <SpotlightCard
+              key={course.titleKey}
+              spotlightColor={spotlightColors[course.catKey] || "rgba(124, 58, 237, 0.15)"}
+              className="bg-card"
+            >
+              <CourseCard course={course} />
+            </SpotlightCard>
           ))}
         </div>
         <div className="text-center mt-10">
