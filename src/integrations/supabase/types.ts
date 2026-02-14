@@ -126,6 +126,42 @@ export type Database = {
           },
         ]
       }
+      checkout_attempts: {
+        Row: {
+          course_slug: string | null
+          course_title: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          ip_address: string | null
+          is_converted: boolean
+          phone: string | null
+        }
+        Insert: {
+          course_slug?: string | null
+          course_title?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          ip_address?: string | null
+          is_converted?: boolean
+          phone?: string | null
+        }
+        Update: {
+          course_slug?: string | null
+          course_title?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          ip_address?: string | null
+          is_converted?: boolean
+          phone?: string | null
+        }
+        Relationships: []
+      }
       contact_leads: {
         Row: {
           created_at: string
@@ -457,6 +493,7 @@ export type Database = {
           currency: string | null
           deleted_at: string | null
           id: string
+          ip_address: string | null
           payment_method: string | null
           payment_status: string | null
           sender_phone: string | null
@@ -471,6 +508,7 @@ export type Database = {
           currency?: string | null
           deleted_at?: string | null
           id?: string
+          ip_address?: string | null
           payment_method?: string | null
           payment_status?: string | null
           sender_phone?: string | null
@@ -485,6 +523,7 @@ export type Database = {
           currency?: string | null
           deleted_at?: string | null
           id?: string
+          ip_address?: string | null
           payment_method?: string | null
           payment_status?: string | null
           sender_phone?: string | null

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -9,6 +9,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ChevronRight, CreditCard, ShieldCheck, Copy, Phone, MapPin, Truck, Eye, EyeOff, Tag, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 
 interface CourseData {
   title: string;
@@ -55,6 +59,13 @@ const Checkout = () => {
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount_type: string; discount_value: number } | null>(null);
   const [couponError, setCouponError] = useState("");
 
+  // Rate limit popup
+  const [rateLimitOpen, setRateLimitOpen] = useState(false);
+  const [rateLimitMessage, setRateLimitMessage] = useState("");
+
+  // Checkout attempt tracking
+  const attemptSavedRef = useRef(false);
+
   useEffect(() => {
     if (!slug) { setCourseLoading(false); return; }
     const fetchCourse = async () => {
@@ -77,6 +88,31 @@ const Checkout = () => {
       })
       .catch(() => {});
   }, []);
+
+  // Debounced checkout attempt save
+  useEffect(() => {
+    if (user) return; // Don't track logged-in users
+    if (attemptSavedRef.current) return;
+    if (!email && !phone) return;
+
+    const timer = setTimeout(async () => {
+      if (attemptSavedRef.current) return;
+      attemptSavedRef.current = true;
+      try {
+        await supabase.functions.invoke("save-checkout-attempt", {
+          body: {
+            email: email || null,
+            phone: phone || null,
+            full_name: fullName || null,
+            course_slug: slug || null,
+            course_title: course?.title || null,
+          },
+        });
+      } catch {}
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [email, phone, fullName, slug, course?.title, user]);
 
   // Calculate effective price
   const coursePrice = course
@@ -116,15 +152,12 @@ const Checkout = () => {
       if (error) throw error;
       if (!data) { setCouponError("কুপন কোড সঠিক নয়"); return; }
 
-      // Check expiry
       if (data.valid_until && new Date(data.valid_until) < new Date()) {
         setCouponError("এই কুপনের মেয়াদ শেষ হয়ে গেছে"); return;
       }
-      // Check max uses
       if (data.max_uses && data.times_used >= data.max_uses) {
         setCouponError("এই কুপন সর্বোচ্চ ব্যবহার সীমায় পৌঁছেছে"); return;
       }
-      // Check min order
       if (data.min_order_amount && coursePrice < data.min_order_amount) {
         setCouponError(`সর্বনিম্ন অর্ডার ${currency}${data.min_order_amount} হতে হবে`); return;
       }
@@ -187,6 +220,15 @@ const Checkout = () => {
       });
 
       if (fnErr) throw fnErr;
+
+      // Check for rate limit error
+      if (data?.error === "rate_limit") {
+        setRateLimitMessage(data.message);
+        setRateLimitOpen(true);
+        setLoading(false);
+        return;
+      }
+
       if (data?.error) throw new Error(data.error);
 
       if (data?.user_email && data?.user_password && !user) {
@@ -482,6 +524,23 @@ const Checkout = () => {
         </section>
       </main>
       <Footer />
+
+      {/* Rate Limit Popup */}
+      <AlertDialog open={rateLimitOpen} onOpenChange={setRateLimitOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>⚠️ অর্ডার সীমা অতিক্রম</AlertDialogTitle>
+            <AlertDialogDescription className="text-base">
+              {rateLimitMessage}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Link to="/contact">
+              <AlertDialogAction>কন্টাক করুন</AlertDialogAction>
+            </Link>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
