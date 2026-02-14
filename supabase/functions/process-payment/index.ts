@@ -27,17 +27,17 @@ Deno.serve(async (req) => {
                      req.headers.get("cf-connecting-ip") || null;
 
     if (clientIp) {
-      const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+      const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
       const { count } = await supabase
         .from("orders")
         .select("*", { count: "exact", head: true })
         .eq("ip_address", clientIp)
-        .gte("created_at", thirtyMinAgo);
+        .gte("created_at", tenMinAgo);
 
-      if (count !== null && count >= 3) {
+      if (count !== null && count >= 2) {
         return new Response(JSON.stringify({
           error: "rate_limit",
-          message: "আপনি বার বার কেনার চেষ্টা করায় আপাততো আপনি অর্ডার করতে পারবেন না। আমাদের সাথে কন্টাক করুন।",
+          message: "কম সময়ে বার বার কেনার কারনে আপনাকে আপাততো ব্লোক করে রাখা হয়েছে, বিস্তারিত জানতে কন্টাক করুন।",
         }), {
           status: 429,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
