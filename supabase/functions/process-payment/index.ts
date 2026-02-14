@@ -15,12 +15,35 @@ Deno.serve(async (req) => {
     const {
       course_slug, payment_method, amount, user_id,
       course_title, full_name, email, password, phone, address,
-      sender_phone, trx_id
+      sender_phone, trx_id, coupon_code, coupon_discount
     } = await req.json();
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // === IP Rate Limiting ===
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+                     req.headers.get("cf-connecting-ip") || null;
+
+    if (clientIp) {
+      const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+      const { count } = await supabase
+        .from("orders")
+        .select("*", { count: "exact", head: true })
+        .eq("ip_address", clientIp)
+        .gte("created_at", thirtyMinAgo);
+
+      if (count !== null && count >= 3) {
+        return new Response(JSON.stringify({
+          error: "rate_limit",
+          message: "আপনি বার বার কেনার চেষ্টা করায় আপাততো আপনি অর্ডার করতে পারবেন না। আমাদের সাথে কন্টাক করুন।",
+        }), {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
 
     // === Step 1: Resolve user ===
     let resolvedUserId = user_id;
@@ -28,7 +51,6 @@ Deno.serve(async (req) => {
     let userPassword = password;
 
     if (!resolvedUserId && email && password) {
-      // Try to create a new user with auto-confirm
       const { data: createData, error: createErr } = await supabase.auth.admin.createUser({
         email,
         password,
@@ -38,12 +60,10 @@ Deno.serve(async (req) => {
 
       if (createErr) {
         if (createErr.message?.includes("already been registered") || createErr.message?.includes("already exists")) {
-          // User exists - look up by email
           const { data: listData } = await supabase.auth.admin.listUsers();
           const existingUser = listData?.users?.find((u: any) => u.email === email);
           if (existingUser) {
             resolvedUserId = existingUser.id;
-            // Auto-confirm email for existing unconfirmed users
             await supabase.auth.admin.updateUserById(existingUser.id, {
               email_confirm: true,
             });
@@ -57,7 +77,6 @@ Deno.serve(async (req) => {
         resolvedUserId = createData.user.id;
       }
 
-      // Update profile with phone and address
       if (resolvedUserId) {
         await supabase.from("profiles").update({ phone, address, full_name }).eq("id", resolvedUserId);
       }
@@ -76,6 +95,14 @@ Deno.serve(async (req) => {
       courseId = courseData?.id || null;
     }
 
+    // === Mark checkout attempt as converted ===
+    if (email || phone) {
+      const query = supabase.from("checkout_attempts").update({ is_converted: true });
+      if (email) query.eq("email", email);
+      if (course_slug) query.eq("course_slug", course_slug);
+      await query;
+    }
+
     // === Step 3: Create order and process payment ===
 
     // Manual BD payments and COD
@@ -91,6 +118,7 @@ Deno.serve(async (req) => {
           course_id: courseId,
           sender_phone: sender_phone || null,
           trx_id: trx_id || null,
+          ip_address: clientIp,
         })
         .select()
         .single();
@@ -117,6 +145,7 @@ Deno.serve(async (req) => {
         payment_method,
         payment_status: "pending",
         course_id: courseId,
+        ip_address: clientIp,
       })
       .select()
       .single();
