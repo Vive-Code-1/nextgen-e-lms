@@ -56,8 +56,8 @@ const HeroSection = () => {
               <ShinyText
                 text={t("hero.headline_highlight")}
                 speed={3.2}
-                color="#b5b5b5"
-                shineColor="#FCC522"
+                color="#ffffff"
+                shineColor="#EBB72C"
                 spread={120}
                 direction="left"
               />
