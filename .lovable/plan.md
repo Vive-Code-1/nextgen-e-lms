@@ -1,26 +1,21 @@
 
 
-# Contact Page: Left Column Height Match Fix
+# Fix Contact Info Card Content Vertical Alignment
 
 ## Problem
-The left column (Address, Phone, Email) has 3 separate cards with `space-y-4` gaps, leaving empty space at the bottom since it's shorter than the right column form card.
+The left contact info card has content bunched at the top with extra empty space at the bottom. The `flex-1` on the last item stretches it but doesn't distribute space evenly.
 
 ## Solution
-Merge the 3 separate info cards into a single unified card that stretches to match the form's height, with dividers between items -- matching the reference image.
 
-### Changes to `src/pages/Contact.tsx`
+**File: `src/pages/Contact.tsx`** (lines 67-70)
 
-**Left column (lines 68-81):**
-- Replace `space-y-4` wrapper with a single `bg-card border border-border rounded-2xl h-full flex flex-col divide-y divide-border` container
-- Remove individual card borders/rounded corners/shadows from each info item
-- Each item becomes a `p-6 flex items-start gap-4` section inside the unified card
-- The last item gets `flex-1` so the card stretches evenly to fill remaining space
+- Add `justify-center` to the parent card container so all 3 items are vertically centered within the card height
+- Remove the `flex-1` conditional from the last item since vertical centering handles the spacing naturally
 
-**Grid gap (line 67):**
-- Change `gap-12` to `gap-8` for tighter layout matching the reference
+| Line | Current | New |
+|------|---------|-----|
+| 68 | `bg-card border border-border rounded-2xl h-full flex flex-col divide-y divide-border` | `bg-card border border-border rounded-2xl h-full flex flex-col divide-y divide-border justify-center` |
+| 70 | `className={..p-6.. ${i === infoCards.length - 1 ? 'flex-1' : ''}}` | `className="p-6 flex items-start gap-4 text-left"` (no conditional) |
 
-### File to Modify
-| File | Change |
-|------|--------|
-| `src/pages/Contact.tsx` | Unified single card for info items with `divide-y`, remove individual card styling, adjust gap |
+This vertically centers all three info blocks within the card, distributing the empty space equally above and below.
 
