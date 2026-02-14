@@ -64,10 +64,10 @@ const Contact = () => {
         {/* Contact Section */}
         <section className="py-16 bg-muted/50">
           <div className="max-w-[80vw] mx-auto px-4">
-            <div className="grid md:grid-cols-2 gap-12 items-stretch">
-              <div className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-8 items-stretch">
+              <div className="bg-card border border-border rounded-2xl h-full flex flex-col divide-y divide-border">
                 {infoCards.map((card, i) => (
-                  <div key={i} className="bg-card border border-border rounded-2xl p-4 flex items-start gap-4 text-left hover:shadow-lg transition-shadow">
+                  <div key={i} className={`p-6 flex items-start gap-4 text-left ${i === infoCards.length - 1 ? 'flex-1' : ''}`}>
                     <div className={`rounded-full ${card.bg} p-3 shrink-0`}>
                       <card.icon className={`h-5 w-5 ${card.color}`} />
                     </div>
