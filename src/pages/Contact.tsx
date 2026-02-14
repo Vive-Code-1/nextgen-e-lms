@@ -7,10 +7,8 @@ import { MapPin, Phone, Mail, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Send } from "lucide-react";
 
 const Contact = () => {
   const { t } = useLanguage();
@@ -66,12 +64,11 @@ const Contact = () => {
         {/* Contact Section */}
         <section className="py-16 bg-muted/50">
           <div className="max-w-[80vw] mx-auto px-4">
-            <div className="grid md:grid-cols-2 gap-8 items-stretch">
-              {/* Unified Contact Info Card */}
-              <div className="bg-card border border-border rounded-2xl divide-y divide-border h-full flex flex-col justify-center">
+            <div className="grid md:grid-cols-2 gap-12 items-stretch">
+              <div className="space-y-4">
                 {infoCards.map((card, i) => (
-                  <div key={i} className="flex items-start gap-4 p-6 text-left">
-                    <div className={`rounded-full ${card.bg} p-3.5 shrink-0`}>
+                  <div key={i} className="bg-card border border-border rounded-2xl p-4 flex items-start gap-4 text-left hover:shadow-lg transition-shadow">
+                    <div className={`rounded-full ${card.bg} p-3 shrink-0`}>
                       <card.icon className={`h-5 w-5 ${card.color}`} />
                     </div>
                     <div>
@@ -82,37 +79,18 @@ const Contact = () => {
                   </div>
                 ))}
               </div>
-
-              {/* Enhanced Form */}
-              <div className="bg-card border border-border rounded-2xl p-8 md:p-10 flex flex-col">
-                <h2 className="text-2xl font-bold text-foreground mb-6">{t("contact.send_message") || "Send Message"}</h2>
-                <form className="space-y-5 flex flex-col flex-1" onSubmit={handleSubmit}>
+              <div className="bg-card border border-border rounded-2xl p-8 flex flex-col">
+                <form className="space-y-4 flex flex-col flex-1" onSubmit={handleSubmit}>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium text-foreground">{t("contact.name_label") || "Name"} <span className="text-destructive">*</span></Label>
-                      <Input placeholder={t("contact.name_placeholder")} value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} className="h-12 bg-muted/50" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium text-foreground">{t("contact.email_label") || "Email"} <span className="text-destructive">*</span></Label>
-                      <Input placeholder={t("contact.email_placeholder")} type="email" value={form.email} onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))} className="h-12 bg-muted/50" />
-                    </div>
+                    <Input placeholder={t("contact.name_placeholder")} value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} className="h-12 bg-background" />
+                    <Input placeholder={t("contact.email_placeholder")} type="email" value={form.email} onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))} className="h-12 bg-background" />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium text-foreground">{t("contact.phone_label") || "Phone"}</Label>
-                      <Input placeholder={t("contact.phone_placeholder")} type="tel" value={form.phone} onChange={(e) => setForm(f => ({ ...f, phone: e.target.value }))} className="h-12 bg-muted/50" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium text-foreground">{t("contact.subject_label") || "Subject"}</Label>
-                      <Input placeholder={t("contact.subject_placeholder")} value={form.subject} onChange={(e) => setForm(f => ({ ...f, subject: e.target.value }))} className="h-12 bg-muted/50" />
-                    </div>
+                    <Input placeholder={t("contact.phone_placeholder")} type="tel" value={form.phone} onChange={(e) => setForm(f => ({ ...f, phone: e.target.value }))} className="h-12 bg-background" />
+                    <Input placeholder={t("contact.subject_placeholder")} value={form.subject} onChange={(e) => setForm(f => ({ ...f, subject: e.target.value }))} className="h-12 bg-background" />
                   </div>
-                  <div className="space-y-2 flex-1 flex flex-col">
-                    <Label className="text-sm font-medium text-foreground">{t("contact.message_label") || "Message"} <span className="text-destructive">*</span></Label>
-                    <Textarea placeholder={t("contact.message_placeholder")} rows={6} value={form.message} onChange={(e) => setForm(f => ({ ...f, message: e.target.value }))} className="bg-muted/50 flex-1" />
-                  </div>
-                  <Button type="submit" disabled={loading} className="w-full h-12 bg-amber-cta text-foreground hover:bg-amber-cta/90 font-semibold text-base rounded-full gap-2">
-                    <Send className="h-4 w-4" />
+                  <Textarea placeholder={t("contact.message_placeholder")} rows={7} value={form.message} onChange={(e) => setForm(f => ({ ...f, message: e.target.value }))} className="bg-background flex-1" />
+                  <Button type="submit" disabled={loading} className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold">
                     {loading ? "Sending..." : t("contact.send_button")}
                   </Button>
                 </form>
