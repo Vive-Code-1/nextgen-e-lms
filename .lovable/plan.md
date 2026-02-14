@@ -1,38 +1,26 @@
 
 
-# Contact Page Redesign
+# Contact Page: Left Column Height Match Fix
 
-Based on the reference images, here are the key visual improvements:
+## Problem
+The left column (Address, Phone, Email) has 3 separate cards with `space-y-4` gaps, leaving empty space at the bottom since it's shorter than the right column form card.
 
-## Changes to `src/pages/Contact.tsx`
+## Solution
+Merge the 3 separate info cards into a single unified card that stretches to match the form's height, with dividers between items -- matching the reference image.
 
-### Left Column: Unified Contact Info Card
-Currently the 3 info cards (Address, Phone, Email) are separate cards with gaps between them. The reference shows them inside **one single card** separated by horizontal dividers, filling the full height.
+### Changes to `src/pages/Contact.tsx`
 
-- Wrap all 3 info items in a single `bg-card border rounded-2xl` container
-- Use `divide-y divide-border` to create subtle dividers between items
-- Each item gets more padding (`p-6`) for breathing room
-- Remove individual card borders/shadows
-- Add `h-full` so the card stretches to match the form height
+**Left column (lines 68-81):**
+- Replace `space-y-4` wrapper with a single `bg-card border border-border rounded-2xl h-full flex flex-col divide-y divide-border` container
+- Remove individual card borders/rounded corners/shadows from each info item
+- Each item becomes a `p-6 flex items-start gap-4` section inside the unified card
+- The last item gets `flex-1` so the card stretches evenly to fill remaining space
 
-### Right Column: Enhanced Form
-- Add a bold heading at the top: "Send Message" / "মেসেজ পাঠান"
-- Add field labels above each input (Name, Email, Phone, Subject, Message) with required asterisk indicators
-- Increase input styling with subtle background tint and larger padding
-- Make the submit button more prominent: golden amber (`bg-amber-500`) with full-width, rounded-full, and a send icon
-- Increase overall card padding
-
-### Layout
-- Both columns use `items-stretch` (already present) so they match height
-- Reduce gap slightly from `gap-12` to `gap-8` for a tighter look
-
-## Technical Details
+**Grid gap (line 67):**
+- Change `gap-12` to `gap-8` for tighter layout matching the reference
 
 ### File to Modify
 | File | Change |
 |------|--------|
-| `src/pages/Contact.tsx` | Redesign contact info layout (unified card with dividers), add form labels and heading, style submit button |
-
-### Translation Keys
-The existing translation keys will be reused. The form heading and label texts will use existing keys where available, and inline text where not.
+| `src/pages/Contact.tsx` | Unified single card for info items with `divide-y`, remove individual card styling, adjust gap |
 
