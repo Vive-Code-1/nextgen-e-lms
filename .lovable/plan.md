@@ -1,99 +1,85 @@
 
 
-# Fix Checkout Pricing and Add Coupon Management
+# Footer Layout, Section Reorder, ShinyText, and BlurText Effects
 
-## Issue 1: Checkout Shows Original Price Instead of Discount Price
+## 1. Footer: Mobile Support Section Side-by-Side
 
-**Root cause**: The checkout page uses `course.price` (10000) everywhere instead of calculating the effective price. Even though `coursePrice` is computed on line 104, it's never used in the display or payment body.
+Currently the footer uses `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`. On mobile (below `sm`), all 4 sections stack vertically. The user wants Quick Links and Support to sit side-by-side on mobile.
 
-**Affected lines in `src/pages/Checkout.tsx`:**
-- Line 111: `amount: course.price` -- sends original price to payment function
-- Line 344: Pay button shows `course.price`
-- Line 364: Order summary shows `course.price`
-- Line 372: Total shows `course.price`
+**File: `src/components/Footer.tsx`**
+- Wrap Quick Links and Support in a single grid cell on mobile using a nested `grid grid-cols-2` layout
+- This makes them appear side-by-side even on small screens, reducing footer height
 
-**Fix**: Compute `effectivePrice` once and use it everywhere:
-```typescript
-const effectivePrice = course.has_discount && course.discount_price 
-  ? course.discount_price 
-  : (course.price || 0);
+**Change**: Replace the current flat 4-column grid with a structure where Brand is full-width, Quick Links + Support share a row, and Newsletter is full-width on mobile.
+
+## 2. Reorder: WhyChooseUs Above TrustedBy
+
+**File: `src/pages/Index.tsx`**
+
+Swap the order of `<WhyChooseUs />` and `<TrustedBy />`:
+
 ```
-Replace all `course.price` references in the display and payment body with `effectivePrice`.
-
----
-
-## Issue 2: Coupon Management System
-
-### Database: New `coupons` table
-
-```sql
-CREATE TABLE public.coupons (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  code text NOT NULL UNIQUE,
-  discount_type text NOT NULL DEFAULT 'percentage', -- 'percentage' or 'fixed'
-  discount_value numeric NOT NULL DEFAULT 0,
-  min_order_amount numeric DEFAULT 0,
-  max_uses integer, -- NULL = unlimited
-  times_used integer NOT NULL DEFAULT 0,
-  valid_from timestamptz DEFAULT now(),
-  valid_until timestamptz,
-  active boolean NOT NULL DEFAULT true,
-  created_at timestamptz NOT NULL DEFAULT now()
-);
+Before: ... TestimonialCarousel -> TrustedBy -> WhyChooseUs -> ShareKnowledge
+After:  ... TestimonialCarousel -> WhyChooseUs -> TrustedBy -> ShareKnowledge
 ```
 
-RLS: Admin full access, anyone can SELECT active coupons (needed for validation on checkout).
+## 3. ShinyText Effect on "Potential with"
 
-### Admin Panel: Coupon Management
+The user provided a ShinyText component that uses `motion/react` (framer-motion). This package is **not currently installed** and needs to be added.
 
-**New file: `src/components/admin/AdminCoupons.tsx`**
+**New dependency**: `motion` (the modern framer-motion package, importable as `motion/react`)
 
-Features:
-- Table listing all coupons (Code, Type, Value, Uses, Valid Until, Status)
-- "Add Coupon" button opens a dialog/form with fields:
-  - Code (text)
-  - Discount Type (percentage / fixed)
-  - Discount Value (number)
-  - Min Order Amount (number)
-  - Max Uses (number, optional)
-  - Valid From / Valid Until (date pickers)
-  - Active toggle
-- Edit button to modify existing coupons
-- Delete button to remove coupons
+**New files**:
+- `src/components/ui/ShinyText.tsx` -- the ShinyText component (converted from user's code)
+- `src/components/ui/ShinyText.css` -- minimal CSS (`.shiny-text { display: inline-block; }`)
 
-**File: `src/pages/AdminDashboard.tsx`**
-- Add sidebar link: `{ icon: Tag, label: "Coupons", id: "coupons" }`
-- Add rendering for `AdminCoupons` component
+**File: `src/components/home/HeroSection.tsx`**
+- Import ShinyText
+- Change the hero headline so that only "Potential with" (from `hero.headline_highlight`) uses ShinyText with the specified props (speed=2, color="#b5b5b5", shineColor="#7F3AEE", spread=120, direction="left")
+- The rest of the headline remains as plain text
 
-### Checkout Page: Coupon Field
+Note: For Bengali translation, the highlight text is different ("দক্ষতা বৃদ্ধি"), so ShinyText will apply to whatever the translation returns for `hero.headline_highlight`.
 
-**File: `src/pages/Checkout.tsx`**
+## 4. Replace ScrollFloat with BlurText on 6 Section Titles
 
-Add a coupon input section in the Order Summary sidebar:
-- Input field + "Apply" button
-- On apply: query `coupons` table to validate code (active, not expired, usage not exceeded, min order met)
-- If valid: show discount breakdown (original price, coupon discount, new total)
-- If invalid: show error message
-- Update the `effectivePrice` to subtract coupon discount
-- Send `coupon_code` and `coupon_discount` in the payment body
+Replace the current `ScrollFloat` animation on these 6 section titles with the user-provided `BlurText` component:
 
-### Price Display Logic
+1. **Browse Categories** (`src/components/home/CategorySection.tsx`) -- line 24
+2. **Trending Courses** (`src/components/home/PopularCourses.tsx`) -- line 106
+3. **Featured Instructors** (`src/components/home/FeaturedInstructors.tsx`) -- line 109
+4. **What Our Students Say** (`src/components/home/TestimonialCarousel.tsx`) -- line 70
+5. **Why Choose Us** (`src/components/home/WhyChooseUs.tsx`) -- line 41
+6. **Frequently Asked Questions** (`src/components/home/ShareKnowledge.tsx`) -- line 49
 
-```text
-Order Summary:
-  Course Price:     $999   (after course discount)
-  Coupon (CODE10):  -$100  (if coupon applied)
-  Tax:              $0.00
-  ──────────────
-  Total:            $899
-```
+**New file**: `src/components/ui/BlurText.tsx` -- the BlurText component (converted from user's code)
 
-## Files to Create/Modify
+**In each of the 6 files**:
+- Replace `ScrollFloat` import with `BlurText` import
+- Replace `<ScrollFloat textClassName="...">Title Text</ScrollFloat>` with `<BlurText text={t("key")} delay={200} animateBy="words" direction="top" className="..." />`
+- BlurText renders as a `<p>` tag, so adjust the wrapping `<h2>` accordingly
 
-| File | Action |
+## Technical Details
+
+### New Dependency
+- `motion` (framer-motion v11+, exports from `motion/react`)
+
+### Files to Create
+| File | Purpose |
+|------|---------|
+| `src/components/ui/ShinyText.tsx` | Shiny text animation component |
+| `src/components/ui/ShinyText.css` | ShinyText styles |
+| `src/components/ui/BlurText.tsx` | Blur reveal text animation component |
+
+### Files to Modify
+| File | Change |
 |------|--------|
-| Migration (coupons table) | Create |
-| `src/pages/Checkout.tsx` | Fix price display + add coupon field |
-| `src/components/admin/AdminCoupons.tsx` | Create (CRUD for coupons) |
-| `src/pages/AdminDashboard.tsx` | Add Coupons tab |
+| `src/components/Footer.tsx` | Mobile grid layout for Quick Links + Support side-by-side |
+| `src/pages/Index.tsx` | Swap WhyChooseUs and TrustedBy order |
+| `src/components/home/HeroSection.tsx` | Add ShinyText to "Potential with" |
+| `src/components/home/CategorySection.tsx` | ScrollFloat to BlurText |
+| `src/components/home/PopularCourses.tsx` | ScrollFloat to BlurText |
+| `src/components/home/FeaturedInstructors.tsx` | ScrollFloat to BlurText |
+| `src/components/home/TestimonialCarousel.tsx` | ScrollFloat to BlurText |
+| `src/components/home/WhyChooseUs.tsx` | ScrollFloat to BlurText |
+| `src/components/home/ShareKnowledge.tsx` | ScrollFloat to BlurText |
 
