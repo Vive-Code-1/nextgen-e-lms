@@ -1,7 +1,7 @@
 import { Award, Headphones, Users } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
-import ScrollFloat from "@/components/ui/ScrollFloat";
+import BlurText from "@/components/ui/BlurText";
 import ScrollRevealText from "@/components/ui/ScrollReveal";
 import SpotlightCard from "@/components/ui/SpotlightCard";
 
@@ -35,9 +35,7 @@ const WhyChooseUs = () => {
       <div className="container mx-auto px-4" ref={ref}>
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-primary mb-3">
-            <ScrollFloat textClassName="text-3xl md:text-4xl font-bold text-primary">
-              {t("why.title")}
-            </ScrollFloat>
+            <BlurText text={t("why.title")} delay={200} animateBy="words" direction="top" className="text-3xl md:text-4xl font-bold text-primary justify-center" />
           </h2>
           <ScrollRevealText
             baseRotation={0}

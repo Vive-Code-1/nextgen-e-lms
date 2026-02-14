@@ -21,8 +21,8 @@ const Index = () => {
         <MasterSkills />
         <FeaturedInstructors />
         <TestimonialCarousel />
-        <TrustedBy />
         <WhyChooseUs />
+        <TrustedBy />
         <ShareKnowledge />
       </main>
       <Footer />

@@ -47,7 +47,7 @@ const Footer = () => {
   return (
     <footer className="bg-indigo-dark text-white">
       <div className="container mx-auto px-4 py-14">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 font-bold text-xl">
@@ -59,32 +59,32 @@ const Footer = () => {
             </p>
           </div>
 
-          {/* Quick Links */}
-          <div>
-            <h4 className="font-semibold mb-4 text-accent">{t("footer.quick_links")}</h4>
-            <ul className="space-y-2.5">
-              {quickLinks.map((link) => (
-                <li key={link.to}>
-                  <Link to={link.to} className="text-sm text-white/70 hover:text-accent transition-colors">
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Support */}
-          <div>
-            <h4 className="font-semibold mb-4 text-accent">{t("footer.support")}</h4>
-            <ul className="space-y-2.5">
-              {supportLinks.map((link) => (
-                <li key={link.label}>
-                  <span className="text-sm text-white/70 hover:text-accent transition-colors cursor-pointer">
-                    {link.label}
-                  </span>
-                </li>
-              ))}
-            </ul>
+          {/* Quick Links + Support side-by-side on mobile */}
+          <div className="grid grid-cols-2 lg:contents gap-6">
+            <div>
+              <h4 className="font-semibold mb-4 text-accent">{t("footer.quick_links")}</h4>
+              <ul className="space-y-2.5">
+                {quickLinks.map((link) => (
+                  <li key={link.to}>
+                    <Link to={link.to} className="text-sm text-white/70 hover:text-accent transition-colors">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4 text-accent">{t("footer.support")}</h4>
+              <ul className="space-y-2.5">
+                {supportLinks.map((link) => (
+                  <li key={link.label}>
+                    <span className="text-sm text-white/70 hover:text-accent transition-colors cursor-pointer">
+                      {link.label}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
           {/* Newsletter */}

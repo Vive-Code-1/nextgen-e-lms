@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
-import ScrollFloat from "@/components/ui/ScrollFloat";
+import BlurText from "@/components/ui/BlurText";
 import ScrollRevealText from "@/components/ui/ScrollReveal";
 import { Link } from "react-router-dom";
 import SpotlightCard from "@/components/ui/SpotlightCard";
@@ -103,9 +103,7 @@ const PopularCourses = () => {
       <div className="max-w-[80vw] mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
-            <ScrollFloat textClassName="text-3xl md:text-4xl font-bold text-foreground">
-              {t("courses.title")}
-            </ScrollFloat>
+            <BlurText text={t("courses.title")} delay={200} animateBy="words" direction="top" className="text-3xl md:text-4xl font-bold text-foreground justify-center" />
           </h2>
           <ScrollRevealText baseRotation={0} containerClassName="text-muted-foreground max-w-2xl mx-auto" textClassName="text-muted-foreground">
             {t("courses.subtitle")}

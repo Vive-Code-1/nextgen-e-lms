@@ -1,5 +1,5 @@
 import { Heart, CheckCircle, Users } from "lucide-react";
-import ScrollFloat from "@/components/ui/ScrollFloat";
+import BlurText from "@/components/ui/BlurText";
 import ScrollReveal from "@/components/ui/ScrollReveal";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
@@ -106,9 +106,7 @@ const FeaturedInstructors = () => {
       <div className="max-w-[80vw] mx-auto px-4" ref={ref}>
         <div className="text-center mb-12">
           <h2 className="text-2xl md:text-4xl font-extrabold text-foreground mb-3">
-            <ScrollFloat textClassName="text-2xl md:text-4xl font-extrabold text-foreground">
-              {t("instructors.title")}
-            </ScrollFloat>
+            <BlurText text={t("instructors.title")} delay={200} animateBy="words" direction="top" className="text-2xl md:text-4xl font-extrabold text-foreground justify-center" />
           </h2>
           <ScrollReveal
             baseRotation={0}
