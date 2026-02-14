@@ -65,9 +65,9 @@ const Contact = () => {
         <section className="py-16 bg-muted/50">
           <div className="max-w-[80vw] mx-auto px-4">
             <div className="grid md:grid-cols-2 gap-8 items-stretch">
-              <div className="bg-card border border-border rounded-2xl h-full flex flex-col divide-y divide-border">
+              <div className="bg-card border border-border rounded-2xl h-full flex flex-col divide-y divide-border justify-center">
                 {infoCards.map((card, i) => (
-                  <div key={i} className={`p-6 flex items-start gap-4 text-left ${i === infoCards.length - 1 ? 'flex-1' : ''}`}>
+                  <div key={i} className="p-6 flex items-start gap-4 text-left">
                     <div className={`rounded-full ${card.bg} p-3 shrink-0`}>
                       <card.icon className={`h-5 w-5 ${card.color}`} />
                     </div>
