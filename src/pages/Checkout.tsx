@@ -219,19 +219,15 @@ const Checkout = () => {
         },
       });
 
-      // Handle non-2xx responses - check if it's a rate limit
-      if (fnErr) {
-        try {
-          const errorBody = await fnErr.context?.json?.();
-          if (errorBody?.error === "rate_limit") {
-            setRateLimitMessage(errorBody.message);
-            setRateLimitOpen(true);
-            setLoading(false);
-            return;
-          }
-        } catch {}
-        throw fnErr;
+      // Check rate limit (returned as 200 with error flag)
+      if (data?.error === "rate_limit") {
+        setRateLimitMessage(data.message);
+        setRateLimitOpen(true);
+        setLoading(false);
+        return;
       }
+
+      if (fnErr) throw fnErr;
 
       if (data?.error) throw new Error(data.error);
 

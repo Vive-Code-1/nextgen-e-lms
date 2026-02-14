@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
           error: "rate_limit",
           message: "কম সময়ে বার বার কেনার কারনে আপনাকে আপাততো ব্লোক করে রাখা হয়েছে, বিস্তারিত জানতে কন্টাক করুন।",
         }), {
-          status: 429,
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
