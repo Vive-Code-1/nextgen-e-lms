@@ -219,14 +219,15 @@ const Checkout = () => {
         },
       });
 
-      if (fnErr) throw fnErr;
-
-      // Check for rate limit error
-      if (data?.error === "rate_limit") {
-        setRateLimitMessage(data.message);
-        setRateLimitOpen(true);
-        setLoading(false);
-        return;
+      // Handle non-2xx responses - check if it's a rate limit
+      if (fnErr) {
+        if (data?.error === "rate_limit") {
+          setRateLimitMessage(data.message);
+          setRateLimitOpen(true);
+          setLoading(false);
+          return;
+        }
+        throw fnErr;
       }
 
       if (data?.error) throw new Error(data.error);
@@ -534,10 +535,13 @@ const Checkout = () => {
               {rateLimitMessage}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <Link to="/contact">
-              <AlertDialogAction>কন্টাক করুন</AlertDialogAction>
-            </Link>
+          <AlertDialogFooter className="flex gap-3 sm:justify-center">
+            <a href="https://wa.me/8801332052874" target="_blank" rel="noopener noreferrer">
+              <Button className="bg-green-600 hover:bg-green-700 text-white">WhatsApp</Button>
+            </a>
+            <a href="https://facebook.com/digitaltechdude" target="_blank" rel="noopener noreferrer">
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white">Facebook</Button>
+            </a>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
