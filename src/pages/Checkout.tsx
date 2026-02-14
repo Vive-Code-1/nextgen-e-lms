@@ -221,12 +221,15 @@ const Checkout = () => {
 
       // Handle non-2xx responses - check if it's a rate limit
       if (fnErr) {
-        if (data?.error === "rate_limit") {
-          setRateLimitMessage(data.message);
-          setRateLimitOpen(true);
-          setLoading(false);
-          return;
-        }
+        try {
+          const errorBody = await fnErr.context?.json?.();
+          if (errorBody?.error === "rate_limit") {
+            setRateLimitMessage(errorBody.message);
+            setRateLimitOpen(true);
+            setLoading(false);
+            return;
+          }
+        } catch {}
         throw fnErr;
       }
 
