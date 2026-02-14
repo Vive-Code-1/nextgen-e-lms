@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Star } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import ScrollFloat from "@/components/ui/ScrollFloat";
+import BlurText from "@/components/ui/BlurText";
 import { supabase } from "@/integrations/supabase/client";
 
 const staticTestimonials = [
@@ -67,9 +67,7 @@ const TestimonialCarousel = () => {
     <section className="py-16 md:py-20 bg-background overflow-hidden">
       <div className="max-w-[80vw] mx-auto px-4 mb-12 text-center">
         <h2 className="text-2xl md:text-4xl font-extrabold text-foreground mb-3">
-          <ScrollFloat textClassName="text-2xl md:text-4xl font-extrabold text-foreground">
-            {t("testimonials.title")}
-          </ScrollFloat>
+          <BlurText text={t("testimonials.title")} delay={200} animateBy="words" direction="top" className="text-2xl md:text-4xl font-extrabold text-foreground justify-center" />
         </h2>
         <p className="text-muted-foreground max-w-2xl mx-auto">{t("testimonials.subtitle")}</p>
       </div>

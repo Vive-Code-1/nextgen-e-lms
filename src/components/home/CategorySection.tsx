@@ -1,6 +1,6 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Palette, Video, Megaphone, Search, Code, ShoppingCart } from "lucide-react";
-import ScrollFloat from "@/components/ui/ScrollFloat";
+import BlurText from "@/components/ui/BlurText";
 import ScrollReveal from "@/components/ui/ScrollReveal";
 import { Link } from "react-router-dom";
 
@@ -21,9 +21,7 @@ const CategorySection = () => {
       <div className="max-w-[80vw] mx-auto px-4">
         <div className="text-center mb-10">
           <h2 className="text-2xl md:text-4xl font-extrabold text-foreground mb-3">
-            <ScrollFloat textClassName="text-2xl md:text-4xl font-extrabold text-foreground">
-              {t("categories.title")}
-            </ScrollFloat>
+            <BlurText text={t("categories.title")} delay={200} animateBy="words" direction="top" className="text-2xl md:text-4xl font-extrabold text-foreground justify-center" />
           </h2>
           <ScrollReveal
             baseRotation={0}

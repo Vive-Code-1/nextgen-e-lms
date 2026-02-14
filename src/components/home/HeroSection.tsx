@@ -1,5 +1,6 @@
 import { ArrowRight, Search, ChevronDown } from "lucide-react";
 import ScrollReveal from "@/components/ui/ScrollReveal";
+import ShinyText from "@/components/ui/ShinyText";
 import { useLanguage } from "@/contexts/LanguageContext";
 import heroBanner from "@/assets/hero-banner.webp";
 import heroVideo from "@/assets/hero-video.webm";
@@ -52,7 +53,14 @@ const HeroSection = () => {
           <div className="space-y-3 md:space-y-6 flex flex-col items-center md:items-start text-center md:text-left">
             <h1 className="text-2xl md:text-5xl lg:text-6xl font-extrabold leading-tight text-white animate-fade-in-up">
               {t("hero.headline_1")}
-              <span className="text-coral-pink">{t("hero.headline_highlight")}</span>
+              <ShinyText
+                text={t("hero.headline_highlight")}
+                speed={2}
+                color="#b5b5b5"
+                shineColor="#7F3AEE"
+                spread={120}
+                direction="left"
+              />
               {t("hero.headline_2")}
             </h1>
             <ScrollReveal
